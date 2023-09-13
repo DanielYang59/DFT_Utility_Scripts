@@ -47,7 +47,7 @@ def read_intermediate_csv(filepath: Path) -> pd.DataFrame:
 
     return df
 
-def read_reaction_pathway(json_path: str) -> dict:
+def read_reaction_data(json_path: str) -> dict:
     """
     Read the reaction pathway from a JSON file.
 
@@ -65,32 +65,7 @@ def read_reaction_pathway(json_path: str) -> dict:
     with json_path.open("r") as f:
         data = json.load(f)
 
-    # Check tag names
-    required_tags = ["Reaction_Name", "External_Conditions", "Intrinsic_Properties"]
-    for tag in required_tags:
-        if tag not in data:
-            raise ValueError(f"Required tag {tag} not found in JSON file.")
-
-    external_conditions = ["pH", "applied_potential_V", "target_temperature_K"]
-    for condition in external_conditions:
-        if condition not in data["External_Conditions"]:
-            raise ValueError(f"Required condition {condition} not found in JSON file.")
-
-        value = data["External_Conditions"][condition]
-        if not isinstance(value, (float, int)):
-            raise TypeError(f"{condition} should be a float or integer.")
-
-    intrinsic_properties = ["equilibrium_potential_V", "Reaction_Steps"]
-    for prop in intrinsic_properties:
-        if prop not in data["Intrinsic_Properties"]:
-            raise ValueError(f"Required intrinsic property {prop} not found in JSON file.")
-
-        if prop == "equilibrium_potential_V":
-            value = data["Intrinsic_Properties"][prop]
-            if not isinstance(value, (float, int)):
-                raise TypeError(f"{prop} should be a float or integer.")
-
-    # Checking the keys in Reaction_Steps
+    # Checking keys in "Reaction_Steps"
     reaction_steps = data["Intrinsic_Properties"]["Reaction_Steps"]
     step_keys = [int(key) for key in reaction_steps.keys() if key.isdigit()]
 
