@@ -80,3 +80,87 @@ class reactionCalculator:
                     raise KeyError(f"Cannot find energy entry for {species} in molecular_species_energy.csv.")
 
         return total_energy
+
+    def _check_reaction_consistency(self):
+        """
+        Check for consistency in reaction steps.
+        1. The number of atoms should be the same on both sides of each reaction step.
+        2. The number of atoms should be consistent across different reaction steps.
+        """
+
+        # Initialize a dictionary to store the number of each type of atom for the first reaction step
+        initial_atoms_count = {}
+
+        # Loop through each reaction step to check atom balance
+        for step, step_data in self.reaction_data["reaction_steps"].items():
+
+            # Initialize counters for the reactants and products in this step
+            reactant_atoms_count = {}
+            product_atoms_count = {}
+
+            # Count atoms in reactants for this step
+            for reactant, coefficient in step_data["reactants"].items():
+                self._count_atoms(reactant, coefficient, reactant_atoms_count)
+
+            # Count atoms in products for this step
+            for product, coefficient in step_data["products"].items():
+                self._count_atoms(product, coefficient, product_atoms_count)
+
+            # Check if the number of atoms is the same on both sides of this reaction step
+            if reactant_atoms_count != product_atoms_count:
+                raise ValueError(f"Atom count mismatch in reaction step {step}. Reactants: {reactant_atoms_count}, Products: {product_atoms_count}")
+
+            # For the first step, store the atom count for future comparisons
+            if step == "step_1":
+                initial_atoms_count = reactant_atoms_count
+            else:
+                # Check if the number of atoms is consistent across different reaction steps
+                if initial_atoms_count != reactant_atoms_count:
+                    raise ValueError(f"Atom count mismatch between reaction steps. Initial: {initial_atoms_count}, Current step {step}: {reactant_atoms_count}")
+
+    def _count_atoms(self, species: str, coefficient: int, atom_count_dict: dict):
+        """
+        Count the number of atoms in a given species and update the atom count dictionary.
+
+        Parameters:
+            species (str): The chemical species.
+            coefficient (int): The stoichiometric coefficient for this species in the reaction.
+            atom_count_dict (dict): The current count of atoms, which will be updated.
+
+        Returns:
+            None: The atom_count_dict will be updated in place.
+        """
+        # Ignore clean catalyst surface
+        if species == "*":
+            return
+
+        # Handle PEP special case
+        if species == "PEP":
+            atom_count_dict["H"] = atom_count_dict.get("H", 0) + 1 * coefficient
+            return
+
+        # Handle adsorbed species
+        if species.startswith("*"):
+            species = species[1:]
+
+        # Handle free species with state (e.g., H2O_l, CO2_g)
+        if "_" in species:
+            species = species.split("_")[0]
+
+        # Count atoms in the cleaned-up species string
+        current_char = ""
+        current_count = ""
+        for char in species:
+            if char.isalpha():
+                # Save the count of the previous atom
+                if current_char and current_count:
+                    atom_count_dict[current_char] = atom_count_dict.get(current_char, 0) + int(current_count) * coefficient
+                # Start counting a new atom
+                current_char = char
+                current_count = "1"  # Default count is 1
+            elif char.isnumeric():
+                current_count = char  # Override the default count
+
+        # Save the count of the last atom in the string
+        if current_char and current_count:
+            atom_count_dict[current_char] = atom_count_dict.get(current_char, 0) + int(current_count) * coefficient
