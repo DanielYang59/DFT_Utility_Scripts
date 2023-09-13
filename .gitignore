@@ -2,3 +2,5 @@ Z-archive
 **/POTCAR
 !**/potcar/
 **/PSCTR
+data/
+output/
