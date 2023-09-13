@@ -65,7 +65,7 @@ def read_reaction_pathway(json_path: str) -> dict:
     with json_path.open("r") as f:
         data = json.load(f)
 
-    # Check tags
+    # Check tag names
     required_tags = ["Reaction_Name", "External_Conditions", "Intrinsic_Properties"]
     for tag in required_tags:
         if tag not in data:
@@ -89,5 +89,18 @@ def read_reaction_pathway(json_path: str) -> dict:
             value = data["Intrinsic_Properties"][prop]
             if not isinstance(value, (float, int)):
                 raise TypeError(f"{prop} should be a float or integer.")
+
+    # Checking the keys in Reaction_Steps
+    reaction_steps = data["Intrinsic_Properties"]["Reaction_Steps"]
+    step_keys = [int(key) for key in reaction_steps.keys() if key.isdigit()]
+
+    if len(step_keys) != len(reaction_steps):
+        raise ValueError("All keys in Reaction_Steps should be integers.")
+
+    step_keys.sort()
+
+    for i, key in enumerate(step_keys):
+        if key != i + 1:
+            raise ValueError("Step integers should be continuous and greater than 0.")
 
     return data
