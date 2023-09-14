@@ -2,7 +2,26 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from ase.io import read, write
 import inspect
+
+def read_poscar(file_path):
+    """
+    Read a POSCAR file and return an ASE Atoms object.
+
+    Parameters:
+    file_path (Path): Path to the POSCAR file
+
+    Returns:
+    ase.Atoms: ASE Atoms object containing the POSCAR information
+    """
+    return read(file_path, format="vasp")
+
+def write_poscar(atoms, filepath):
+    """
+    Write an ASE Atoms object to a POSCAR file.
+    """
+    write(filepath, atoms, format="vasp")
 
 def find_or_request_poscar():
     """

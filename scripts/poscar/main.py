@@ -1,48 +1,41 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import argparse
-from pathlib import Path
+from src.utilities import find_or_request_poscar, read_poscar, write_poscar, discover_functions
 
-from src.utilities import find_or_request_poscar, discover_functions
-from src.fix_atoms import fix_atoms
-from src.remove_atoms import remove_atoms
-from src.replace_atoms import replace_atoms
-from src.adjust_vacuum import adjust_vacuum
-# from src.coordinate_system_transfer import X
+# from src.fix_atoms import fix_atoms
+# from src.remove_atoms import remove_atoms
+# from src.replace_atoms import replace_atoms
+# from src.adjust_vacuum import adjust_vacuum
+from src.coordinate_system_transfer import cartesian_to_direct, direct_to_cartesian
 
-def main(file_path):
+def main():
     """
-    Main function for manipulating POSCAR files.
+    Main function to run the POSCAR manipulation tool.
     """
-    pass  # TODO:
-
-if __name__ == "__main__":
-    # Initialize argument parser
-    parser = argparse.ArgumentParser(description="Manipulate POSCAR files.")
-    parser.add_argument("-f", "--file_path", type=str, help="Path to the POSCAR file.", default=None)
-
-    # Parse command-line arguments
-    args = parser.parse_args()
-
-    try:
-        # Use utility function to get the POSCAR file path
-        if args.file_path:
-            file_path = find_or_request_poscar(Path(args.file_path))
-        else:
-            file_path = find_or_request_poscar()
-
-        # If a valid file path is obtained, run the main function
-        if file_path and file_path.exists():
-            main(file_path)
-        else:
-            print("No valid POSCAR or CONTCAR file found. Exiting.")
-
-    except FileNotFoundError as e:
-        print(e)
-
-    # List of modules to discover functions from
-    modules = [fix_atoms, remove_atoms, replace_atoms, adjust_vacuum]  # Add more modules as needed
 
     # Discover available functions
-    discover_functions(modules)
+    module_list = [cartesian_to_direct, direct_to_cartesian]
+    discover_functions(module_list)
+
+    # Ask the user to choose a function to execute
+    choice = input("Choose a function to execute by entering its name: ").strip()
+
+    # Find or request the POSCAR file path
+    file_path = find_or_request_poscar()
+
+    # Read the POSCAR file into an ASE Atoms object
+    atoms = read_poscar(file_path)
+
+    # Dynamically execute the chosen function
+    if choice in module_list:
+        new_atoms = globals()[choice](atoms)
+        print(f"Successfully executed {choice}.")
+
+        # For demonstration purposes, let's assume you have a function to write Atoms back to POSCAR
+        write_poscar(new_atoms)
+    else:
+        print("Invalid choice.")
+
+if __name__ == "__main__":
+    main()
