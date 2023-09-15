@@ -3,7 +3,6 @@
 
 from pathlib import Path
 from ase.io import read, write
-import inspect
 
 def read_poscar(file_path):
     """
@@ -43,12 +42,3 @@ def find_or_request_poscar():
         return user_path
     else:
         raise FileNotFoundError(f"The file at {user_path} does not exist.")
-
-def discover_functions(module_list):
-    """
-    Discover available functions in a list of modules.
-    """
-    for module in module_list:
-        functions = [o for o in inspect.getmembers(module) if inspect.isfunction(o[1])]
-        for i, (name, _) in enumerate(functions):
-            print(f"{module.__name__}: Function {i + 1}: {name}")
