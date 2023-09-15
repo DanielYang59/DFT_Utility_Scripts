@@ -49,6 +49,7 @@ By default, the output will be saved in an `output` folder in `.png` format.
 
 Contributions are welcome. Please open an issue or create a pull request with your changes.
 
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
