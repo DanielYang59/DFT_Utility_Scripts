@@ -4,3 +4,4 @@ Z-archive
 **/PSCTR
 data/
 output/
+__pycache__/
