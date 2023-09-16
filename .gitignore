@@ -5,3 +5,4 @@ Z-archive
 data/
 output/
 __pycache__/
+.DS_store
