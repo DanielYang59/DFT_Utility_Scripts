@@ -1,0 +1,13 @@
+##### Config File for Adsorbate Depositor #####
+
+distance: 2.0
+auto_reposition: True
+
+adsorbate_source: "POSCAR"  # or "DATABASE"
+adsorbate_path: "DEBUG"
+adsorbate_rotation: True
+
+sites:
+  "1": "top",
+  "2_3": "bridge",
+  "4_5_6": "centre"
