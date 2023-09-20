@@ -1,0 +1,7 @@
+pathways:
+  pathway_1:
+    step_1:
+      name: "HER"
+      POSCAR_path: "./POSCAR_H"
+      adsorbate_atoms: [103, ]
+      reference_atoms: [103, ]

@@ -1,0 +1,42 @@
+pathways:
+  pathway_1:
+    step_1:
+      name: "CO2"
+      POSCAR_path: "./POSCAR_CO2"
+      adsorbate_atoms: [96, 101, 102]
+      reference_atoms: [96, ]
+    step_2:
+      name: "COOH"
+      POSCAR_path: "./POSCAR_COOH"
+      adsorbate_atoms: [96, 101, 102, 103]
+      reference_atoms: [96, ]
+    step_3:
+      name: "CO"
+      POSCAR_path: "./POSCAR_CO"
+      adsorbate_atoms: [96, 101]
+      reference_atoms: [96, ]
+    step_4:
+      name: "OCH"
+      POSCAR_path: "./POSCAR_OCH"
+      adsorbate_atoms: [26, 60, 61]
+      reference_atoms: [26, ]
+    step_5:
+      name: "OCH2"
+      POSCAR_path: "./POSCAR_OCH2"
+      adsorbate_atoms: [26, 60, 61, 62]
+      reference_atoms: [26, ]
+    step_6:
+      name: "OCH3"
+      POSCAR_path: "./POSCAR_OCH3"
+      adsorbate_atoms: [26, 60, 61, 62, 63]
+      reference_atoms: [60, ]
+    step_7:
+      name: "O"
+      POSCAR_path: "./POSCAR_O"
+      adsorbate_atoms: [59, ]
+      reference_atoms: [59, ]
+    step_8:
+      name: "OH"
+      POSCAR_path: "./POSCAR_OH"
+      adsorbate_atoms: [59, 60]
+      reference_atoms: [59, ]
