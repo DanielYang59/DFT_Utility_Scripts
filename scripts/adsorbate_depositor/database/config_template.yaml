@@ -1,13 +1,21 @@
-##### Config File for Adsorbate Depositor #####
+##### Config File Template for Adsorbate Depositor #####
 
-distance: 2.0
-auto_reposition: True
+substrate:
+  sites: >
+    [
+    "1",                # single site: top
+    "2_3",              # double site: bridge
+    "4_5_6",            # triple site: center
+    "7_8_9_10"          # multiple site: center
+    ]
 
-adsorbate_source: "POSCAR"  # or "DATABASE"
-adsorbate_path: "DEBUG"
-adsorbate_rotation: True
+adsorbate:
+  source: "POSCAR"      # or "DATABASE"
+  reaction_index: None  # only required for DATABASE-sourced adsorbate generation
+  path: ""              # path to POSCAR file or DATABASE dir
+  reference: ""         # required for "POSCAR"-sourced adsorbate generation, reference point (or "CENTROID")
+  rotation: True        # generate rotated adsorbates
 
-sites:
-  "1": "top",
-  "2_3": "bridge",
-  "4_5_6": "centre"
+deposit:
+  distance: 2.0         # distance of adsorbate reference point to selected site in Å
+  auto_reposition: True # auto adjust z-position
