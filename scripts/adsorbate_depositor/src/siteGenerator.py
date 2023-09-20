@@ -130,18 +130,3 @@ class SiteGenerator:
             dict: A dictionary mapping each site identifier to its Cartesian coordinates.
         """
         return {f"site-{site}": self._calculate_site(site) for site in self.sites}
-
-# Test area
-if __name__ == "__main__":
-    try:
-        # Initialize the SiteGenerator object (replace "your_POSCAR_file_here" with an actual file path)
-        generator = SiteGenerator(Path("/Users/yang/Developer/DFT_Utility_Scripts/scripts/adsorbate_depositor/test_dir/POSCAR_substrate"), distance=2.0, sites=["1_2", "3"])
-
-        # Generate sites
-        sites = generator.generate()
-
-        # Print generated sites
-        print("Generated sites:", sites)
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
