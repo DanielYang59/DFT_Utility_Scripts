@@ -75,7 +75,7 @@ class ConfigHandler:
         """
         with open(self.config_path, "r") as f:
             config_data = yaml.safe_load(f)
-        self._check_config()
+        self._check_config(config_data)
         return config_data
 
     def copy_config(self, template_path):
