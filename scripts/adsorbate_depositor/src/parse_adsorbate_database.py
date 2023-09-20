@@ -3,18 +3,18 @@
 
 from pathlib import Path
 import yaml
-from typing import Dict
 
-def parse_adsorbate_database(path: Path, header: str = "pathway_database_header.yaml") -> Dict:
+def parse_adsorbate_database(path: Path, pathway_name: str, header: str = "pathway_database_header.yaml") -> dict:
     """
     Parses and validates a YAML file containing database information about adsorbate reaction pathways and steps.
 
     Args:
         path (Path): The path to the directory containing the YAML file.
+        pathway_name (str): The name of the specific pathway to return.
         header (str): The name of the YAML header file. Default is "pathway_database_header.yaml".
 
     Returns:
-        dict: A dictionary representation of the database.
+        dict: A dictionary representation of the adsorbates within the selected pathway. None if pathway_name doesn't exist.
     """
 
     header_path = path / header
@@ -64,7 +64,8 @@ def parse_adsorbate_database(path: Path, header: str = "pathway_database_header.
             if any(isinstance(x, int) and x < 0 for x in adsorbate_atoms) or any(isinstance(x, int) and x < 0 for x in reference_atoms):
                 raise ValueError(f"Negative integers found in 'adsorbate_atoms' or 'reference_atoms' in {step_key} of {pathway_key}.")
 
-    if not database_dict:
-        raise RuntimeError("Empty adsorbate database header loaded. You might need to check your database header file format.")
+    pathway_dict = pathways.get(pathway_name, None)
+    if pathway_dict is None:
+        raise ValueError(f"Pathway {pathway_name} does not exist in the database.")
 
-    return database_dict
+    return pathway_dict
