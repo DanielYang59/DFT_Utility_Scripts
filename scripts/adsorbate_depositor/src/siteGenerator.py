@@ -135,7 +135,7 @@ class SiteGenerator:
 if __name__ == "__main__":
     try:
         # Initialize the SiteGenerator object (replace "your_POSCAR_file_here" with an actual file path)
-        generator = SiteGenerator(Path("your_POSCAR_file_here"), distance=2.0, sites=["1_2", "3"])
+        generator = SiteGenerator(Path("/Users/yang/Developer/DFT_Utility_Scripts/scripts/adsorbate_depositor/test_dir/POSCAR_substrate"), distance=2.0, sites=["1_2", "3"])
 
         # Generate sites
         sites = generator.generate()
