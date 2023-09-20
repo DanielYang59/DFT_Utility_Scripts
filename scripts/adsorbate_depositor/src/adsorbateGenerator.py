@@ -62,7 +62,10 @@ class AdsorbateGenerator:
 
         # Extract adsorbate atoms
         corrected_index_list = [index - 1 for index in atom_indexes]
-        return poscar[corrected_index_list]
+        adsorbate_poscar = poscar[corrected_index_list]
+        if len(adsorbate_poscar) >= 10:
+            warnings.warn("Large adsorbate requested (more than 10 atoms). Make sure this is intended.")
+        return adsorbate_poscar
 
     def _generate_rotations(self, adsorbate_atoms: Atoms) -> List[Atoms]:
         """
@@ -100,6 +103,27 @@ class AdsorbateGenerator:
                 rotated_adsorbates.append(rotated_adsorbate)
 
             return rotated_adsorbates
+
+    def _generate_rotated_adsorbate_dict(self, adsorbate_dict: Dict[str, Atoms]) -> Dict[str, Atoms]:
+        """
+        Generate a new dictionary containing rotated versions of each original adsorbate.
+
+        Args:
+            adsorbate_dict (Dict[str, Atoms]): Original dictionary containing adsorbates.
+
+        Returns:
+            Dict[str, Atoms]: A new dictionary containing rotated versions of each original adsorbate.
+        """
+
+        rotated_adsorbate_dict = {}
+
+        for name, atoms in adsorbate_dict.items():
+            rotated_atoms_list = self._generate_rotations(atoms)
+            for i, rotated_atoms in enumerate(rotated_atoms_list):
+                new_name = f"{name}_rotation_{i}"
+                rotated_adsorbate_dict[new_name] = rotated_atoms
+
+        return rotated_adsorbate_dict
 
     def _load_adsorbate_from_database_header(self, database_path: Path, pathway_header_dict: Dict) -> Dict:
         """
@@ -173,4 +197,7 @@ class AdsorbateGenerator:
 
         # Generate rotations if required
         if self.generate_rotations:
-            pass
+            return self._generate_rotated_adsorbate_dict(adsorbate_header_dict)
+
+        else:
+            return adsorbate_POSCARs
