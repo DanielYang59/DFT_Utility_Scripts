@@ -174,11 +174,3 @@ class AdsorbateGenerator:
         # Generate rotations if required
         if self.generate_rotations:
             pass
-
-# Test area
-if __name__ == "__main__":
-    adsorbate_generator = AdsorbateGenerator(
-        generate_rotations=True)
-
-    #        POSCAR_adsorbate=Path("path/to/your/POSCAR/file"),
-       # atom_indexes=[1, 2, 3],
