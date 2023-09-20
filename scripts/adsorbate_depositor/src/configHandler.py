@@ -30,45 +30,44 @@ class ConfigHandler:
 
     def _check_config(self, config_data):
         """
-        Check config.yaml tags.
+        Check updated config.yaml tags.
         """
 
-        # Check distance
-        distance = config_data.get('distance', None)
+        # Check substrate
+        substrate = config_data.get('substrate', {})
+        sites = substrate.get('sites', [])
+        for site in sites:
+            site_keys = [int(k) for k in site.split('_') if k.isdigit()]
+            if len(site_keys) < 1:
+                raise ValueError(f"Invalid value for site key {site}. Should contain at least one integer.")
+
+        # Check adsorbate
+        adsorbate = config_data.get('adsorbate', {})
+        source = adsorbate.get('source', None)
+        path = adsorbate.get('path', None)
+        rotation = adsorbate.get('rotation', None)
+
+        if source not in ["POSCAR", "DATABASE"]:
+            raise ValueError("Invalid adsorbate source. It should be either 'POSCAR' or 'DATABASE'.")
+
+        if source == "POSCAR" and not Path(path).is_file():
+            raise FileNotFoundError("Invalid path. Should point to a file when source is 'POSCAR'.")
+        elif source == "DATABASE" and not Path(path).is_dir():
+            raise FileNotFoundError("Invalid path. Should point to a directory when source is 'DATABASE'.")
+
+        if not isinstance(rotation, bool):
+            raise ValueError("Invalid rotation value. It should be a boolean.")
+
+        # Check deposit
+        deposit = config_data.get('deposit', {})
+        distance = deposit.get('distance', None)
+        auto_reposition = deposit.get('auto_reposition', None)
+
         if not isinstance(distance, (int, float)) or distance < 0:
             raise ValueError("Invalid distance value. It should be a non-negative float/int.")
-        elif distance <= 1:
-            warnings.warn(f"Distance in config.yaml set to {distance}, might be too small?")
 
-        # Check auto_reposition
-        auto_reposition = config_data.get('auto_reposition', None)
         if not isinstance(auto_reposition, bool):
             raise ValueError("Invalid auto_reposition value. It should be a boolean.")
-
-        # Check adsorbate_source and adsorbate_path
-        adsorbate_source = config_data.get('adsorbate_source', None)
-        adsorbate_path = config_data.get('adsorbate_path', None)
-        if adsorbate_source not in ["POSCAR", "DATABASE"]:
-            raise ValueError("Invalid adsorbate_source. It should be either 'POSCAR' or 'DATABASE'.")
-        elif adsorbate_source == "POSCAR":
-            if not Path(adsorbate_path).is_file():
-                raise FileNotFoundError("Invalid adsorbate_path. Should point to a file when adsorbate_source is 'POSCAR'.")
-        else:
-            if not Path(adsorbate_path).is_dir():
-                raise FileNotFoundError("Invalid adsorbate_path. Should point to a directory when adsorbate_source is 'DATABASE'.")
-
-        # Check sites
-        sites = config_data.get('sites', None)
-        if not isinstance(sites, dict):
-            raise TypeError("Invalid sites entry. Should be a dictionary.")
-        for key, value in sites.items():
-            site_keys = [int(k) for k in key.split('_') if k.isdigit()]
-            if len(site_keys) == 1 and value != "top":
-                raise ValueError(f"Invalid value for site key {key}. Should be 'top' for single-site.")
-            elif len(site_keys) == 2 and value != "bridge":
-                raise ValueError(f"Invalid value for site key {key}. Should be 'bridge' for two-site.")
-            elif len(site_keys) >= 3 and value not in ["centre", "center"]:
-                raise ValueError(f"Invalid value for site key {key}. Should be 'centre' or 'center' for three or more sites.")
 
     def load_config(self):
         """
