@@ -64,4 +64,7 @@ def parse_adsorbate_database(path: Path, header: str = "pathway_database_header.
             if any(isinstance(x, int) and x < 0 for x in adsorbate_atoms) or any(isinstance(x, int) and x < 0 for x in reference_atoms):
                 raise ValueError(f"Negative integers found in 'adsorbate_atoms' or 'reference_atoms' in {step_key} of {pathway_key}.")
 
+    if not database_dict:
+        raise RuntimeError("Empty adsorbate database header loaded. You might need to check your database header file format.")
+
     return database_dict
