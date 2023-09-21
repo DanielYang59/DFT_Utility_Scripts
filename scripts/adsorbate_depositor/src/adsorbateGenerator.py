@@ -6,7 +6,7 @@ from copy import deepcopy
 import warnings
 from ase import Atoms
 from ase.io import read
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 from parse_adsorbate_database import parse_adsorbate_database
 
@@ -16,7 +16,9 @@ class AdsorbateGenerator:
 
     Attributes:
         work_mode (str): Working mode ("POSCAR" or "DATABASE").
+        path (Path): The path to the adsorbate POSCAR ("POSCAR" mode) or database directory ("DATABASE" mode).
         generate_rotations (bool): Whether to generate rotated versions.
+        adsorbate_header_dict (Dict): The loaded adsorbate database dictionary for selected pathway.
 
     Methods:
         __init__ : Initialize the class.
@@ -28,26 +30,47 @@ class AdsorbateGenerator:
         generate_adsorbates : Generate adsorbates based on the working mode.
     """
 
-    def __init__(self, work_mode: str, generate_rotations: bool = False) -> None:
+    def __init__(self, work_mode: str, path: Path, pathway_name: str = None, generate_rotations: bool = False) -> None:
         """
         Initialize the AdsorbateGenerator object.
 
         Args:
             work_mode (str): The working mode ("POSCAR" or "DATABASE").
+            path (Path): Path to POSCAR file or database directory.
+            pathway_name (str): Requested pathway name from database (only for "DATABASE" mode).
             generate_rotations (bool): Flag to generate rotated versions of adsorbate. Default is False.
 
         Raises:
             RuntimeError: If an illegal working mode is passed.
+            FileNotFoundError: If the database directory does not exist.
+            TypeError: If the wrong data type is passed for the pathway_header_dict.
             TypeError: If generate_rotations is not a boolean.
         """
-        if work_mode not in {"POSCAR", "DATABASE"}:
+        # Check work mode and corresponding path
+        if work_mode == "POSCAR":
+            if not path.is_file():
+                raise FileNotFoundError("Adsorbate POSCAR not existing.")
+        elif work_mode == "DATABASE":
+            if not path.is_dir():
+                raise FileNotFoundError("Adsorbate database not existing.")
+        else:
             raise RuntimeError(f"Illegal working mode {work_mode} for adsorbate generator.")
 
+        # Check boolean arg type
         if not isinstance(generate_rotations, bool):
             raise TypeError("Illegal datatype for \"generate_rotations\".")
 
+        # Parse attributes
         self.work_mode = work_mode
+        self.path = path
+        self.pathway_name = pathway_name
         self.generate_rotations = generate_rotations
+
+        # Parse adsorbate database
+        if work_mode == "DATABASE":
+            self.adsorbate_header_dict = parse_adsorbate_database(path, pathway_name)
+        else:
+            self.adsorbate_header_dict = None
 
     def _extract_atoms(self, POSCAR_adsorbate: Path, atom_indexes: List[int]) -> Atoms:
         """
@@ -144,30 +167,16 @@ class AdsorbateGenerator:
 
         return rotated_adsorbate_dict
 
-    def _load_adsorbate_from_database_header(self, database_path: Path, pathway_header_dict: Dict) -> Dict:
+    def _load_adsorbate_from_database_header(self) -> Dict:
         """
         Load adsorbate from POSCARs based on database pathway header dict.
 
-        Args:
-            database_path (Path): The path to the adsorbate database directory.
-            pathway_header_dict (Dict): The adsorbate database header dictionary.
-
         Returns:
             Dict: A dictionary of loaded adsorbate POSCARs.
-
-        Raises:
-            FileNotFoundError: If the database directory does not exist.
-            TypeError: If the wrong data type is passed for the pathway_header_dict.
         """
-
-        if not database_path.is_dir():
-            raise FileNotFoundError("Adsorbate database not existing.")
-        if not isinstance(pathway_header_dict, dict):
-            raise TypeError("Wrong datatype for the adsorbate header dictionary.")
-
         adsorbate_POSCARs = {}
 
-        for i, (step_key, step_info) in enumerate(pathway_header_dict.items(), start=1):
+        for i, (step_key, step_info) in enumerate(self.pathway_header_dict.items(), start=1):
             if f"step_{i}" != step_key:
                 raise ValueError(f"Step keys must be indexed continuously from 1. Found {step_key} instead.")
 
@@ -184,57 +193,56 @@ class AdsorbateGenerator:
                 raise ValueError(f"Missing 'adsorbate_atoms' for {step_key}.")
 
             adsorbate_POSCARs[name] = self._extract_atoms(
-                path=database_path / POSCAR_path,
+                path=self.database_path / POSCAR_path,
                 atom_indexes=adsorbate_atoms
             )
 
         return adsorbate_POSCARs
 
-    def generate_adsorbate_references(self, adsorbates_dict: dict) -> dict:
+    def generate_adsorbate_references(self, adsorbates_dict: dict, poscar_ads_ref: List(int)) -> Dict[str, List[int]]:
         """
         Generate adsorbate reference points from adsorbates dict, based on adsorbate names.
 
+        Args:
+            adsorbates_dict (dict): The pre-generated adsorbate dict.
+            poscar_ads_ref (list): The adsorbate reference list read from config, only needed for "POSCAR" mode.
+
         Returns:
             dict: _description_
+
+        TODO: warn if in database mode but poscar_ads_ref is not None
 
         """
         # Check adsorbate dict datatype
         if not isinstance(adsorbates_dict, dict):
             raise TypeError("Wrong datatype for adsorbate dict is provided.")
 
-        # Generate adsorbate reference point dict based on adsorbate name
+        # Generate adsorbate reference points dict based on adsorbate names
         if self.work_mode == "POSCAR":
             pass
 
         else:
             pass
 
-    def generate_adsorbates(self, path: Path, atom_indexes: List[int] = None, pathway_name: str = None) -> Dict[str, Atoms]:
+    def generate_adsorbates(self, atom_indexes: List[int] = None) -> Dict[str, Atoms]:
         """
         Generate adsorbates based on the working mode.
 
         Args:
-            path (Path): Path to POSCAR file or database directory.
-            atom_indexes (List[int]): Atom indexes to extract (only for "POSCAR" mode).
-            pathway_name (str): Requested pathway name from database (only for "DATABASE" mode).
+            atom_indexes (List[int]): Atom indexes to extract (only required for "POSCAR" mode).
 
         Returns:
             Dict[str, Atoms]: Dictionary of generated adsorbates, where keys are adsorbate names and values are Atoms objects.
-
-        Raises:
-            RuntimeError: If an invalid `work_mode` is used.
         """
         if self.work_mode == "POSCAR":
-            adsorbate_POSCARs = {"adsorbate": self._extract_atoms(path, atom_indexes)}
+            adsorbate_POSCARs = {"adsorbate": self._extract_atoms(self.path, atom_indexes)}
 
         else:
-            adsorbate_header_dict = parse_adsorbate_database(path, pathway_name, header="pathway_database_header.yaml")
-
-            adsorbate_POSCARs = self._load_adsorbate_from_database_header(database_path=path, pathway_header_dict=adsorbate_header_dict)
+            adsorbate_POSCARs = self._load_adsorbate_from_database_header(database_path=self.path, pathway_header_dict=self.adsorbate_header_dict)
 
         # Generate rotations if required
         if self.generate_rotations:
-            return self._generate_rotated_adsorbate_dict(adsorbate_header_dict)
+            return self._generate_rotated_adsorbate_dict(self.adsorbate_header_dict)
 
         else:
             return adsorbate_POSCARs
