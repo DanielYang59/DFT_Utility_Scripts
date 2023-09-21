@@ -6,28 +6,47 @@ from copy import deepcopy
 import warnings
 from ase import Atoms
 from ase.io import read
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from parse_adsorbate_database import parse_adsorbate_database
 
 class AdsorbateGenerator:
     """
-    Class for generating various configurations of adsorbates on a substrate.
+    Handles the generation of adsorbates based on various input types.
+
+    Attributes:
+        work_mode (str): Working mode ("POSCAR" or "DATABASE").
+        generate_rotations (bool): Whether to generate rotated versions.
+
+    Methods:
+        __init__ : Initialize the class.
+        _extract_atoms : Extract specified atoms from a POSCAR file.
+        _generate_rotations : Generate rotated versions of an adsorbate.
+        _generate_rotated_adsorbate_dict : Generate dictionary of rotated adsorbates.
+        _load_adsorbate_from_database_header : Load adsorbates based on a database header.
+        generate_adsorbate_references : Generate adsorbate reference points.
+        generate_adsorbates : Generate adsorbates based on the working mode.
     """
 
-    def __init__(self, generate_rotations: bool = False) -> None:
+    def __init__(self, work_mode: str, generate_rotations: bool = False) -> None:
         """
         Initialize the AdsorbateGenerator object.
 
         Args:
+            work_mode (str): The working mode ("POSCAR" or "DATABASE").
             generate_rotations (bool): Flag to generate rotated versions of adsorbate. Default is False.
 
         Raises:
+            RuntimeError: If an illegal working mode is passed.
             TypeError: If generate_rotations is not a boolean.
         """
+        if work_mode not in {"POSCAR", "DATABASE"}:
+            raise RuntimeError(f"Illegal working mode {work_mode} for adsorbate generator.")
+
         if not isinstance(generate_rotations, bool):
             raise TypeError("Illegal datatype for \"generate_rotations\".")
 
+        self.work_mode = work_mode
         self.generate_rotations = generate_rotations
 
     def _extract_atoms(self, POSCAR_adsorbate: Path, atom_indexes: List[int]) -> Atoms:
@@ -171,23 +190,41 @@ class AdsorbateGenerator:
 
         return adsorbate_POSCARs
 
-    def generate(self, work_mode: str, path: Path, atom_indexes: List[int] = None, pathway_name: str = None):
+    def generate_adsorbate_references(self, adsorbates_dict: dict) -> dict:
+        """
+        Generate adsorbate reference points from adsorbates dict, based on adsorbate names.
+
+        Returns:
+            dict: _description_
+
+        """
+        # Check adsorbate dict datatype
+        if not isinstance(adsorbates_dict, dict):
+            raise TypeError("Wrong datatype for adsorbate dict is provided.")
+
+        # Generate adsorbate reference point dict based on adsorbate name
+        if self.work_mode == "POSCAR":
+            pass
+
+        else:
+            pass
+
+    def generate_adsorbates(self, path: Path, atom_indexes: List[int] = None, pathway_name: str = None) -> Dict[str, Atoms]:
         """
         Generate adsorbates based on the working mode.
 
         Args:
-            work_mode (str): The working mode ("POSCAR" or "DATABASE").
-            path (Path): The path to the adsorbate POSCAR file or DATABASE dir.
-            atom_indexes (List[int]): List of atom indexes to extract from "POSCAR".
-            pathway_name (str): name of requested pathway from "DATABASE".
+            path (Path): Path to POSCAR file or database directory.
+            atom_indexes (List[int]): Atom indexes to extract (only for "POSCAR" mode).
+            pathway_name (str): Requested pathway name from database (only for "DATABASE" mode).
+
+        Returns:
+            Dict[str, Atoms]: Dictionary of generated adsorbates, where keys are adsorbate names and values are Atoms objects.
 
         Raises:
-            RuntimeError: If an illegal working mode is passed.
+            RuntimeError: If an invalid `work_mode` is used.
         """
-        if work_mode not in {"POSCAR", "DATABASE"}:
-            raise RuntimeError(f"Illegal working mode {work_mode} for adsorbate generator.")
-
-        if work_mode == "POSCAR":
+        if self.work_mode == "POSCAR":
             adsorbate_POSCARs = {"adsorbate": self._extract_atoms(path, atom_indexes)}
 
         else:

@@ -25,13 +25,21 @@ def main():
         )
     sites = site_generator.generate()
 
-    # Generate adsorbates
-    adsorbate_generator = AdsorbateGenerator(generate_rotations=config["adsorbate"]["rotation"])
-    adsorbates = adsorbate_generator.generate(
+    # Generate adsorbates and adsorbate reference points
+    adsorbate_generator = AdsorbateGenerator(
         work_mode=config["adsorbate"]["source"],
+        generate_rotations=config["adsorbate"]["rotation"],
+        )
+
+    adsorbates = adsorbate_generator.generate_adsorbates(
         path=config["adsorbate"]["path"],
         atom_indexes=config["adsorbate"]["atom_indexes"],
-        pathway_name=config["adsorbate"]["pathway_name"]
+        pathway_name=config["adsorbate"]["pathway_name"],
+        )
+
+    adsorbate_refs = adsorbate_generator.generate_adsorbate_references(
+        adsorbates,
+
         )
 
     # Generate adsorbate-on-site structure files
@@ -39,17 +47,17 @@ def main():
         POSCAR_substrate=config["substrate"]["path"],
         sites=sites,
         adsorbates=adsorbates,
-        adsorbate_source=config["adsorbate"]["source"]
+        adsorbate_refs=adsorbate_refs,
         )
 
     structure_generator.deposit(
-        adsorbate_ref=config["adsorbate"]["reference"],  # DEBUG
         auto_offset_along_z=config["deposit"]["auto_offset_along_z"],
         target_vacuum_level=config["deposit"]["target_vacuum_level"],
         center_along_z=config["deposit"]["center_along_z"],
         fix_substrate=config["deposit"]["fix_substrate"],
         )
 
+    # Write generate model to file
     structure_generator.write()
 
 if __name__ == "__main__":

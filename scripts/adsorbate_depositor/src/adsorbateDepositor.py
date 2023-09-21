@@ -16,9 +16,10 @@ class AdsorbateDepositor:
         poscar_substrate (Path): Path to the POSCAR file representing the substrate.
         sites (dict): Dictionary of available adsorption sites on the substrate.
         adsorbates (dict): Dictionary of adsorbates to be deposited.
+        adsorbate_refs (dict): Dictionary of adsorbate reference points.
     """
 
-    def __init__(self, POSCAR_substrate: Path, sites: dict, adsorbates: dict, adsorbate_source: str):
+    def __init__(self, POSCAR_substrate: Path, sites: dict, adsorbates: dict, adsorbate_refs: dict):
         """
         Initializes an instance of AdsorbateDepositor.
 
@@ -26,7 +27,7 @@ class AdsorbateDepositor:
             POSCAR_substrate (Path): Path to the POSCAR file of the substrate.
             sites (dict): Dictionary containing information about the adsorption sites.
             adsorbates (dict): Dictionary containing information about the adsorbates.
-            adsorbate_source (str): Adsorbate source from either "POSCAR" or "DATABASE".
+            adsorbate_refs (dict): Dictionary containing information about the adsorbate reference points.
 
         Raises:
             FileNotFoundError: If the POSCAR file is not found.
@@ -48,14 +49,11 @@ class AdsorbateDepositor:
         if not adsorbates:
             raise ValueError("Got an empty adsorbates dictionary.")
 
-        if adsorbate_source not in {"POSCAR", "DATABASE"}:
-            raise ValueError("Invalid adsorbate source.")
-
         # Parse args
         self.poscar_substrate = read(POSCAR_substrate)
         self.sites = sites
         self.adsorbates = adsorbates
-        self.adsorbate_source = adsorbate_source
+        self.adsorbate_refs = adsorbate_refs
 
     def _fix_substrate(self, poscar: Atoms, substrate_indexes: List[int]):
         """
@@ -76,6 +74,9 @@ class AdsorbateDepositor:
         """
         Set vacuum level thickness.
         """
+        # TODO: warning for 1st incomplete version
+        warnings.warn("Current 1st version of set vacuum level is only able to handle cases where atom cluster is continuous along z-axis (vacuum level not reside on the middle of the model).")
+
         # Check the type of new_vacuum_level
         if not isinstance(new_vacuum_level, (float, int)):
             raise TypeError(f"Expected 'new_vacuum_level' to be of type float or int, but got {type(new_vacuum_level)}.")
@@ -92,7 +93,8 @@ class AdsorbateDepositor:
         """
         Reposition atom cluster along z-axis.
         """
-        pass
+        # TODO: warning for 1st incomplete version
+        warnings.warn("Current 1st version of atom reposition is only able to handle cases where atom cluster is continuous along z-axis (vacuum level not reside on the middle of the model).")
 
     def _offset_adsorbate_along_z(self, minimal_distance: Union[float, int], direction: str = "top"):
         """
@@ -128,9 +130,6 @@ class AdsorbateDepositor:
         # Combine substrate and adsorbate POSCARs
 
         # Calculate adsorbate moving vector
-
-
-
 
     def deposit(self, target_vacuum_level: Union[float, int], auto_offset_along_z: bool = True, center_along_z: bool = True, fix_substrate: bool = False) -> dict:
         """
@@ -169,8 +168,8 @@ class AdsorbateDepositor:
         results = {}
         for site_name, site_info in tqdm(self.sites.items(), desc="Depositing adsorbates"):
             for ads_name, ads_info in self.adsorbates.items():
-                # Compile adsorbate reference tag  # TODO: miss adsorbate reference tag
-                ads_reference = "DEBUG"
+                # Compile adsorbate reference tag
+                ads_reference = self.adsorbate_refs[ads_name]
 
                 # Perform the actual deposition
                 result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference, auto_offset_along_z)
