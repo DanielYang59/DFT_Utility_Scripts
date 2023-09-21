@@ -1,32 +1,53 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: avoid overwrite existing template (if not config.yaml in cwd but already a config_template.yaml)
+
 from pathlib import Path
 import yaml
 import shutil
-import warnings
 
 class ConfigHandler:
     """
     Class to handle operations related to the config.yaml file.
     """
 
-    def __init__(self):
+    def __init__(self, config_filename="config.yaml", template_filename="config_template.yaml"):
         """
-        Initialize ConfigHandler and find the location of config.yaml.
+        Initialize ConfigHandler and find the location of the configuration file.
+
+        Parameters:
+            config_filename (str): The name of the configuration file. Default is 'config.yaml'.
+            template_filename (str): The name of the template file. Default is 'config_template.yaml'.
         """
         self.working_dir = Path.cwd()
-        self.config_path = self.working_dir / "config.yaml"
+        self.config_path = self.working_dir / config_filename
+        self.template_path = self.working_dir / template_filename
 
     def check_config_exists(self):
         """
-        Check if config.yaml exists in the current working directory.
+        Check if the configuration file exists in the current working directory.
+
+        Returns:
+            bool: True if the configuration file exists, otherwise False.
         """
         if self.config_path.exists():
             return True
         else:
-            print(f"config.yaml does not exist at {self.config_path}")
+            print(f"{self.config_path.name} does not exist at {self.config_path}")
             return False
+
+    def check_template_exists(self):
+        """
+        Check if the template file exists in the current working directory to avoid overwriting.
+
+        Returns:
+            bool: True if the template file exists, otherwise False.
+        """
+        if self.template_path.exists():
+            print(f"{self.template_path.name} already exists in {self.working_dir}. Avoiding overwrite.")
+            return True
+        return False
 
     def _check_config(self, config_data):
         """
@@ -46,6 +67,8 @@ class ConfigHandler:
         source = adsorbate.get('source', None)
         path = adsorbate.get('path', None)
         rotation = adsorbate.get('rotation', None)
+        atom_indexes = adsorbate.get('atom_indexes', [])
+        reference = adsorbate.get('reference', [])
 
         if source not in ["POSCAR", "DATABASE"]:
             raise ValueError("Invalid adsorbate source. It should be either 'POSCAR' or 'DATABASE'.")
@@ -58,6 +81,18 @@ class ConfigHandler:
         if not isinstance(rotation, bool):
             raise ValueError("Invalid rotation value. It should be a boolean.")
 
+        if not all(isinstance(index, int) and index >= 1 for index in atom_indexes):
+            raise ValueError("Invalid atom_indexes. Should be a list of integers >= 1.")
+
+        if len(set(atom_indexes)) != len(atom_indexes):
+            raise ValueError("Duplicate atom indexes are not allowed.")
+
+        if not all(isinstance(index, int) and index >= 1 for index in reference):
+            raise ValueError("Invalid reference. Should be a list of integers >= 1.")
+
+        if len(set(reference)) != len(reference):
+            raise ValueError("Duplicate reference indexes are not allowed.")
+
         # Check deposit
         deposit = config_data.get('deposit', {})
         distance = deposit.get('distance', None)
@@ -69,19 +104,27 @@ class ConfigHandler:
         if not isinstance(auto_reposition, bool):
             raise ValueError("Invalid auto_reposition value. It should be a boolean.")
 
-    def load_config(self):
+    def load_config(self) -> dict:
         """
-        Load and check the existing config.yaml file.
+        Load and validate the existing configuration file.
+
+        Returns:
+            dict: The validated configuration data.
         """
         with open(self.config_path, "r") as f:
             config_data = yaml.safe_load(f)
         self._check_config(config_data)
         return config_data
 
-    def copy_config(self, template_path):
+    def copy_config_template(self, template_path):
         """
-        Copy a template config.yaml file to the current working directory.
+        Copy a template configuration file to the current working directory.
+
+        Parameters:
+            template_path (str): The path to the template file.
         """
-        shutil.copy(template_path, self.working_dir)
-        print(f"Copied template config.yaml to {self.working_dir}")
-        exit()
+        if not self.check_template_exists():
+            shutil.copy(template_path, self.working_dir)
+            print(f"Copied template {self.template_path.name} to {self.working_dir}")
+        else:
+            raise FileExistsError("Template config file found in current dir. Template generation aborted.")

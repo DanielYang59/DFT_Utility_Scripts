@@ -14,14 +14,14 @@ adsorbate:
   source: "POSCAR"                 # or "DATABASE"
   path: None                       # path to POSCAR file or DATABASE dir
   atom_indexes: None               # required for "POSCAR"-sourced adsorbate generation, adsorbate atom indexes
-  reference: None                  # required for "POSCAR"-sourced adsorbate generation, reference point (or "CENTROID")
+  reference: None                  # required for "POSCAR"-sourced adsorbate generation, reference point index list
   pathway_name: "pathway_1"        # required for "DATABASE"-sourced adsorbate generation, pathway name
   rotation: True                   # generate rotated adsorbates
 
 deposit:
   distance: 2.0                    # distance of adsorbate reference point to selected site (in Å)
   target_vacuum_level: 10          # vacuum level thickness in Å of final models (would toggle auto-reposition along z-axis)
-  reposition_along_z: True         # reposition final model to the z-axis center
+  center_along_z: True             # reposition final model to the z-axis center
   auto_offset_along_z: True        # auto offset along z-axis to maintain minimum adsorbate-substrate distance
   fix_substrate: True              # fix substrate for selective dynamics
   output_dir: "generated_models"   # output directory name
