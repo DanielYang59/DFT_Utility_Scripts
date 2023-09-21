@@ -43,7 +43,6 @@ class AdsorbateGenerator:
         Raises:
             RuntimeError: If an illegal working mode is passed.
             FileNotFoundError: If the database directory does not exist.
-            TypeError: If the wrong data type is passed for the pathway_header_dict.
             TypeError: If generate_rotations is not a boolean.
         """
         # Check work mode and corresponding path
@@ -63,7 +62,6 @@ class AdsorbateGenerator:
         # Parse attributes
         self.work_mode = work_mode
         self.path = path
-        self.pathway_name = pathway_name
         self.generate_rotations = generate_rotations
 
         # Parse adsorbate database
@@ -173,10 +171,13 @@ class AdsorbateGenerator:
 
         Returns:
             Dict: A dictionary of loaded adsorbate POSCARs.
+
+        Raises:
+            ValueError: If required keys are missing from the database header or if indexing is not continuous.
         """
         adsorbate_POSCARs = {}
 
-        for i, (step_key, step_info) in enumerate(self.pathway_header_dict.items(), start=1):
+        for i, (step_key, step_info) in enumerate(self.adsorbate_header_dict.items(), start=1):
             if f"step_{i}" != step_key:
                 raise ValueError(f"Step keys must be indexed continuously from 1. Found {step_key} instead.")
 
@@ -198,31 +199,6 @@ class AdsorbateGenerator:
             )
 
         return adsorbate_POSCARs
-
-    def generate_adsorbate_references(self, adsorbates_dict: dict, poscar_ads_ref: List(int)) -> Dict[str, List[int]]:
-        """
-        Generate adsorbate reference points from adsorbates dict, based on adsorbate names.
-
-        Args:
-            adsorbates_dict (dict): The pre-generated adsorbate dict.
-            poscar_ads_ref (list): The adsorbate reference list read from config, only needed for "POSCAR" mode.
-
-        Returns:
-            dict: _description_
-
-        TODO: warn if in database mode but poscar_ads_ref is not None
-
-        """
-        # Check adsorbate dict datatype
-        if not isinstance(adsorbates_dict, dict):
-            raise TypeError("Wrong datatype for adsorbate dict is provided.")
-
-        # Generate adsorbate reference points dict based on adsorbate names
-        if self.work_mode == "POSCAR":
-            pass
-
-        else:
-            pass
 
     def generate_adsorbates(self, atom_indexes: List[int] = None) -> Dict[str, Atoms]:
         """
@@ -246,3 +222,54 @@ class AdsorbateGenerator:
 
         else:
             return adsorbate_POSCARs
+
+    def _validate_poscar_ads_ref(self, poscar_ads_ref: List[int]) -> None:
+        """Validates the poscar_ads_ref list."""
+        if not isinstance(poscar_ads_ref, list) or not all(isinstance(x, int) for x in poscar_ads_ref):
+            raise TypeError("poscar_ads_ref should be a list of integers.")
+
+        if any(x < 1 for x in poscar_ads_ref):
+            raise ValueError("All integers in poscar_ads_ref should be greater or equal to 1.")
+
+        if len(poscar_ads_ref) != len(set(poscar_ads_ref)):
+            raise ValueError("No duplicates are allowed in poscar_ads_ref.")
+
+    def generate_adsorbate_references(self, adsorbates_dict: dict, poscar_ads_ref: List[int]) -> Dict[str, List[int]]:
+        """
+        Generate adsorbate reference points from adsorbates dict, based on adsorbate names.
+
+        Args:
+            adsorbates_dict (dict): The pre-generated adsorbate dict.
+            poscar_ads_ref (list): The adsorbate reference list read from config, only needed for "POSCAR" mode.
+
+        Returns:
+            Dict[str, List[int]]: adsorbate reference atom index dict, the key is adsorbate name and the value being list of adsorbate atoms as reference.
+
+        """
+        # Check adsorbate dict datatype
+        if not isinstance(adsorbates_dict, dict):
+            raise TypeError("Wrong datatype for adsorbate dict is provided.")
+
+        # Generate adsorbate reference points dict based on adsorbate names
+        if self.work_mode == "POSCAR":
+            self._validate_poscar_ads_ref(poscar_ads_ref)
+
+            if len(adsorbates_dict) != 1:
+                raise RuntimeError("Code work in POSCAR mode but adsorbate dict len is not 1.")
+
+            return {list(adsorbates_dict.keys()[0]): poscar_ads_ref}
+
+        else:  # "DATABASE" mode
+            if poscar_ads_ref is not None:
+                warnings.warn("Adsorbate reference set in config for DATABASE mode. Ignored.")
+
+            reference_atoms_dict = {}
+
+            for ads_name, ads_info in self.adsorbate_header_dict.items():
+                reference_atoms = ads_info.get("reference_atoms")
+                if reference_atoms is not None:
+                    reference_atoms_dict[ads_name] = reference_atoms
+                else:
+                    raise ValueError(f"Reference atoms for {ads_name} is empty.")
+
+            return reference_atoms_dict
