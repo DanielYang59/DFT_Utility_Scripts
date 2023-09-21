@@ -1,5 +1,7 @@
 pathways:
   pathway_1:
+    reference_DOI: "NA"
+    comment: "An example electrochemical HER pathway."
     step_1:
       name: "HER"
       POSCAR_path: "./POSCAR_H"

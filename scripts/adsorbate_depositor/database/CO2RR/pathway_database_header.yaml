@@ -1,5 +1,7 @@
 pathways:
   pathway_1:
+    reference_DOI: "10.1039/C0EE00071J"
+    comment: "A possible electrochemical CO2 reduction to CH4 pathway."
     step_1:
       name: "CO2"
       POSCAR_path: "./POSCAR_CO2"

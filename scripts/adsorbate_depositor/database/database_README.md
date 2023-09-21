@@ -25,6 +25,8 @@ The `pathway_database_header.yaml` file in each directory contains various pathw
 ```yaml
 pathways:
   pathway_1:
+    reference_DOI: "DOI of reference paper"
+    comment: "brief description of the pathway"
     step_1:
       name: "CO2"
       POSCAR_path: "./POSCAR_CO2"
