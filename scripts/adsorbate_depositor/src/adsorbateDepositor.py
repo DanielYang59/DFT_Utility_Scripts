@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: show progress bar
-
 from typing import Union, List
 from pathlib import Path
 import warnings
+from tqdm import tqdm
 from ase import Atoms
 from ase.io import read
 
@@ -17,10 +16,9 @@ class AdsorbateDepositor:
         poscar_substrate (Path): Path to the POSCAR file representing the substrate.
         sites (dict): Dictionary of available adsorption sites on the substrate.
         adsorbates (dict): Dictionary of adsorbates to be deposited.
-        output_dir (Path): Path to the directory where output files will be saved.
     """
 
-    def __init__(self, POSCAR_substrate: Path, sites: dict, adsorbates: dict, output_dir: Path,):
+    def __init__(self, POSCAR_substrate: Path, sites: dict, adsorbates: dict, adsorbate_source: str):
         """
         Initializes an instance of AdsorbateDepositor.
 
@@ -28,7 +26,7 @@ class AdsorbateDepositor:
             POSCAR_substrate (Path): Path to the POSCAR file of the substrate.
             sites (dict): Dictionary containing information about the adsorption sites.
             adsorbates (dict): Dictionary containing information about the adsorbates.
-            output_dir (Path): Path to the directory where output will be saved.
+            adsorbate_source (str): Adsorbate source from either "POSCAR" or "DATABASE".
 
         Raises:
             FileNotFoundError: If the POSCAR file is not found.
@@ -50,20 +48,19 @@ class AdsorbateDepositor:
         if not adsorbates:
             raise ValueError("Got an empty adsorbates dictionary.")
 
-        # Check and create the output directory
-        if not isinstance(output_dir, Path):
-            raise TypeError(f"Expected 'output_dir' to be of type Path, but got {type(output_dir)}.")
-
-        if not output_dir.is_dir():
-            output_dir.mkdir(parents=True)
+        if adsorbate_source not in {"POSCAR", "DATABASE"}:
+            raise ValueError("Invalid adsorbate source.")
 
         # Parse args
         self.poscar_substrate = read(POSCAR_substrate)
         self.sites = sites
         self.adsorbates = adsorbates
-        self.output_dir = output_dir
+        self.adsorbate_source = adsorbate_source
 
     def _fix_substrate(self, poscar: Atoms, substrate_indexes: List[int]):
+        """
+        Fix selected atoms for selective dynamics.
+        """
         # Type checks
         if not isinstance(poscar, Atoms):
             raise TypeError(f"Expected 'poscar' to be of type Atoms, but got {type(poscar)}.")
@@ -76,6 +73,9 @@ class AdsorbateDepositor:
             raise ValueError("All substrate indexes must be >= 1 (should be 1-indexed).")
 
     def _set_vacuum_level(self, new_vacuum_level: Union[float, int]):
+        """
+        Set vacuum level thickness.
+        """
         # Check the type of new_vacuum_level
         if not isinstance(new_vacuum_level, (float, int)):
             raise TypeError(f"Expected 'new_vacuum_level' to be of type float or int, but got {type(new_vacuum_level)}.")
@@ -88,7 +88,16 @@ class AdsorbateDepositor:
         elif new_vacuum_level <= 5:
             warnings.warn(f"Small vacuum level of {new_vacuum_level} Å set.")
 
+    def _reposition_along_z(self):
+        """
+        Reposition atom cluster along z-axis.
+        """
+        pass
+
     def _offset_adsorbate_along_z(self, minimal_distance: Union[float, int], direction: str = "top"):
+        """
+        Offset adsorbate along z-axis to maintain minimal distance.
+        """
         # Check the type of minimal_distance
         if not isinstance(minimal_distance, (float, int)):
             raise TypeError(f"Expected 'minimal_distance' to be of type float or int, but got {type(minimal_distance)}.")
@@ -105,11 +114,23 @@ class AdsorbateDepositor:
         if direction not in {"top", "bottom"}:
             raise ValueError(f"Adsorbate offset direction should be either 'top' or 'bottom', but got {direction}.")
 
-    def _reposition_along_z(self):
-        pass
+    def _deposit_adsorbate_on_site(self, poscar_substrate: Atoms, site: List[float], adsorbate: Atoms, ads_reference: List[int], auto_offset_along_z: bool = True) -> Atoms:
+        """
+        The actual worker that deposit adsorbate onto substrate site.
+        NOTE: be sure NOT to sort the atom list (keep adsorbate to the end of POSCAR).
+        """
+        # Check args:  # TODO: clean up
+        assert isinstance(poscar_substrate, Atoms)
+        assert isinstance(site, list) and len(site) == 3
+        assert isinstance(adsorbate, Atoms)
+        assert isinstance(ads_reference, list)
 
-    def _deposit_adsorbate_on_site(self, poscar_substrate, site, adsorbate):
-        pass
+        # Combine substrate and adsorbate POSCARs
+
+        # Calculate adsorbate moving vector
+
+
+
 
     def deposit(self, target_vacuum_level: Union[float, int], auto_offset_along_z: bool = True, center_along_z: bool = True, fix_substrate: bool = False) -> dict:
         """
@@ -146,12 +167,40 @@ class AdsorbateDepositor:
 
         # Deposit adsorbates onto sites
         results = {}
-        for site_name, site_info in self.sites.items():
+        for site_name, site_info in tqdm(self.sites.items(), desc="Depositing adsorbates"):
             for ads_name, ads_info in self.adsorbates.items():
+                # Compile adsorbate reference tag  # TODO: miss adsorbate reference tag
+                ads_reference = "DEBUG"
+
+                # Perform the actual deposition
+                result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference, auto_offset_along_z)
+
+                # Optional post-processing steps
+                if center_along_z:  # Center the atom cluster along the Z-axis
+                    result = self._reposition_along_z(result, mode="z_center")
+
+                if fix_substrate:  # Freeze substrate atoms (for selective dynamics)
+                    result = self._fix_substrate(result, self.poscar_substrate)
+
                 # Compile the sample name from site and adsorbate names
                 sample_name = f"{site_name}_{ads_name}"
 
-                # Perform the actual deposition
-                results[sample_name] = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info)
+                # Save the post-processed result
+                results[sample_name] = result
 
         return results
+
+    def write(self, output_dir: Path):
+
+        """Write generated dict to file.
+
+        Args:
+            output_dir (Path): Path to the directory where output will be saved.
+
+        """
+        # Check and create the output directory
+        if not isinstance(output_dir, Path):
+            raise TypeError(f"Expected 'output_dir' to be of type Path, but got {type(output_dir)}.")
+
+        if not output_dir.is_dir():
+            output_dir.mkdir(parents=True)

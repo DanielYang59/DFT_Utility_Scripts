@@ -39,12 +39,18 @@ def main():
         POSCAR_substrate=config["substrate"]["path"],
         sites=sites,
         adsorbates=adsorbates,
-        auto_reposition_along_z=config["deposit"]["auto_reposition_along_z"],
-        distance=config["deposit"]["distance"],
-        output_dir=config["deposit"]["output_dir"]
+        adsorbate_source=config["adsorbate"]["source"]
         )
 
-    structure_generator.deposit()
+    structure_generator.deposit(
+        adsorbate_ref=config["adsorbate"]["reference"],  # DEBUG
+        auto_offset_along_z=config["deposit"]["auto_offset_along_z"],
+        target_vacuum_level=config["deposit"]["target_vacuum_level"],
+        center_along_z=config["deposit"]["center_along_z"],
+        fix_substrate=config["deposit"]["fix_substrate"],
+        )
+
+    structure_generator.write()
 
 if __name__ == "__main__":
     main()
