@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 import warnings
 from tqdm import tqdm
@@ -25,7 +25,7 @@ class AdsorbateDepositor:
         adsorbate_refs (dict): Dictionary of adsorbate reference points.
     """
 
-    def __init__(self, POSCAR_substrate: Path, sites: dict, adsorbates: dict, adsorbate_refs: dict):
+    def __init__(self, POSCAR_substrate: Path, sites: dict, adsorbates: dict, adsorbate_refs: dict) -> None:
         """
         Initializes an instance of AdsorbateDepositor.
 
@@ -231,13 +231,13 @@ class AdsorbateDepositor:
 
         return results
 
-    def write(self, atoms: Atoms, output_dir: Path, filename: str = "POSCAR_generated"):
+    def write(self, atoms_dict: Dict[str, Atoms], output_dir: Path, filename: str = "POSCAR_generated") -> None:
         """
-        Write generated Atoms object to file.
+        Write generated Atoms objects to file, each in a separate directory based on its adsorbate name.
 
         Args:
-            atoms (Atoms): The Atoms object to write.
-            output_dir (Path): Directory where the Atoms object will be saved.
+            atoms_dict (Dict[str, Atoms]): Dictionary of adsorbate names and their corresponding Atoms objects.
+            output_dir (Path): Directory where the Atoms objects will be saved.
             filename (str, optional): Filename for the output. Defaults to "POSCAR_generated".
         """
         # Check structure file datatype
@@ -251,5 +251,13 @@ class AdsorbateDepositor:
         if not output_dir.is_dir():
             output_dir.mkdir(parents=True)
 
-        # Write ase.Atoms to file
-        write(output_dir / filename, atoms, format="vasp")
+        # Iterate through the dictionary and write each Atoms object to its corresponding directory
+        for adsorbate_name, atoms in atoms_dict.items():
+            if not isinstance(atoms, Atoms):
+                raise TypeError(f"Wrong datatype for {adsorbate_name}. Expected Atoms, but got {type(atoms)}.")
+
+            adsorbate_dir = output_dir / adsorbate_name
+            if not adsorbate_dir.is_dir():
+                adsorbate_dir.mkdir()
+
+            write(adsorbate_dir / filename, atoms, format="vasp")

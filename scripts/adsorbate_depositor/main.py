@@ -57,15 +57,15 @@ def main():
         adsorbate_refs=adsorbate_refs,
     )
 
-    structure_generator.deposit(
+    structures = structure_generator.deposit(
         auto_offset_along_z=config["deposit"]["auto_offset_along_z"],
         fix_substrate=config["deposit"]["fix_substrate"],
         # target_vacuum_level=config["deposit"]["target_vacuum_level"],
         # center_along_z=config["deposit"]["center_along_z"],
     )
 
-    # Write generated model to file
-    structure_generator.write(output_dir=config["deposit"]["output_dir"])
+    # Write generated models to file
+    structure_generator.write(structures, output_dir=config["deposit"]["output_dir"])
 
 if __name__ == "__main__":
     main()
