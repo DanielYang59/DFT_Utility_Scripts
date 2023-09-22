@@ -12,10 +12,16 @@ from lib.utilities import find_or_request_poscar, write_poscar
 
 class VacuumLayerSetter:
     """
-    assume vacuum layer along z-axis
-    TODO: finish docstrings
+    A class to manage and adjust the vacuum layer of a structure.
 
+    This class assumes that the vacuum layer is along the z-axis of the structure.
+    It provides utilities for counting, calculating, and adjusting the vacuum layer.
+
+    Attributes:
+        atoms (ase.Atoms): The atomic structure managed by this object.
+        old_vacuum_layer (float): Initial vacuum layer thickness along the z-axis.
     """
+
     def __init__(self, input_structure: Union[Atoms, Path, str]) -> None:
         """
         Initialize the VacuumLayerSetter with either an ASE Atoms object or a path to a POSCAR/CONTCAR file.
@@ -40,9 +46,9 @@ class VacuumLayerSetter:
         # Calculate vacuum layer thickness
         self.old_vacuum_layer = self.calculate_vacuum_thickness()
 
-    def _count_vacuum_layer(self, structure: Atoms, threshold: Union[float, int] = 5.0) -> int:
+    def count_vacuum_layer(self, structure: Atoms, threshold: Union[float, int] = 5.0) -> int:
         """
-        Count vacuum layer numbers.
+        Count vacuum layer numbers along z-axis.
 
         Args:
             structure (Atoms): the structure to check the vacuum layer.
@@ -92,7 +98,7 @@ class VacuumLayerSetter:
         assert vacuum_layer_z >= 0
         return vacuum_layer_z
 
-    def adjust_z_vacuum_thickness(self, new_vacuum: Union[float, int]) -> None:
+    def adjust_vacuum_thickness(self, new_vacuum: Union[float, int]) -> None:
         """
         Adjust the vacuum thickness along the z-axis in the unit cell.
 
@@ -117,7 +123,7 @@ class VacuumLayerSetter:
         Perform the complete vacuum adjustment workflow.
         """
         # Check vacuum layer
-        vacuum_layer_count = self._count_vacuum_layer()
+        vacuum_layer_count = self.count_vacuum_layer()
         if vacuum_layer_count >= 2:
             raise ValueError("The structure contains more than one vacuum layer, which is not allowed.")
         elif vacuum_layer_count == 0:
@@ -129,7 +135,7 @@ class VacuumLayerSetter:
 
         # Adjust vacuum layer thickness
         new_z_vacuum = float(input("Please enter the new vacuum thickness along the z-axis: "))
-        self.adjust_z_vacuum_thickness(new_z_vacuum)
+        self.adjust_vacuum_thickness(new_z_vacuum)
 
         # Write adjusted POSCAR
         write_poscar(self.atoms, "POSCAR_vacuum_adjusted")
