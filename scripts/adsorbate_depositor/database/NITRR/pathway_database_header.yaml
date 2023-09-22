@@ -35,9 +35,8 @@ pathways:
       POSCAR_path: "./POSCAR_NH2"
       adsorbate_atoms: [109, 110, 111]
       reference_atoms: [109, ]
-     step_8:
+    step_8:
       name: "*NH3"
       POSCAR_path: "./POSCAR_NH3"
       adsorbate_atoms: [109, 110, 111, 112]
       reference_atoms: [109, ]
-    
