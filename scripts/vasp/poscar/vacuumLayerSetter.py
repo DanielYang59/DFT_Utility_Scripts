@@ -47,6 +47,45 @@ class VacuumLayerSetter:
         # Calculate vacuum layer thickness
         self.old_vacuum_layer = self.calculate_vacuum_thickness()
 
+    def locate_vacuum_layer(self, lower_threshold: float = 0.25, upper_threshold: float = 0.75) -> str:
+        """
+        Locates the position of the single vacuum layer in the structure.
+
+        This method assumes that there is exactly one vacuum layer.
+
+        Returns:
+            str: Position of the vacuum layer ('top', 'bottom', 'middle').
+        """
+        # Check vacuum layer count
+        if self.count_vacuum_layer() != 1:
+            raise RuntimeError("Locate vacuum layer method only works when there is exactly one vacuum layer.")
+
+        warnings.warn(f"Locate vacuum layer method works reliably only when the vacuum layer resides at the top{upper_threshold}/bottom{lower_threshold} of the model, and might generate unreliable results for more complicated cases.")
+
+        # Sort the z-coordinates
+        z_coords = np.sort(self.structure.positions[:, 2])
+
+        # Calculate the gaps between adjacent atoms along the z-axis
+        gaps = np.diff(z_coords)
+
+        # Find the index of the largest gap
+        max_gap_index = np.argmax(gaps)
+
+        # Calculate the top and bottom positions of the gap
+        gap_bottom = z_coords[max_gap_index]
+        gap_top = z_coords[max_gap_index] + gaps[max_gap_index]
+
+        # Get the cell dimension along the z-axis
+        cell_dim_z = self.structure.get_cell().diagonal()[2]
+
+        # Check the position of the vacuum layer based on the largest gap
+        if gap_top >= upper_threshold * cell_dim_z:
+            return 'top'
+        elif gap_bottom <= lower_threshold * cell_dim_z:
+            return 'bottom'
+        else:
+            return 'middle'
+
     def count_vacuum_layer(self, threshold: Union[float, int] = 5.0) -> int:
         """
         Count vacuum layer numbers along z-axis.
