@@ -8,6 +8,7 @@ from typing import Union
 from ase import Atoms
 from ase.io import read
 
+from .reposition_along_z import reposition_along_z
 from lib.utilities import find_or_request_poscar, write_poscar
 
 class VacuumLayerSetter:
@@ -18,7 +19,7 @@ class VacuumLayerSetter:
     It provides utilities for counting, calculating, and adjusting the vacuum layer.
 
     Attributes:
-        atoms (ase.Atoms): The atomic structure managed by this object.
+        structure (ase.Atoms): The atomic structure managed by this object.
         old_vacuum_layer (float): Initial vacuum layer thickness along the z-axis.
     """
 
@@ -31,12 +32,12 @@ class VacuumLayerSetter:
         """
         # Check and load input structure
         if isinstance(input_structure, Atoms):
-            self.atoms = input_structure
+            self.structure = input_structure
 
         elif isinstance(input_structure, (Path, str)):
             input_structure = Path(input_structure)
             if input_structure.is_file():
-                self.atoms = read(input_structure, format="vasp")
+                self.structure = read(input_structure, format="vasp")
             else:
                 raise FileNotFoundError("Input structure file not found.")
 
@@ -46,19 +47,18 @@ class VacuumLayerSetter:
         # Calculate vacuum layer thickness
         self.old_vacuum_layer = self.calculate_vacuum_thickness()
 
-    def count_vacuum_layer(self, structure: Atoms, threshold: Union[float, int] = 5.0) -> int:
+    def count_vacuum_layer(self, threshold: Union[float, int] = 5.0) -> int:
         """
         Count vacuum layer numbers along z-axis.
 
         Args:
-            structure (Atoms): the structure to check the vacuum layer.
             threshold (Union[float, int]): the threshold to consider a gap along the z-axis as a vacuum layer (in Å).
 
         Returns:
             int: total number of vacuum layers
         """
         # Extract z-coordinates and sort them
-        z_coords = np.sort(structure.positions[:, 2])
+        z_coords = np.sort(self.structure.positions[:, 2])
 
         # Compute the gaps between adjacent z-coordinates
         gaps = np.diff(z_coords)
@@ -67,7 +67,7 @@ class VacuumLayerSetter:
         large_gaps = gaps > threshold
 
         # Check the special case for periodic boundary conditions at the top and bottom
-        cell_dim_z = structure.get_cell().diagonal()[2]
+        cell_dim_z = self.structure.get_cell().diagonal()[2]
         if (z_coords[-1] - z_coords[0] + (cell_dim_z - z_coords[-1] + z_coords[0])) > threshold:
             large_gaps = np.append(large_gaps, True)
 
@@ -82,8 +82,8 @@ class VacuumLayerSetter:
             float: Thickness of the vacuum layer along the z-axis.
         """
         # Calculate vacuum layer thickness along z-axis
-        cell_dim_z = self.atoms.get_cell().diagonal()[2]
-        positions = self.atoms.get_positions()
+        cell_dim_z = self.structure.get_cell().diagonal()[2]
+        positions = self.structure.get_positions()
         min_position_z = positions[:, 2].min()
         max_position_z = positions[:, 2].max()
 
@@ -100,27 +100,53 @@ class VacuumLayerSetter:
 
     def adjust_vacuum_thickness(self, new_vacuum: Union[float, int]) -> None:
         """
-        Adjust the vacuum thickness along the z-axis in the unit cell.
+        Adjust the vacuum thickness along the z-axis in the unit cell while repositioning atoms.
 
-        Parameters:
-            new_vacuum (float): The new vacuum thickness along the z-axis.
+        This method performs the following steps:
+        1. Checks the validity of the new vacuum thickness.
+        2. Repositions atoms to the bottom of the cell.
+        3. Adjusts the z-axis cell dimension to create the new vacuum thickness at the top.
+        4. Repositions atoms back to the center of the cell.
+
+        Args:
+            new_vacuum (Union[float, int]): The new thickness for the vacuum layer along the z-axis (in Å).
 
         Returns:
-            None: Updates the internal Atoms object with the adjusted vacuum thickness.
+            None: The method updates the internal Atoms object with the adjusted vacuum thickness.
+
+        Raises:
+            ValueError: If the new vacuum thickness is less than or equal to zero.
+
+        Warnings:
+            Issues a warning indicating that the vacuum layer has been adjusted and atoms have been recentered along the z-axis.
         """
         # Check new vacuum layer thickness
         if new_vacuum <= 0:
             raise ValueError("Vacuum layer thickness cannot be negative.")
 
-        # Apply new vacuum layer thickness
-        cell = self.atoms.get_cell()
-        max_position_z = self.atoms.positions[:, 2].max()
+        # Put atoms to the bottom
+        self.structure = reposition_along_z(self.structure, mode="bottom", check_vacuum_layer_number=True)
+
+        # Apply new vacuum layer thickness to the top
+        cell = self.structure.get_cell()
+        max_position_z = self.structure.positions[:, 2].max()
         cell[2, 2] = max_position_z + new_vacuum
-        self.atoms.set_cell(cell)
+        self.structure.set_cell(cell)
+
+        # Move atoms back to the center
+        self.structure = reposition_along_z(self.structure, "center", True)
+        warnings.warn("Vacuum layer would be adjusted. Atoms would be centered along z-axis.")
 
     def run(self) -> None:
         """
         Perform the complete vacuum adjustment workflow.
+
+        The workflow includes:
+        1. Checking the number of vacuum layers in the structure.
+        2. Calculating the current thickness of the vacuum layer.
+        3. Allowing the user to input a new thickness for the vacuum layer.
+        4. Adjusting the vacuum layer thickness.
+        5. Writing the new structure to a POSCAR file.
         """
         # Check vacuum layer
         vacuum_layer_count = self.count_vacuum_layer()
@@ -130,7 +156,7 @@ class VacuumLayerSetter:
             raise ValueError("No vacuum layer found. Please check your structure.")
 
         # Calculate vacuum layer thickness
-        z_vacuum_thickness = self.calculate_z_vacuum_thickness()
+        z_vacuum_thickness = self.calculate_vacuum_thickness()
         print(f"Current vacuum thickness along the z-axis is {z_vacuum_thickness}.")
 
         # Adjust vacuum layer thickness
@@ -138,7 +164,7 @@ class VacuumLayerSetter:
         self.adjust_vacuum_thickness(new_z_vacuum)
 
         # Write adjusted POSCAR
-        write_poscar(self.atoms, "POSCAR_vacuum_adjusted")
+        write_poscar(self.structure, "POSCAR_vacuum_adjusted")
 
 if __name__ == "__main__":
     input_poscar = find_or_request_poscar()  # Or provide an Atoms object
