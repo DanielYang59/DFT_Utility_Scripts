@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict
+from typing import List, Dict, Union
 from pathlib import Path
 import warnings
 from tqdm import tqdm
+import numpy as np
 from ase import Atoms
 from ase.io import read, write
 from ase.constraints import FixAtoms
@@ -23,13 +24,18 @@ class AdsorbateDepositor:
         sites (dict): Dictionary of available adsorption sites on the substrate.
         adsorbates (dict): Dictionary of adsorbates to be deposited.
         adsorbate_refs (dict): Dictionary of adsorbate reference points.
+
+    Notes:
+        - The `_deposit_adsorbate_on_site` method handles atom tagging, where atoms are tagged as 'substrate' or 'adsorbate'.
+        - For detailed information on atom tagging and how to control it, refer to the docstring of `_deposit_adsorbate_on_site`.
     """
 
-    def __init__(self, POSCAR_substrate: Path, sites: dict, adsorbates: dict, adsorbate_refs: dict) -> None:
+    def __init__(self, distance: Union[float, int], POSCAR_substrate: Path, sites: dict, adsorbates: dict, adsorbate_refs: dict) -> None:
         """
         Initializes an instance of AdsorbateDepositor.
 
         Args:
+            distance (Union[float, int]): Vertical distance from the substrate for the generated site.
             POSCAR_substrate (Path): Path to the POSCAR file of the substrate.
             sites (dict): Dictionary containing information about the adsorption sites.
             adsorbates (dict): Dictionary containing information about the adsorbates.
@@ -40,6 +46,14 @@ class AdsorbateDepositor:
             TypeError: If the provided arguments are not of the expected types.
             ValueError: If the provided dictionaries for sites or adsorbates are empty.
         """
+        # Check if distance is rational
+        if not isinstance(distance, (float, int)):
+            raise TypeError("Expect distance in float or int type.")
+        if distance <= 0:
+            raise ValueError("Distance should be greater than zero.")
+        elif distance <= 1:
+            warnings.warn(f"Small distance of {distance} Å found.")
+
         # Check if the POSCAR file exists
         if not POSCAR_substrate.is_file():
             raise FileNotFoundError(f"POSCAR file at {POSCAR_substrate} not found.")
@@ -56,12 +70,18 @@ class AdsorbateDepositor:
             raise ValueError("Got an empty adsorbates dictionary.")
 
         # Parse args
+        self.distance = distance
         self.poscar_substrate = read(POSCAR_substrate)
         self.sites = sites
         self.adsorbates = adsorbates
         self.adsorbate_refs = adsorbate_refs
 
-    def _fix_substrate(self, poscar: Atoms, substrate_indexes: List[int]) -> Atoms:
+    def _calculate_centroid(self, adsorbate: Atoms, ads_reference: List[int]) -> np.ndarray:
+        """Calculate the centroid of given atom indices in the adsorbate."""
+        positions = [adsorbate[index].position for index in ads_reference]
+        return np.mean(positions, axis=0)
+
+    def _fix_substrate(self, poscar: Atoms) -> Atoms:
         """
         Fix atoms tagged as substrate (tag=0) for selective dynamics.
 
@@ -79,13 +99,6 @@ class AdsorbateDepositor:
         if not isinstance(poscar, Atoms):
             raise TypeError(f"Expected 'poscar' to be of type Atoms, but got {type(poscar)}.")
 
-        if not isinstance(substrate_indexes, list) or not all(isinstance(i, int) for i in substrate_indexes):
-            raise TypeError(f"Expected 'substrate_indexes' to be a list of integers, but got {type(substrate_indexes)}.")
-
-        # Check that all indexes are >= 1
-        if any(i < 1 for i in substrate_indexes):
-            raise ValueError("All substrate indexes must be >= 1 (should be 1-indexed).")
-
         # Define tag description
         tag_descriptions = {
             0: "substrate",
@@ -101,51 +114,7 @@ class AdsorbateDepositor:
 
         return poscar
 
-    def _offset_adsorbate_along_z(self, poscar: Atoms, minimal_distance: float = 1.5) -> Atoms:
-        """
-        Offset adsorbate along z-axis to maintain minimal distance.
-
-        Args:
-            poscar (Atoms): The Atoms object.
-            minimal_distance (float): The minimal distance to maintain along the Z-axis.
-
-        Returns:
-            Atoms: The Atoms object with offset adsorbate.
-
-        Notes:
-            - This function only offsets atoms with tag 1, which are considered 'adsorbate'.
-        """
-        # Check the type of minimal_distance
-        if not isinstance(minimal_distance, (float, int)):
-            raise TypeError(f"Expected 'minimal_distance' to be of type float or int, but got {type(minimal_distance)}.")
-
-        # Check the value of minimal_distance
-        if minimal_distance <= 0:
-            raise ValueError("Adsorbate-substrate distance must be greater than zero.")
-
-        # Issue a warning for small adsorbate-substrate distances
-        elif minimal_distance <= 1:
-            warnings.warn(f"Small adsorbate-substrate distance of {minimal_distance} Å set.")
-
-        # Filter only adsorbate atoms (tag=1)
-        adsorbate_atoms = [atom for atom in poscar if atom.tag == 1]
-
-        if not adsorbate_atoms:
-            return poscar
-
-        # Determine the minimum z-coordinate among the adsorbate atoms
-        z_min = min(atom.position[2] for atom in adsorbate_atoms)
-
-        # Calculate the amount by which to offset the adsorbate atoms along z
-        offset = minimal_distance - z_min
-
-        # Apply the offset to adsorbate atoms
-        for atom in adsorbate_atoms:
-            atom.position[2] += offset
-
-        return poscar
-
-    def _deposit_adsorbate_on_site(self, poscar_substrate: Atoms, site: List[float], adsorbate: Atoms, ads_reference: List[int]) -> Atoms:
+    def _deposit_adsorbate_on_site(self, poscar_substrate: Atoms, site: List[float], adsorbate: Atoms, ads_reference: List[int], override_tags: bool = True) -> Atoms:
         """
         Deposits the adsorbate onto the substrate site.
 
@@ -154,12 +123,14 @@ class AdsorbateDepositor:
             site (List[float]): The coordinates of the adsorption site.
             adsorbate (Atoms): The Atoms object of the adsorbate.
             ads_reference (List[int]): List of atom indexes to use as the reference for positioning.
+            override_tags (bool, optional): Whether to override the existing atom tags. Defaults to True.
 
         Returns:
             Atoms: The resulting Atoms object after adsorbate deposition.
 
         Notes:
             - Atoms with tag 0 are considered 'substrate' and atoms with tag 1 are considered 'adsorbate'.
+            - If 'override_tags' is True, the tags for substrate and adsorbate atoms will be set to 0 and 1 respectively, overriding any existing tags.
         """
         # Check args
         if not isinstance(poscar_substrate, Atoms):
@@ -170,17 +141,66 @@ class AdsorbateDepositor:
             raise RuntimeError("Wrong site datatype or length.")
         if not isinstance(ads_reference, list):
             raise TypeError("Wrong adsorbate reference point list datatype.")
+        if not isinstance(override_tags, bool):
+            raise TypeError("Expected 'override_tags' to be of type bool.")
 
-        # Tag all substrate atoms with 0
-        for atom in poscar_substrate:
-            atom.tag = 0
+        # Override tags if requested
+        if override_tags:
+            for atom in poscar_substrate:
+                atom.tag = 0
+            for atom in adsorbate:
+                atom.tag = 1
 
-        # Tag all adsorbate atoms with 1
+        # Calculate centroid of adsorbate reference atoms
+        centroid = self._calculate_centroid(adsorbate, ads_reference)
+
+        # Calculate vector to translate centroid to target site
+        translation_vec = np.array(site) - centroid
+
+        # Translate all atoms in the adsorbate to the target site
         for atom in adsorbate:
-            atom.tag = 1
+            atom.position += translation_vec
+
+        # Move adsorbate up along the z-axis
+        for atom in adsorbate:
+            atom.position[2] += self.distance
 
         # Combine substrate and adsorbate
         return poscar_substrate + adsorbate
+
+    def _check_and_adjust_distance(self, combined: Atoms, step: float = 0.01, max_move_distance: float = 50.0) -> Atoms:
+        """
+        Check and adjust the z-distance between adsorbate and substrate atoms.
+
+        Parameters:
+            combined (Atoms): The combined Atoms object for the substrate and adsorbate.
+            step (float): The distance to move the adsorbate up along the z-axis in each step.
+            max_move_distance (float): The maximum distance the adsorbate can be moved up along the z-axis to avoid potential infinite loop.
+
+        Returns:
+            Atoms: The adjusted combined Atoms object.
+        """
+        substrate_atoms = [atom for atom in combined if atom.tag == 0]
+        adsorbate_atoms = [atom for atom in combined if atom.tag == 1]
+
+        moved_distance = 0.0
+
+        while moved_distance < max_move_distance:
+            min_distance = min(np.linalg.norm(a.position - s.position) for a in adsorbate_atoms for s in substrate_atoms)
+
+            if min_distance >= self.distance:
+                break
+
+            # Move adsorbate up along z-axis by step
+            for atom in adsorbate_atoms:
+                atom.position[2] += step
+
+            moved_distance += step
+
+        if moved_distance >= max_move_distance:
+            raise RuntimeError(f"Maximum moving distance of {max_move_distance} Å reached but still cannot find a valid location. Please check your structure.")
+
+        return combined
 
     def deposit(self, auto_offset_along_z: bool = True, fix_substrate: bool = False) -> dict:
         """
@@ -212,12 +232,12 @@ class AdsorbateDepositor:
                 ads_reference = self.adsorbate_refs[ads_name]
 
                 # Perform the actual deposition
-                result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference, auto_offset_along_z)
+                result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference)
 
                 # Optional post-processing steps
                 ##  Offset adsorbate along z-axis
                 if auto_offset_along_z:
-                    self._offset_adsorbate_along_z(result, minimal_distance=2.0)
+                    self._check_and_adjust_distance(result)
 
                 ## Freeze substrate atoms (for selective dynamics)
                 if fix_substrate:
@@ -240,10 +260,6 @@ class AdsorbateDepositor:
             output_dir (Path): Directory where the Atoms objects will be saved.
             filename (str, optional): Filename for the output. Defaults to "POSCAR_generated".
         """
-        # Check structure file datatype
-        if not isinstance(atoms, Atoms):
-            raise TypeError("Wrong datatype to write.")
-
         # Check and create the output directory
         if not isinstance(output_dir, Path):
             raise TypeError(f"Expected 'output_dir' to be of type Path, but got {type(output_dir)}.")

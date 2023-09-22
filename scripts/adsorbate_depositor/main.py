@@ -51,6 +51,7 @@ def main():
 
     # Generate adsorbate-on-site structure files
     structure_generator = AdsorbateDepositor(
+        distance=config["deposit"]["distance"],
         POSCAR_substrate=config["substrate"]["path"],
         sites=sites,
         adsorbates=adsorbates,
