@@ -1,5 +1,7 @@
 pathways:
   pathway_1:
+    reference_DOI: "10.1002/aenm.202203201"
+    comment: "A possible electrochemical NO3* reduction to NH3 pathway."
     step_1:
       name: "NO3"
       POSCAR_path: "./POSCAR_NO3"
