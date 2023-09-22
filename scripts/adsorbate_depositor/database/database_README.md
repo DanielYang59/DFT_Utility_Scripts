@@ -55,4 +55,4 @@ pathways:
 
 ## Contributing
 
-To add a new chemical reaction or pathway, create a new directory for the reaction (if it doesn't exist) and add a `pathway_database_header.yaml` file that follows the format and rules described above.
+To add a new chemical reaction or pathway, create a new directory for the reaction (if it doesn't exist) and add a `pathway_database_header.yaml` file that follows the format and rules described above. Make sure to run and pass `check_database.py` before PR.
