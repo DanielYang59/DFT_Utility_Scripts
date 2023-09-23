@@ -8,20 +8,20 @@ from typing import Union
 from ase import Atoms
 from ase.io import read
 
-from .reposition_along_z import reposition_along_z
+from .structureRepositioner import StructureRepositioner
 from lib.utilities import find_or_request_poscar, write_poscar
 
 class VacuumLayerManager:
     """
     A class to manage and adjust the vacuum layer of a structure.
 
-    This class assumes that the vacuum layer is along the z-axis of the structure.
-    It provides utilities for counting, calculating, and adjusting the vacuum layer.
+    The class provides utilities for counting, calculating, and adjusting the vacuum layer.
 
     Attributes:
         structure (ase.Atoms): The atomic structure managed by this object.
-        threshold (float): The threshold to consider a gap along the z-axis as a vacuum layer.
-        init_vacuum_layer (float): Initial vacuum layer thickness along the z-axis.
+        threshold (float): The threshold to consider a gap along the axis as a vacuum layer.
+        axis (str): The axis along which the vacuum layer is managed ('x', 'y', or 'z').
+        init_vacuum_layer (float): Initial vacuum layer thickness along the axis.
 
     Methods:
         _find_largest_gap(): Finds the largest gap in z-coordinates among atoms.
@@ -31,14 +31,14 @@ class VacuumLayerManager:
         adjust_vacuum_thickness(): Adjusts the vacuum thickness.
     """
 
-    def __init__(self, input_structure: Union[Atoms, Path, str], threshold: Union[float, int] = 5.0) -> None:
+    def __init__(self, input_structure: Union[Atoms, Path, str], threshold: float = 5.0, axis: str = "z") -> None:
         """
-        Initialize the VacuumLayerSetter with either an ASE Atoms object or a path to a POSCAR/CONTCAR file.
+        Initialize the VacuumLayerManager with either an ASE Atoms object or a path to a POSCAR/CONTCAR file.
 
         Args:
             input_structure (ase.Atoms or pathlib.Path or str): An ASE Atoms object or the path to a POSCAR/CONTCAR file.
-            threshold (Union[float, int]): the threshold to consider a gap along the z-axis as a vacuum layer (in Å).
-
+            threshold (float): the threshold to consider a gap along the axis as a vacuum layer (in Å).
+            axis (str): The axis along which the vacuum layer will be managed ('x', 'y', or 'z').
         """
         # Check and load input structure
         if isinstance(input_structure, Atoms):
@@ -62,6 +62,13 @@ class VacuumLayerManager:
 
         self.threshold = threshold
 
+        # Validation for axis
+        if axis not in ["x", "y", "z"]:
+            raise ValueError("Invalid axis. Must be 'x', 'y', or 'z'.")
+
+        self.axis = axis
+        self.axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
+
         # Calculate vacuum layer count
         self.vacuum_layer_count = self.count_vacuum_layers()
 
@@ -70,12 +77,12 @@ class VacuumLayerManager:
 
     def _find_largest_gap(self) -> tuple:
         """
-        Find the largest gap in z-coordinates among atoms.
+        Find the largest gap along selected axis among atoms.
 
         Returns:
-            tuple: (gap_bottom, gap_top), the bottom and top z-positions of the largest gap.
+            tuple: (gap_bottom, gap_top), the bottom and top positions of the largest gap.
         """
-        z_coords = np.sort(self.structure.positions[:, 2])
+        z_coords = np.sort(self.structure.positions[:, self.axis_index])
         gaps = np.diff(z_coords)
         max_gap_index = np.argmax(gaps)
         gap_bottom = z_coords[max_gap_index]
@@ -92,14 +99,14 @@ class VacuumLayerManager:
             split_threshold (float, optional): Gap size in Å to consider as part of a split vacuum layer. Default is 2.0 Å.
 
         Notes:
-            This method assumes that there is exactly one vacuum layer. The vacuum can:
+            This method assumes that there is exactly one vacuum layer. In the case of z-axis, the vacuum can:
                 1. Be entirely at the top.
                 2. Be entirely at the bottom.
                 3. Be positioned in the middle.
                 4. Be split between the top and bottom.
 
         Returns:
-            str: Position of the vacuum layer ('top', 'bottom', 'middle', 'split').
+            str: Position of the vacuum layer defined along the z-axis ('top', 'bottom', 'middle', 'split').
 
         Raises:
             RuntimeError: If there is not exactly one vacuum layer.
@@ -108,30 +115,30 @@ class VacuumLayerManager:
         if self.vacuum_layer_count != 1:
             raise RuntimeError("Locate vacuum layer method only works when there is exactly one vacuum layer.")
 
-        # Sort the z-coordinates
-        z_coords = np.sort(self.structure.positions[:, 2])
+        # Sort the coordinates
+        coords = np.sort(self.structure.positions[:, self.axis_index])
 
-        # Calculate the gaps between adjacent atoms along the z-axis
-        gaps = np.diff(z_coords)
+        # Calculate the gaps between adjacent atoms along the selected axis
+        gaps = np.diff(coords)
 
         # Find the index of the largest gap
         max_gap_index = np.argmax(gaps)
 
         # Calculate the top and bottom positions of the gap
-        gap_bottom = z_coords[max_gap_index]
-        gap_top = z_coords[max_gap_index + 1]
+        gap_bottom = coords[max_gap_index]
+        gap_top = coords[max_gap_index + 1]
 
-        # Get the cell dimension along the z-axis
-        cell_dim_z = self.structure.get_cell().diagonal()[2]
+        # Get the cell dimension along the selected axis
+        cell_dim = self.structure.get_cell().diagonal()[self.axis_index]
 
         # Identify gap at top and bottom ends
-        top_gap = cell_dim_z - gap_top
+        top_gap = cell_dim - gap_top
         bottom_gap = gap_bottom
 
         # Check the position of the vacuum layer based on the largest gap
-        if gap_top >= upper_threshold * cell_dim_z:
+        if gap_top >= upper_threshold * cell_dim:
             return 'top'
-        elif gap_bottom <= lower_threshold * cell_dim_z:
+        elif gap_bottom <= lower_threshold * cell_dim:
             return 'bottom'
         elif top_gap >= split_threshold and bottom_gap >= split_threshold:
             warnings.warn(f"Vacuum layer is split between the top and bottom. Top gap: {top_gap} Å, bottom gap: {bottom_gap} Å.")
@@ -141,23 +148,23 @@ class VacuumLayerManager:
 
     def count_vacuum_layers(self) -> int:
         """
-        Count vacuum layer numbers along z-axis.
+        Count vacuum layer numbers along selected axis.
 
         Returns:
             int: total number of vacuum layers
         """
-        # Extract z-coordinates and sort them
-        z_coords = np.sort(self.structure.positions[:, 2])
+        # Extract coordinates and sort them
+        coords = np.sort(self.structure.positions[:, self.axis_index])
 
-        # Compute the gaps between adjacent z-coordinates
-        gaps = np.diff(z_coords)
+        # Compute the gaps between adjacent coordinates
+        gaps = np.diff(coords)
 
         # Identify the gaps that are larger than the threshold
         large_gaps = gaps > self.threshold
 
-        # Check the special case for periodic boundary conditions at the top and bottom
-        cell_dim_z = self.structure.get_cell().diagonal()[2]
-        if (z_coords[-1] - z_coords[0] + (cell_dim_z - z_coords[-1] + z_coords[0])) > self.threshold:
+        # Check the special case for periodic boundary conditions at the "top" and "bottom"
+        cell_dim = self.structure.get_cell().diagonal()[self.axis_index]
+        if (coords[-1] - coords[0] + (cell_dim - coords[-1] + coords[0])) > self.threshold:
             large_gaps = np.append(large_gaps, True)
 
         # Count the number of large gaps (i.e., the number of vacuum layers)
@@ -165,40 +172,40 @@ class VacuumLayerManager:
 
     def calculate_vacuum_thickness(self, warn_lower_threshold: float = 2.0, warn_upper_ratio_threshold: float = 0.9) -> float:
         """
-        Calculate the vacuum thickness along the z-axis in the unit cell.
+        Calculate the vacuum thickness along the selected axis in the unit cell.
 
         Returns:
-            float: Thickness of the vacuum layer along the z-axis.
+            float: Thickness of the vacuum layer.
         """
-        # Calculate vacuum layer thickness along z-axis
-        cell_dim_z = self.structure.get_cell().diagonal()[2]
+        # Calculate vacuum layer thickness along the selected axis
+        cell_dim = self.structure.get_cell().diagonal()[self.axis_index]
         positions = self.structure.get_positions()
-        min_position_z = positions[:, 2].min()
-        max_position_z = positions[:, 2].max()
+        min_position = positions[:, self.axis_index].min()
+        max_position = positions[:, self.axis_index].max()
 
-        vacuum_layer_z = cell_dim_z - (max_position_z - min_position_z)
+        vacuum_layer_thickness = cell_dim - (max_position - min_position)
 
         # Warn if vacuum layer thickness is suspicious
-        if vacuum_layer_z <= warn_lower_threshold:
-            warnings.warn(f"The vacuum layer thickness along the z-axis is only {vacuum_layer_z} Å.")
-        if vacuum_layer_z >= (cell_dim_z * warn_upper_ratio_threshold):
-            warnings.warn("The vacuum layer thickness along the z-axis is very close to the cell dimension in z-axis. Please double-check your structure.")
+        if vacuum_layer_thickness <= warn_lower_threshold:
+            warnings.warn(f"The vacuum layer thickness along the selected axis is only {vacuum_layer_thickness} Å.")
+        if vacuum_layer_thickness >= (cell_dim * warn_upper_ratio_threshold):
+            warnings.warn("The vacuum layer thickness along the selected axis is very close to the cell dimension. Please double-check your structure.")
 
-        assert vacuum_layer_z >= 0
-        return vacuum_layer_z
+        assert vacuum_layer_thickness >= 0
+        return vacuum_layer_thickness
 
-    def adjust_vacuum_thickness(self, new_vacuum: Union[float, int]) -> None:
+    def adjust_vacuum_thickness(self, new_vacuum: float) -> None:
         """
-        Adjust the vacuum thickness along the z-axis in the unit cell while repositioning atoms.
+        Adjust the vacuum thickness along the selected axis in the unit cell while repositioning atoms.
 
         This method performs the following steps:
         1. Checks the validity of the new vacuum thickness.
-        2. Repositions atoms to the bottom of the cell.
-        3. Adjusts the z-axis cell dimension to create the new vacuum thickness at the top.
+        2. Repositions atoms to the "bottom" of the cell.
+        3. Adjusts the cell dimension to create the new vacuum thickness at the "top".
         4. Repositions atoms back to the center of the cell.
 
         Args:
-            new_vacuum (Union[float, int]): The new thickness for the vacuum layer along the z-axis (in Å).
+            new_vacuum (float): The new thickness for the vacuum layer in Å.
 
         Returns:
             None: The method updates the internal Atoms object with the adjusted vacuum thickness.
@@ -207,46 +214,54 @@ class VacuumLayerManager:
             ValueError: If the new vacuum thickness is less than or equal to zero.
 
         Warnings:
-            Issues a warning indicating that the vacuum layer has been adjusted and atoms have been recentered along the z-axis.
+            Issues a warning indicating that the vacuum layer has been adjusted and atoms have been recentered.
         """
         # Check new vacuum layer thickness
         if new_vacuum <= 0:
             raise ValueError("Vacuum layer thickness cannot be negative.")
 
         # Put atoms to the bottom
-        self.structure = reposition_along_z(self.structure, mode="bottom", check_vacuum_layer_number=True)
+        atom_repositioner = StructureRepositioner(structure=self.structure, axis=self.axis)
+        self.structure = atom_repositioner.reposition_along_axis(mode="bottom")
 
         # Apply new vacuum layer thickness to the top
         cell = self.structure.get_cell()
-        max_position_z = self.structure.positions[:, 2].max()
-        cell[2, 2] = max_position_z + new_vacuum
+        max_position = self.structure.positions[:, self.axis_index].max()
+        cell[self.axis_index, self.axis_index] = max_position + new_vacuum
         self.structure.set_cell(cell)
 
         # Move atoms back to the center
-        self.structure = reposition_along_z(self.structure, "center", True)
-        warnings.warn("Vacuum layer would be adjusted. Atoms would be centered along z-axis.")
+        atom_repositioner = StructureRepositioner(structure=self.structure, axis=self.axis)
+        self.structure = atom_repositioner.reposition_along_axis(mode="center")
+        warnings.warn(f"Vacuum layer would be adjusted. Atoms would be centered along {self.axis}-axis.")
 
 def main():
     """
     The main function to execute the vacuum adjustment workflow.
     """
     input_poscar = find_or_request_poscar()  # Or provide an Atoms object
-    vacuum_setter = VacuumLayerSetter(input_poscar)
+
+    # Allow user to specify axis
+    axis_choice = input("Please enter the axis ('x', 'y', 'z') along which you want to adjust the vacuum layer: ")
+    if axis_choice not in ["x", "y", "z"]:
+        raise ValueError("Invalid axis choice. Must be 'x', 'y', or 'z'.")
+
+    vacuum_setter = VacuumLayerManager(input_poscar, axis=axis_choice)
 
     # Check vacuum layer
-    vacuum_layer_count = vacuum_setter.count_vacuum_layer()
+    vacuum_layer_count = vacuum_setter.count_vacuum_layers()
     if vacuum_layer_count >= 2:
         raise ValueError("The structure contains more than one vacuum layer, which is not allowed.")
     elif vacuum_layer_count == 0:
         raise ValueError("No vacuum layer found. Please check your structure.")
 
     # Calculate vacuum layer thickness
-    z_vacuum_thickness = vacuum_setter.calculate_vacuum_thickness()
-    print(f"Current vacuum thickness along the z-axis is {z_vacuum_thickness}.")
+    vacuum_layer_thickness = vacuum_setter.calculate_vacuum_thickness()
+    print(f"Current vacuum thickness along the {axis_choice}-axis is {vacuum_layer_thickness}.")
 
     # Adjust vacuum layer thickness
-    new_z_vacuum = float(input("Please enter the new vacuum thickness along the z-axis: "))
-    vacuum_setter.adjust_vacuum_thickness(new_z_vacuum)
+    new_vacuum = float(input(f"Please enter the new vacuum thickness along the {axis_choice}-axis: "))
+    vacuum_setter.adjust_vacuum_thickness(new_vacuum)
 
     # Write adjusted POSCAR
     write_poscar(vacuum_setter.structure, "POSCAR_vacuum_adjusted")
