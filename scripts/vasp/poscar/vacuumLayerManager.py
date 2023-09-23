@@ -11,7 +11,7 @@ from ase.io import read
 from .reposition_along_z import reposition_along_z
 from lib.utilities import find_or_request_poscar, write_poscar
 
-class VacuumLayerSetter:
+class VacuumLayerManager:
     """
     A class to manage and adjust the vacuum layer of a structure.
 
@@ -176,30 +176,30 @@ class VacuumLayerSetter:
         self.structure = reposition_along_z(self.structure, "center", True)
         warnings.warn("Vacuum layer would be adjusted. Atoms would be centered along z-axis.")
 
-    def main():
-        """
-        The main function to execute the vacuum adjustment workflow.
-        """
-        input_poscar = find_or_request_poscar()  # Or provide an Atoms object
-        vacuum_setter = VacuumLayerSetter(input_poscar)
+def main():
+    """
+    The main function to execute the vacuum adjustment workflow.
+    """
+    input_poscar = find_or_request_poscar()  # Or provide an Atoms object
+    vacuum_setter = VacuumLayerSetter(input_poscar)
 
-        # Check vacuum layer
-        vacuum_layer_count = vacuum_setter.count_vacuum_layer()
-        if vacuum_layer_count >= 2:
-            raise ValueError("The structure contains more than one vacuum layer, which is not allowed.")
-        elif vacuum_layer_count == 0:
-            raise ValueError("No vacuum layer found. Please check your structure.")
+    # Check vacuum layer
+    vacuum_layer_count = vacuum_setter.count_vacuum_layer()
+    if vacuum_layer_count >= 2:
+        raise ValueError("The structure contains more than one vacuum layer, which is not allowed.")
+    elif vacuum_layer_count == 0:
+        raise ValueError("No vacuum layer found. Please check your structure.")
 
-        # Calculate vacuum layer thickness
-        z_vacuum_thickness = vacuum_setter.calculate_vacuum_thickness()
-        print(f"Current vacuum thickness along the z-axis is {z_vacuum_thickness}.")
+    # Calculate vacuum layer thickness
+    z_vacuum_thickness = vacuum_setter.calculate_vacuum_thickness()
+    print(f"Current vacuum thickness along the z-axis is {z_vacuum_thickness}.")
 
-        # Adjust vacuum layer thickness
-        new_z_vacuum = float(input("Please enter the new vacuum thickness along the z-axis: "))
-        vacuum_setter.adjust_vacuum_thickness(new_z_vacuum)
+    # Adjust vacuum layer thickness
+    new_z_vacuum = float(input("Please enter the new vacuum thickness along the z-axis: "))
+    vacuum_setter.adjust_vacuum_thickness(new_z_vacuum)
 
-        # Write adjusted POSCAR
-        write_poscar(vacuum_setter.structure, "POSCAR_vacuum_adjusted")
+    # Write adjusted POSCAR
+    write_poscar(vacuum_setter.structure, "POSCAR_vacuum_adjusted")
 
 if __name__ == "__main__":
     main()
