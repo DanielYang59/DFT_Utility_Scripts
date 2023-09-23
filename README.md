@@ -2,7 +2,16 @@
 
 Collection of Essential Scripts for Density Functional Theory (DFT) Calculations.
 
+# ⚠️ Project Under Development ⚠️
+
+**This project is currently under active development and the scripts have not been fully tested.**
+
+If you find any issues or have suggestions, please [raise an issue](https://github.com/your-repo-link/issues) on this repository.
+
+---
+
 ## Table of Contents
+
 - [general](#general)
 - [doscar](#doscar)
 - [potcar](#potcar)
@@ -11,6 +20,7 @@ Collection of Essential Scripts for Density Functional Theory (DFT) Calculations
 - [reaction_diagram](#reaction_diagram)
 
 ## general
+
 # VASP Cleanup Script
 
 ## Overview
@@ -57,6 +67,7 @@ clean_vasp_files(directory, job_script="my_script.sh", verbose="verbose")
 ## doscar
 
 ## potcar
+
 # POTCAR Generation Script
 
 ## Overview
@@ -141,6 +152,7 @@ python3 kpoints.py <a> <b> <c> [-m <mesh_type_initial>]
 ## cohp
 
 ## reaction_diagram
+
 # Reaction Diagram Plotter
 
 ## Overview
@@ -191,7 +203,6 @@ By default, the output will be saved in an `output` folder in `.png` format.
 ## Contributing
 
 Contributions are welcome. Please open an issue or create a pull request with your changes.
-
 
 ## License
 
