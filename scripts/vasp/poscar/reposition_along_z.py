@@ -6,7 +6,7 @@ import numpy as np
 import argparse
 from ase.io import write
 
-from .vacuumLayerSetter import VacuumLayerSetter
+from .vacuumLayerManager import VacuumLayerManager
 from lib.utilities import find_or_request_poscar, read_poscar
 
 class StructureRepositioner:
@@ -53,26 +53,26 @@ class StructureRepositioner:
         shift_value = self.structure.get_cell()[2, 2] / 2 - centroid
         self.structure.positions[:, 2] += shift_value
 
-    def reposition_along_z(self, mode: str, check_vacuum_layer_number: bool = True):
+    def reposition_along_z(self, mode: str, check_vacuum_layer_numbers: bool = True):
         """
         Reposition atoms in the structure along the Z-axis based on the given mode.
 
         Parameters:
             mode (str): Specifies how atoms should be moved ("top", "bottom", "center", "centre").
-            check_vacuum_layer_number (bool, optional): Whether to check for a single vacuum layer. Default is True.
+            check_vacuum_layer_numbers (bool, optional): Whether to check for a single vacuum layer. Default is True.
 
         Raises:
-            RuntimeError: If the mode is unsupported or if more than one vacuum layer is found when check_vacuum_layer_number is True.
+            RuntimeError: If the mode is unsupported or if more than one vacuum layer is found when check_vacuum_layer_numbers is True.
         """
         # Check work mode
         if mode not in {"top", "bottom", "center", "centre"}:
             raise RuntimeError(f"Unsupported work mode {mode} for reposition module.")
 
         # Check vacuum layer count and position
-        vacuum_setter = VacuumLayerSetter(self.structure)
-        vacuum_layer_count = vacuum_setter.count_vacuum_layer()
-        vacuum_layer_position = vacuum_setter.locate_vacuum_layer()
-        if check_vacuum_layer_number and vacuum_layer_count != 1:
+        vacuum_manager = VacuumLayerManager(self.structure)
+        vacuum_layer_count = vacuum_manager.count_vacuum_layer()
+        vacuum_layer_position = vacuum_manager.locate_vacuum_layer()
+        if check_vacuum_layer_numbers and vacuum_layer_count != 1:
             raise RuntimeError(f"Expect structure with exactly one vacuum layer, {vacuum_layer_count} found.")
 
         # Move atoms
@@ -100,7 +100,7 @@ def main():
     structure = read_poscar(structure_path)
 
     repositioner = StructureRepositioner(structure)
-    repositioner.reposition_along_z(mode=args.mode, check_vacuum_layer_number=args.check_vacuum_layer_number)
+    repositioner.reposition_along_z(mode=args.mode, check_vacuum_layer_numbers=args.check_vacuum_layer_number)
 
     # Save the modified structure to a file
     write(f'POSCAR_repositioned_{args.mode}', repositioner.structure, format='vasp')

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: update class docstring to show available methods.
+
 from pathlib import Path
 import numpy as np
 import warnings
@@ -57,7 +59,7 @@ class VacuumLayerManager:
             str: Position of the vacuum layer ('top', 'bottom', 'middle').
         """
         # Check vacuum layer count
-        if self.count_vacuum_layer() != 1:
+        if self.count_vacuum_layers() != 1:
             raise RuntimeError("Locate vacuum layer method only works when there is exactly one vacuum layer.")
 
         warnings.warn(f"Locate vacuum layer method works reliably only when the vacuum layer resides at the top{upper_threshold}/bottom{lower_threshold} of the model, and might generate unreliable results for more complicated cases.")
@@ -86,7 +88,7 @@ class VacuumLayerManager:
         else:
             return 'middle'
 
-    def count_vacuum_layer(self, threshold: Union[float, int] = 5.0) -> int:
+    def count_vacuum_layers(self, threshold: Union[float, int] = 5.0) -> int:
         """
         Count vacuum layer numbers along z-axis.
 
