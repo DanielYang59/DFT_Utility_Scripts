@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: update class docstring to show available methods.
-
 from pathlib import Path
 import numpy as np
 import warnings
@@ -22,15 +20,25 @@ class VacuumLayerManager:
 
     Attributes:
         structure (ase.Atoms): The atomic structure managed by this object.
-        old_vacuum_layer (float): Initial vacuum layer thickness along the z-axis.
+        threshold (float): The threshold to consider a gap along the z-axis as a vacuum layer.
+        init_vacuum_layer (float): Initial vacuum layer thickness along the z-axis.
+
+    Methods:
+        _find_largest_gap(): Finds the largest gap in z-coordinates among atoms.
+        locate_vacuum_layer(): Locates the position of the vacuum layer in the structure.
+        count_vacuum_layers(): Counts the vacuum layers.
+        calculate_vacuum_thickness(): Calculates the thickness of the vacuum layer.
+        adjust_vacuum_thickness(): Adjusts the vacuum thickness.
     """
 
-    def __init__(self, input_structure: Union[Atoms, Path, str]) -> None:
+    def __init__(self, input_structure: Union[Atoms, Path, str], threshold: Union[float, int] = 5.0) -> None:
         """
         Initialize the VacuumLayerSetter with either an ASE Atoms object or a path to a POSCAR/CONTCAR file.
 
         Args:
             input_structure (ase.Atoms or pathlib.Path or str): An ASE Atoms object or the path to a POSCAR/CONTCAR file.
+            threshold (Union[float, int]): the threshold to consider a gap along the z-axis as a vacuum layer (in Å).
+
         """
         # Check and load input structure
         if isinstance(input_structure, Atoms):
@@ -46,23 +54,59 @@ class VacuumLayerManager:
         else:
             raise ValueError("Input structure must be either an ASE Atoms object or a Path to a POSCAR/CONTCAR file.")
 
-        # Calculate vacuum layer thickness
-        self.old_vacuum_layer = self.calculate_vacuum_thickness()
+        # Check vacuum layer threshold
+        if threshold <= 0:
+            raise ValueError("Vacuum level threshold should be greater than zero.")
+        elif threshold < 5:
+            warnings.warn(f"Small vacuum level threshold of {threshold} Å set. Make sure this is what you want.")
 
-    def locate_vacuum_layer(self, lower_threshold: float = 0.25, upper_threshold: float = 0.75) -> str:
+        self.threshold = threshold
+
+        # Calculate vacuum layer count
+        self.vacuum_layer_count = self.count_vacuum_layers()
+
+        # Calculate vacuum layer thickness
+        self.init_vacuum_layer = self.calculate_vacuum_thickness()
+
+    def _find_largest_gap(self) -> tuple:
+        """
+        Find the largest gap in z-coordinates among atoms.
+
+        Returns:
+            tuple: (gap_bottom, gap_top), the bottom and top z-positions of the largest gap.
+        """
+        z_coords = np.sort(self.structure.positions[:, 2])
+        gaps = np.diff(z_coords)
+        max_gap_index = np.argmax(gaps)
+        gap_bottom = z_coords[max_gap_index]
+        gap_top = z_coords[max_gap_index] + gaps[max_gap_index]
+        return gap_bottom, gap_top
+
+    def locate_vacuum_layer(self, lower_threshold: float = 0.25, upper_threshold: float = 0.75, split_threshold: float = 1.0) -> str:
         """
         Locates the position of the single vacuum layer in the structure.
 
-        This method assumes that there is exactly one vacuum layer.
+        Args:
+            lower_threshold (float, optional): Lower threshold as a fraction of cell height to define the bottom region. Default is 0.25.
+            upper_threshold (float, optional): Upper threshold as a fraction of cell height to define the top region. Default is 0.75.
+            split_threshold (float, optional): Gap size in Å to consider as part of a split vacuum layer. Default is 2.0 Å.
+
+        Notes:
+            This method assumes that there is exactly one vacuum layer. The vacuum can:
+                1. Be entirely at the top.
+                2. Be entirely at the bottom.
+                3. Be positioned in the middle.
+                4. Be split between the top and bottom.
 
         Returns:
-            str: Position of the vacuum layer ('top', 'bottom', 'middle').
+            str: Position of the vacuum layer ('top', 'bottom', 'middle', 'split').
+
+        Raises:
+            RuntimeError: If there is not exactly one vacuum layer.
         """
         # Check vacuum layer count
-        if self.count_vacuum_layers() != 1:
+        if self.vacuum_layer_count != 1:
             raise RuntimeError("Locate vacuum layer method only works when there is exactly one vacuum layer.")
-
-        warnings.warn(f"Locate vacuum layer method works reliably only when the vacuum layer resides at the top{upper_threshold}/bottom{lower_threshold} of the model, and might generate unreliable results for more complicated cases.")
 
         # Sort the z-coordinates
         z_coords = np.sort(self.structure.positions[:, 2])
@@ -75,25 +119,29 @@ class VacuumLayerManager:
 
         # Calculate the top and bottom positions of the gap
         gap_bottom = z_coords[max_gap_index]
-        gap_top = z_coords[max_gap_index] + gaps[max_gap_index]
+        gap_top = z_coords[max_gap_index + 1]
 
         # Get the cell dimension along the z-axis
         cell_dim_z = self.structure.get_cell().diagonal()[2]
+
+        # Identify gap at top and bottom ends
+        top_gap = cell_dim_z - gap_top
+        bottom_gap = gap_bottom
 
         # Check the position of the vacuum layer based on the largest gap
         if gap_top >= upper_threshold * cell_dim_z:
             return 'top'
         elif gap_bottom <= lower_threshold * cell_dim_z:
             return 'bottom'
+        elif top_gap >= split_threshold and bottom_gap >= split_threshold:
+            warnings.warn(f"Vacuum layer is split between the top and bottom. Top gap: {top_gap} Å, bottom gap: {bottom_gap} Å.")
+            return 'split'
         else:
             return 'middle'
 
-    def count_vacuum_layers(self, threshold: Union[float, int] = 5.0) -> int:
+    def count_vacuum_layers(self) -> int:
         """
         Count vacuum layer numbers along z-axis.
-
-        Args:
-            threshold (Union[float, int]): the threshold to consider a gap along the z-axis as a vacuum layer (in Å).
 
         Returns:
             int: total number of vacuum layers
@@ -105,11 +153,11 @@ class VacuumLayerManager:
         gaps = np.diff(z_coords)
 
         # Identify the gaps that are larger than the threshold
-        large_gaps = gaps > threshold
+        large_gaps = gaps > self.threshold
 
         # Check the special case for periodic boundary conditions at the top and bottom
         cell_dim_z = self.structure.get_cell().diagonal()[2]
-        if (z_coords[-1] - z_coords[0] + (cell_dim_z - z_coords[-1] + z_coords[0])) > threshold:
+        if (z_coords[-1] - z_coords[0] + (cell_dim_z - z_coords[-1] + z_coords[0])) > self.threshold:
             large_gaps = np.append(large_gaps, True)
 
         # Count the number of large gaps (i.e., the number of vacuum layers)
