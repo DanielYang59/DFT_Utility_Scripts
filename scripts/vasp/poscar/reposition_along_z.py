@@ -11,10 +11,25 @@ from lib.utilities import find_or_request_poscar, read_poscar
 
 class StructureRepositioner:
     """
-    A class for repositioning the atoms in a given ASE structure along the Z-axis.
+    A utility class for manipulating the positions of atoms in an ASE Atoms object
+    along the Z-axis. This class provides functionalities to reposition atoms,
+    particularly in structures with or without a vacuum layer along the Z-axis.
 
     Attributes:
-        structure (Atoms): The structure to be modified.
+        structure (Atoms): The ASE Atoms object representing the structure
+                           whose atoms are to be repositioned.
+
+    Methods:
+        __init__(self, structure: Atoms): Initialize the class.
+
+        move_continuous_atoms(self, mode: str): Move atoms continuously based on
+                                                the given mode ("top", "bottom", "center").
+
+        move_split_atoms(self, mode: str): Reposition atoms that are split by a
+                                           vacuum layer based on the given mode.
+
+        reposition_along_z(self, mode: str): Perform atom repositioning based on
+                                             the specified mode and vacuum layer presence.
     """
 
     def __init__(self, structure: Atoms):
@@ -22,16 +37,20 @@ class StructureRepositioner:
         Initialize the StructureRepositioner class with an ASE Atoms object.
 
         Parameters:
-            structure (Atoms): The Atoms object to be modified.
+            structure (Atoms): The Atoms object representing the structure to be modified.
         """
         self.structure = structure
 
     def move_continuous_atoms(self, mode: str):
         """
-        Move atoms that are continuous to the specified position ("top", "bottom", "center", "centre") in the cell.
+        Move all atoms in the structure based on the specified mode along the Z-axis.
 
         Parameters:
-            mode (str): Specifies where atoms should be moved ("top", "bottom", "center", "centre").
+            mode (str): Specifies where the atoms should be moved to.
+                        Accepts one of the following: 'top', 'bottom', 'center', 'centre'.
+
+        Raises:
+            ValueError: If an unsupported mode is provided.
         """
         z_coords = self.structure.positions[:, 2]
         cell_height = self.structure.get_cell()[2, 2]
@@ -50,11 +69,14 @@ class StructureRepositioner:
 
     def move_split_atoms(self, mode: str) -> None:
         """
-        Move atoms that are "split" by the vacuum layer in the middle of the cell.
-        In reality, it is continuous because of the periodic boundary conditions.
+        Move atoms that are 'split' by a vacuum layer in the middle of the cell.
+        In reality, the atoms are continuous due to the periodic boundary conditions.
+        The method first joins the 'split' atoms by moving one part to the other,
+        and then repositions them based on the mode.
 
         Parameters:
-            mode (str): Specifies where atoms should be moved ("top", "bottom", "center", "centre").
+            mode (str): Specifies where the atoms should be moved to.
+                        Accepts one of the following: 'top', 'bottom', 'center', 'centre'.
         """
         # Get atom z coordinates and cell height
         z_coords = self.structure.positions[:, 2]
@@ -85,10 +107,18 @@ class StructureRepositioner:
 
     def reposition_along_z(self, mode: str) -> None:
         """
-        Reposition atoms based on the specified mode and the presence of a vacuum layer.
+        Master function to reposition atoms based on the specified mode and
+        the presence of a vacuum layer in the cell. It delegates the task to
+        either `move_continuous_atoms` or `move_split_atoms` based on the
+        vacuum layer position.
 
         Parameters:
-            mode (str): Specifies where atoms should be moved ("top", "bottom", "center").
+            mode (str): Specifies where the atoms should be moved to.
+                        Accepts one of the following: 'top', 'bottom', 'center', 'centre'.
+
+        Raises:
+            ValueError: If an unsupported mode is provided.
+            RuntimeError: If more than one vacuum layers are present.
         """
         # Check work mode
         if mode not in {"top", "bottom", "center", "centre"}:
@@ -110,7 +140,10 @@ class StructureRepositioner:
 
 def main():
     """
-    Main function to handle user input and execute atom repositioning.
+    Main function to parse command-line arguments and execute the repositioning
+    of atoms in the structure. It reads the structure from a POSCAR file,
+    performs the repositioning using the `StructureRepositioner` class,
+    and writes the modified structure back to a new POSCAR file.
     """
     parser = argparse.ArgumentParser(description="Reposition atoms in an ASE structure along the Z-axis.")
     parser.add_argument("mode", type=str, choices=["top", "bottom", "center", "centre"], help="How to reposition the atoms.")
