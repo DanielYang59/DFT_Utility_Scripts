@@ -176,36 +176,30 @@ class VacuumLayerSetter:
         self.structure = reposition_along_z(self.structure, "center", True)
         warnings.warn("Vacuum layer would be adjusted. Atoms would be centered along z-axis.")
 
-    def run(self) -> None:
+    def main():
         """
-        Perform the complete vacuum adjustment workflow.
+        The main function to execute the vacuum adjustment workflow.
+        """
+        input_poscar = find_or_request_poscar()  # Or provide an Atoms object
+        vacuum_setter = VacuumLayerSetter(input_poscar)
 
-        The workflow includes:
-        1. Checking the number of vacuum layers in the structure.
-        2. Calculating the current thickness of the vacuum layer.
-        3. Allowing the user to input a new thickness for the vacuum layer.
-        4. Adjusting the vacuum layer thickness.
-        5. Writing the new structure to a POSCAR file.
-        """
         # Check vacuum layer
-        vacuum_layer_count = self.count_vacuum_layer()
+        vacuum_layer_count = vacuum_setter.count_vacuum_layer()
         if vacuum_layer_count >= 2:
             raise ValueError("The structure contains more than one vacuum layer, which is not allowed.")
         elif vacuum_layer_count == 0:
             raise ValueError("No vacuum layer found. Please check your structure.")
 
         # Calculate vacuum layer thickness
-        z_vacuum_thickness = self.calculate_vacuum_thickness()
+        z_vacuum_thickness = vacuum_setter.calculate_vacuum_thickness()
         print(f"Current vacuum thickness along the z-axis is {z_vacuum_thickness}.")
 
         # Adjust vacuum layer thickness
         new_z_vacuum = float(input("Please enter the new vacuum thickness along the z-axis: "))
-        self.adjust_vacuum_thickness(new_z_vacuum)
+        vacuum_setter.adjust_vacuum_thickness(new_z_vacuum)
 
         # Write adjusted POSCAR
-        write_poscar(self.structure, "POSCAR_vacuum_adjusted")
+        write_poscar(vacuum_setter.structure, "POSCAR_vacuum_adjusted")
 
 if __name__ == "__main__":
-    input_poscar = find_or_request_poscar()  # Or provide an Atoms object
-    vacuum_setter = VacuumLayerSetter(input_poscar)
-    vacuum_setter.run()
+    main()
