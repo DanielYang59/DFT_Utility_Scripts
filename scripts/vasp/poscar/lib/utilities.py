@@ -45,7 +45,7 @@ def write_poscar(atoms: Atoms, file_path: str, overwrite: bool = False) -> None:
 
     write(file_path, atoms, format="vasp")
 
-def find_or_request_poscar():
+def find_or_request_poscar() -> Path:
     """
     Search for a POSCAR file in the working directory and return its Path object.
     If none is found, prompt the user to input a path to POSCAR or CONTCAR manually.

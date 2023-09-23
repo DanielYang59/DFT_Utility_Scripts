@@ -4,15 +4,15 @@
 from ase import Atoms
 from lib.utilities import read_poscar, write_poscar, find_or_request_poscar
 
-def cartesian_to_direct(atoms):
+def cartesian_to_direct(atoms: Atoms) -> Atoms:
     """
     Convert Cartesian coordinates to Direct coordinates.
 
     Parameters:
-    atoms (ase.Atoms): An ASE Atoms object with Cartesian coordinates
+        atoms (ase.Atoms): An ASE Atoms object with Cartesian coordinates
 
     Returns:
-    ase.Atoms: A new Atoms object with Direct coordinates
+        ase.Atoms: A new Atoms object with Direct coordinates
     """
     # Get scaled positions (direct coordinates)
     scaled_positions = atoms.get_scaled_positions()
@@ -25,15 +25,15 @@ def cartesian_to_direct(atoms):
 
     return new_atoms
 
-def direct_to_cartesian(atoms):
+def direct_to_cartesian(atoms: Atoms) -> Atoms:
     """
     Convert Direct coordinates to Cartesian coordinates.
 
     Parameters:
-    atoms (ase.Atoms): An ASE Atoms object with Direct coordinates
+        atoms (ase.Atoms): An ASE Atoms object with Direct coordinates
 
     Returns:
-    ase.Atoms: A new Atoms object with Cartesian coordinates
+        ase.Atoms: A new Atoms object with Cartesian coordinates
     """
     # Get Cartesian positions
     positions = atoms.get_positions()
