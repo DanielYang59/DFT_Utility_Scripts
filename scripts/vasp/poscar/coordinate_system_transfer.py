@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from ase import Atoms
-from lib.utilities import read_poscar, write_poscar, find_or_request_poscar
+from lib import read_poscar, write_poscar, find_or_request_poscar
 
 def cartesian_to_direct(atoms: Atoms) -> Atoms:
     """

@@ -10,7 +10,7 @@ from ase.io import write
 from pathlib import Path
 import warnings
 
-from lib.utilities import find_or_request_poscar, read_poscar
+from lib import find_or_request_poscar, read_poscar
 
 class StructureRepositioner:
     """
