@@ -55,7 +55,7 @@ class StructureRepositioner:
         self.axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
 
         # Check cell vector
-        self._check_cell(direction=self.axis)
+        self._check_cell()
 
     def _check_cell(self):
         """Check the alignment of the cell vectors with the given direction.
