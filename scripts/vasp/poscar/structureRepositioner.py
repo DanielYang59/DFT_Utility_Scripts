@@ -15,7 +15,13 @@ from lib import find_or_request_poscar, read_poscar
 class StructureRepositioner:
     """
     A utility class for manipulating the positions of atoms in an ASE Atoms object.
-    Supports repositioning along any specified axis ('x', 'y', 'z').
+    Supports repositioning along any specified axis ('x', 'y', 'z') and various modes
+    ('max_bound', 'min_bound', 'center', 'centre') for repositioning.
+
+    Modes:
+        - 'max_bound': Moves atoms towards the maximum boundary of the cell along the specified axis.
+        - 'min_bound': Moves atoms towards the minimum boundary of the cell along the specified axis.
+        - 'center' or 'centre': Moves atoms towards the center of the cell along the specified axis.
 
     Attributes:
         structure (Atoms): The Atoms object representing the structure to be modified.
@@ -48,15 +54,21 @@ class StructureRepositioner:
         Move atoms continuously along the axis based on the specified mode.
 
         Parameters:
-            mode (str): Where to move the atoms ('top', 'bottom', 'center', 'centre').
+            mode (str): Where to move the atoms. Accepts one of the following values:
+                        - 'max_bound': Moves atoms towards the maximum boundary of the cell along the axis.
+                        - 'min_bound': Moves atoms towards the minimum boundary of the cell along the axis.
+                        - 'center' or 'centre': Moves atoms towards the center of the cell along the axis.
+
+        Raises:
+            ValueError: If an unsupported mode is provided.
         """
         coords = self.structure.positions[:, self.axis_index]
         cell_size = self.structure.get_cell()[self.axis_index, self.axis_index]
         centroid = np.mean(coords)
 
-        if mode == "top":
+        if mode == "max_bound":
             shift_value = cell_size - max(coords)
-        elif mode == "bottom":
+        elif mode == "min_bound":
             shift_value = -min(coords)
         elif mode in {"center", "centre"}:
             shift_value = cell_size / 2 - centroid
@@ -70,18 +82,24 @@ class StructureRepositioner:
         Move atoms that are split by a vacuum layer along the axis.
 
         Parameters:
-            mode (str): Where to move the atoms ('top', 'bottom', 'center', 'centre').
+            mode (str): Where to move the atoms. Accepts one of the following values:
+                        - 'max_bound': Moves atoms towards the maximum boundary of the cell along the axis.
+                        - 'min_bound': Moves atoms towards the minimum boundary of the cell along the axis.
+                        - 'center' or 'centre': Moves atoms towards the center of the cell along the axis.
+
+        Raises:
+            ValueError: If an unsupported mode is provided.
         """
         coords = self.structure.positions[:, self.axis_index]
         cell_size = self.structure.get_cell()[self.axis_index, self.axis_index]
         median_coord = np.median(coords)
-        top_indices = np.where(coords > median_coord)[0]
+        max_indices = np.where(coords > median_coord)[0]
 
-        self.structure.positions[top_indices, self.axis_index] -= cell_size
+        self.structure.positions[max_indices, self.axis_index] -= cell_size
 
-        if mode == "top":
+        if mode == "max_bound":
             shift_value = cell_size - min(coords)
-        elif mode == "bottom":
+        elif mode == "min_bound":
             shift_value = max(coords)
         else:
             centroid = np.mean(coords)
@@ -95,14 +113,16 @@ class StructureRepositioner:
         the presence of a vacuum layer in the cell.
 
         Parameters:
-            mode (str): Specifies where the atoms should be moved to.
-                        Accepts one of the following: 'top', 'bottom', 'center', 'centre'.
+            mode (str): Specifies where the atoms should be moved to. Accepts one of the following values:
+                        - 'max_bound': Moves atoms towards the maximum boundary of the cell along the axis.
+                        - 'min_bound': Moves atoms towards the minimum boundary of the cell along the axis.
+                        - 'center' or 'centre': Moves atoms towards the center of the cell along the axis.
 
         Raises:
             ValueError: If an unsupported mode is provided.
             RuntimeError: If more than one vacuum layers are present.
         """
-        if mode not in {"top", "bottom", "center", "centre"}:
+        if mode not in {"max_bound", "min_bound", "center", "centre"}:
             raise ValueError(f"Unsupported work mode {mode}.")
 
         # Issue a warning that the method only supports cases where atoms are continuous
@@ -115,7 +135,7 @@ def main():
     Main function to handle command-line arguments and execute the atom repositioning.
     """
     parser = argparse.ArgumentParser(description="Reposition atoms in an ASE structure.")
-    parser.add_argument("mode", type=str, choices=["top", "bottom", "center", "centre"], help="How to reposition the atoms.")
+    parser.add_argument("mode", type=str, choices=["max_bound", "min_bound", "center", "centre"], help="How to reposition the atoms.")
     parser.add_argument("--axis", type=str, default="z", choices=["x", "y", "z"], help="Along which axis to reposition atoms.")
 
     args = parser.parse_args()
