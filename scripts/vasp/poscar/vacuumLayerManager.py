@@ -8,8 +8,8 @@ from typing import Union
 from ase import Atoms
 from ase.io import read
 
-from .structureRepositioner import StructureRepositioner
-from lib.utilities import find_or_request_poscar, write_poscar
+from structureRepositioner import StructureRepositioner
+from lib import find_or_request_poscar, write_poscar
 
 class VacuumLayerManager:
     """
