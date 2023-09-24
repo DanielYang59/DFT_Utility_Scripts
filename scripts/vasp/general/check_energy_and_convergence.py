@@ -73,3 +73,46 @@ class VaspDirChecker:
 
         outcar = Outcar(str(outcar_path))
         return outcar.final_energy
+
+def main() -> list:
+    """
+    Main function to be executed when this script is run directly.
+
+    It first checks if the current working directory is a valid VASP directory.
+    If it is, it prints the directory name, convergence status, and total energy.
+    If not, it looks into all the subdirectories within the current directory
+    and performs the same checks, printing a datasheet-style output with
+    directory names, convergence statuses, and total energies as columns.
+    """
+    results = []
+    current_dir = Path.cwd()
+
+    print(f"{'Folder':<50} {'Converged':<15} {'Final Energy (eV)':<20}")
+
+    try:
+        vasp_checker = VaspDirChecker(current_dir)
+        is_converged = vasp_checker.check_convergence()
+        final_energy = vasp_checker.get_final_energy() if is_converged else "N/A"
+        results.append([str(current_dir), is_converged, final_energy])
+
+        print(f"{str(current_dir):<50} {str(is_converged):<15} {str(final_energy):<20}")
+    except FileNotFoundError:
+        print(f"{current_dir} is not a valid VASP directory. Checking subdirectories...")
+
+        for subdir in current_dir.iterdir():
+            if subdir.is_dir():
+                try:
+                    vasp_checker = VaspDirChecker(subdir)
+                    is_converged = vasp_checker.check_convergence()
+                    final_energy = vasp_checker.get_final_energy() if is_converged else "N/A"
+                    results.append([str(subdir), is_converged, final_energy])
+
+                    print(f"{str(subdir):<50} {str(is_converged):<15} {str(final_energy):<20}")
+                except FileNotFoundError:
+                    print(f"{str(subdir):<50} {'N/A':<15} {'N/A':<20}")
+                    results.append([str(subdir), 'N/A', 'N/A'])
+
+    return results
+
+if __name__ == "__main__":
+    main()
