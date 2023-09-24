@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: rectify naming of positions (top/bottom/middle)
-
 from pathlib import Path
 import numpy as np
 import warnings
 from typing import Union
 from ase import Atoms
 from ase.io import read
+from argparse import ArgumentParser
 
 from structureRepositioner import StructureRepositioner
 from lib import find_or_request_poscar, write_poscar
@@ -82,14 +81,14 @@ class VacuumLayerManager:
         Find the largest gap along selected axis among atoms.
 
         Returns:
-            tuple: (gap_bottom, gap_top), the bottom and top positions of the largest gap.
+            tuple: (min_bound, max_bound), the lower and upper bounds of the largest gap.
         """
-        z_coords = np.sort(self.structure.positions[:, self.axis_index])
-        gaps = np.diff(z_coords)
+        coords = np.sort(self.structure.positions[:, self.axis_index])
+        gaps = np.diff(coords)
         max_gap_index = np.argmax(gaps)
-        gap_bottom = z_coords[max_gap_index]
-        gap_top = z_coords[max_gap_index] + gaps[max_gap_index]
-        return gap_bottom, gap_top
+        min_bound = coords[max_gap_index]
+        max_bound = coords[max_gap_index] + gaps[max_gap_index]
+        return min_bound, max_bound
 
     def locate_vacuum_layer(self, lower_threshold: float = 0.25, upper_threshold: float = 0.75, split_threshold: float = 1.0) -> str:
         """
@@ -123,27 +122,22 @@ class VacuumLayerManager:
         # Calculate the gaps between adjacent atoms along the selected axis
         gaps = np.diff(coords)
 
-        # Find the index of the largest gap
-        max_gap_index = np.argmax(gaps)
-
-        # Calculate the top and bottom positions of the gap
-        gap_bottom = coords[max_gap_index]
-        gap_top = coords[max_gap_index + 1]
+        # Calculate the max_bound and min_bound positions of the gap
+        min_bound, max_bound = self._find_largest_gap()
 
         # Get the cell dimension along the selected axis
         cell_dim = self.structure.get_cell().diagonal()[self.axis_index]
 
-        # Identify gap at top and bottom ends
-        top_gap = cell_dim - gap_top
-        bottom_gap = gap_bottom
+        # Identify gap at max_bound and min_bound ends
+        max_gap = cell_dim - max_bound
+        min_gap = min_bound
 
-        # Check the position of the vacuum layer based on the largest gap
-        if gap_top >= upper_threshold * cell_dim:
-            return 'top'
-        elif gap_bottom <= lower_threshold * cell_dim:
-            return 'bottom'
-        elif top_gap >= split_threshold and bottom_gap >= split_threshold:
-            warnings.warn(f"Vacuum layer is split between the top and bottom. Top gap: {top_gap} Å, bottom gap: {bottom_gap} Å.")
+        if max_bound >= upper_threshold * cell_dim:
+            return 'max_bound'
+        elif min_bound <= lower_threshold * cell_dim:
+            return 'min_bound'
+        elif max_gap >= split_threshold and min_gap >= split_threshold:
+            warnings.warn(f"Vacuum layer is split between the max_bound and min_bound. Max gap: {max_gap} Å, Min gap: {min_gap} Å.")
             return 'split'
         else:
             return 'middle'
@@ -181,9 +175,10 @@ class VacuumLayerManager:
         """
         # Calculate vacuum layer thickness along the selected axis
         cell_dim = self.structure.get_cell().diagonal()[self.axis_index]
-        positions = self.structure.get_positions()
-        min_position = positions[:, self.axis_index].min()
-        max_position = positions[:, self.axis_index].max()
+
+        # Determine max_bound and min_bound of the positions
+        min_position = self.structure.positions[:, self.axis_index].min()
+        max_position = self.structure.positions[:, self.axis_index].max()
 
         vacuum_layer_thickness = cell_dim - (max_position - min_position)
 
@@ -196,31 +191,38 @@ class VacuumLayerManager:
         assert vacuum_layer_thickness >= 0
         return vacuum_layer_thickness
 
-    def adjust_vacuum_thickness(self, new_vacuum: float) -> None:
+    def adjust_vacuum_thickness(self, new_vacuum: float, vacuum_warning_threshold: float = 5.0) -> None:
         """
-        Adjust the vacuum thickness along the selected axis in the unit cell while repositioning atoms.
+        Adjust the vacuum thickness along a specified axis in the unit cell while repositioning atoms.
 
-        This method performs the following steps:
-        1. Checks the validity of the new vacuum thickness.
-        2. Repositions atoms to the "bottom" of the cell.
-        3. Adjusts the cell dimension to create the new vacuum thickness at the "top".
-        4. Repositions atoms back to the center of the cell.
+        This method performs the following steps to adjust the vacuum thickness:
+        1. Validates the new vacuum thickness.
+        2. Repositions atoms to the "bottom" of the unit cell.
+        3. Modifies the cell dimension to create the new vacuum thickness at the "top" of the unit cell.
+        4. Repositions atoms back to the center of the unit cell.
 
         Args:
-            new_vacuum (float): The new thickness for the vacuum layer in Å.
+            new_vacuum (float): The desired thickness for the vacuum layer in Angstroms (Å).
+                Must be greater than zero.
+            vacuum_warning_threshold (float, optional): A threshold value for issuing a warning
+                when the requested vacuum thickness is too small. Defaults to 5.0 Å.
 
         Returns:
-            None: The method updates the internal Atoms object with the adjusted vacuum thickness.
+            None: The function modifies the internal Atoms object to reflect the adjusted vacuum thickness.
 
         Raises:
-            ValueError: If the new vacuum thickness is less than or equal to zero.
+            ValueError: Raised if the new vacuum thickness is less than or equal to zero.
 
         Warnings:
-            Issues a warning indicating that the vacuum layer has been adjusted and atoms have been recentered.
+            - Issues a warning if the new vacuum thickness is less than or equal to the `vacuum_warning_threshold`.
+            - Issues a warning after the vacuum layer and atoms have been successfully adjusted and re-centered.
+
         """
         # Check new vacuum layer thickness
         if new_vacuum <= 0:
             raise ValueError("Vacuum layer thickness cannot be negative.")
+        elif new_vacuum <= vacuum_warning_threshold:
+            warnings.warn(f"Small vacuum thickness of {new_vacuum} Å requested.")
 
         # Put atoms to the bottom
         atom_repositioner = StructureRepositioner(structure=self.structure, axis=self.axis)
@@ -237,14 +239,34 @@ class VacuumLayerManager:
         self.structure = atom_repositioner.reposition_along_axis(mode="center")
         warnings.warn(f"Vacuum layer would be adjusted. Atoms would be centered along {self.axis}-axis.")
 
-def main():
+def main(args):
     """
     The main function to execute the vacuum adjustment workflow.
+
+    This function performs the following steps:
+    1. Reads in the structure (e.g., POSCAR) or Atoms object.
+    2. Validates the axis choice specified via command-line arguments.
+    3. Initializes a VacuumLayerManager object based on the structure and axis.
+    4. Checks the number of vacuum layers in the structure.
+    5. Calculates the current vacuum layer thickness.
+    6. Adjusts the vacuum layer thickness based on the command-line argument.
+    7. Writes the adjusted structure to a new POSCAR file.
+
+    Args:
+        args (Namespace): A namespace containing the parsed command-line arguments.
+            - axis (str): The axis ('x', 'y', 'z') along which to adjust the vacuum layer.
+            - new_vacuum (float): The new vacuum thickness along the specified axis.
+
+    Raises:
+        ValueError: If the axis choice is invalid or if there are issues with the vacuum layers in the structure.
+
+    Examples:
+        This function is typically run via the command line as follows:
+        python your_script.py -a x -n 10.0
     """
     input_poscar = find_or_request_poscar()  # Or provide an Atoms object
 
-    # Allow user to specify axis
-    axis_choice = input("Please enter the axis ('x', 'y', 'z') along which you want to adjust the vacuum layer: ")
+    axis_choice = args.axis
     if axis_choice not in ["x", "y", "z"]:
         raise ValueError("Invalid axis choice. Must be 'x', 'y', or 'z'.")
 
@@ -262,11 +284,15 @@ def main():
     print(f"Current vacuum thickness along the {axis_choice}-axis is {vacuum_layer_thickness}.")
 
     # Adjust vacuum layer thickness
-    new_vacuum = float(input(f"Please enter the new vacuum thickness along the {axis_choice}-axis: "))
+    new_vacuum = args.new_vacuum
     vacuum_setter.adjust_vacuum_thickness(new_vacuum)
 
     # Write adjusted POSCAR
     write_poscar(vacuum_setter.structure, "POSCAR_vacuum_adjusted")
 
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser(description="A program to adjust the vacuum layer of a structure.")
+    parser.add_argument("-a", "--axis", choices=["x", "y", "z"], required=True, help="The axis ('x', 'y', 'z') along which to adjust the vacuum layer.")
+    parser.add_argument("-n", "--new_vacuum", type=float, required=True, help="The new vacuum thickness along the specified axis.")
+    args = parser.parse_args()
+    main(args)
