@@ -15,8 +15,10 @@ from lib import find_or_request_poscar, read_poscar
 class StructureRepositioner:
     """
     A utility class for manipulating the positions of atoms in an ASE Atoms object.
-    Supports repositioning along any specified axis ('x', 'y', 'z') and various modes
-    ('max_bound', 'min_bound', 'center', 'centre') for repositioning.
+
+    The class allows for repositioning of atoms along a specified axis ('x', 'y', 'z') and offers various modes for repositioning.
+    Before proceeding with the repositioning, it checks the alignment of the cell vector corresponding to the moving direction with
+    the given axis and raises a warning if it's not aligned.
 
     Modes:
         - 'max_bound': Moves atoms towards the maximum boundary of the cell along the specified axis.
@@ -26,11 +28,13 @@ class StructureRepositioner:
     Attributes:
         structure (Atoms): The Atoms object representing the structure to be modified.
         axis (str): The axis ('x', 'y', 'z') along which atoms will be repositioned.
+        axis_index (int): The index representing the axis (0 for 'x', 1 for 'y', 2 for 'z').
 
     Methods:
-        __init__(self, structure: Atoms, axis: str): Initializes the StructureRepositioner.
-        move_continuous_atoms(self, mode: str): Move atoms continuously along the axis.
-        # TODO: move_split_atoms(self, mode: str): Reposition atoms split by a vacuum layer.
+        __init__(self, structure: Atoms, axis: str): Initializes the StructureRepositioner and checks cell vector alignment.
+        _check_cell(self): Checks the alignment of the cell vector with the given direction and raises a warning if misaligned.
+        move_continuous_atoms(self, mode: str): Moves atoms continuously along the axis.
+        # TODO: move_split_atoms(self, mode: str): Repositions atoms that are split by a vacuum layer.
         reposition_along_axis(self, mode: str): Main method to perform atom repositioning.
     """
 
@@ -46,8 +50,26 @@ class StructureRepositioner:
             raise ValueError("Invalid axis. Must be 'x', 'y', or 'z'.")
 
         self.structure = structure
+        self.cell = self.structure.get_cell()
         self.axis = axis.lower()
         self.axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
+
+        # Check cell vector
+        self._check_cell(direction=self.axis)
+
+    def _check_cell(self):
+        """Check the alignment of the cell vectors with the given direction.
+
+        Raises:
+            Warning: If the cell vector corresponding to the moving direction is not parallel to that direction.
+        """
+        cell_vector = self.cell[self.axis_index]
+
+        # Check if only one component exists in the vector, meaning it is parallel to the axis.
+        non_zero_count = np.count_nonzero(cell_vector)
+
+        if non_zero_count != 1:
+            warnings.warn(f"The cell vector along the {self.axis} axis is not parallel to the {self.axis}-axis. Proceed with caution.")
 
     def move_continuous_atoms(self, mode: str):
         """
