@@ -107,7 +107,7 @@ class VacuumLayerManager:
                 4. Be split between the top and bottom.
 
         Returns:
-            str: Position of the vacuum layer defined along the z-axis ('top', 'bottom', 'middle', 'split').
+            str: Position of the vacuum layer defined along the z-axis ('max_bound', 'min_bound', 'middle', 'split').
 
         Raises:
             RuntimeError: If there is not exactly one vacuum layer.
@@ -158,7 +158,7 @@ class VacuumLayerManager:
         # Identify the gaps that are larger than the threshold
         large_gaps = gaps > self.threshold
 
-        # Check the special case for periodic boundary conditions at the "top" and "bottom"
+        # Check the special case for periodic boundary conditions at the "max_bound" and "min_bound"
         cell_dim = self.structure.get_cell().diagonal()[self.axis_index]
         if (coords[-1] - coords[0] + (cell_dim - coords[-1] + coords[0])) > self.threshold:
             large_gaps = np.append(large_gaps, True)
@@ -197,8 +197,8 @@ class VacuumLayerManager:
 
         This method performs the following steps to adjust the vacuum thickness:
         1. Validates the new vacuum thickness.
-        2. Repositions atoms to the "bottom" of the unit cell.
-        3. Modifies the cell dimension to create the new vacuum thickness at the "top" of the unit cell.
+        2. Repositions atoms to the "min_bound" of the unit cell.
+        3. Modifies the cell dimension to create the new vacuum thickness at the "max_bound" of the unit cell.
         4. Repositions atoms back to the center of the unit cell.
 
         Args:
@@ -224,11 +224,11 @@ class VacuumLayerManager:
         elif new_vacuum <= vacuum_warning_threshold:
             warnings.warn(f"Small vacuum thickness of {new_vacuum} Å requested.")
 
-        # Put atoms to the bottom
+        # Put atoms to the min_bound
         atom_repositioner = StructureRepositioner(structure=self.structure, axis=self.axis)
-        self.structure = atom_repositioner.reposition_along_axis(mode="bottom")
+        self.structure = atom_repositioner.reposition_along_axis(mode="min_bound")
 
-        # Apply new vacuum layer thickness to the top
+        # Apply new vacuum layer thickness to the max_bound
         cell = self.structure.get_cell()
         max_position = self.structure.positions[:, self.axis_index].max()
         cell[self.axis_index, self.axis_index] = max_position + new_vacuum
