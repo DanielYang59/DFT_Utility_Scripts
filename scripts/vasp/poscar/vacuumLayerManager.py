@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: check transformation along x/y axis
+
 from pathlib import Path
 import numpy as np
 import warnings
@@ -57,9 +59,9 @@ class VacuumLayerManager:
 
         # Check vacuum layer threshold
         if threshold <= 0:
-            raise ValueError("Vacuum level threshold should be greater than zero.")
+            raise ValueError("Vacuum layer threshold should be greater than zero.")
         elif threshold < 5:
-            warnings.warn(f"Small vacuum level threshold of {threshold} Å set. Make sure this is what you want.")
+            warnings.warn(f"Small vacuum layer threshold of {threshold} Å set. Make sure this is what you want.")
 
         self.threshold = threshold
 
@@ -101,10 +103,10 @@ class VacuumLayerManager:
 
         Notes:
             This method assumes that there is exactly one vacuum layer. In the case of z-axis, the vacuum can:
-                1. Be entirely at the top.
-                2. Be entirely at the bottom.
+                1. Be entirely at the top (max_bound).
+                2. Be entirely at the bottom (min_bound).
                 3. Be positioned in the middle.
-                4. Be split between the top and bottom.
+                4. Be split between the top(max_bound) and bottom(min_bound).
 
         Returns:
             str: Position of the vacuum layer defined along the z-axis ('max_bound', 'min_bound', 'middle', 'split').
