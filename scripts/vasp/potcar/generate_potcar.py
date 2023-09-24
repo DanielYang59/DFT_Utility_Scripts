@@ -82,7 +82,7 @@ class PotcarGenerator:
 
         return potcar_path
 
-    def generate_potcar(self, elements: List[str], output_potcarfile: Path = Path("POTCAR"), max_elements: int = 50) -> None:
+    def generate_potcar(self, elements: List[str], output_potcarfile: Path = Path("POTCAR"), max_elements: int = 20) -> None:
         """
         Generate a POTCAR file based on a list of elements.
 
@@ -94,7 +94,7 @@ class PotcarGenerator:
             FileNotFoundError: If POTCAR for any of the specified elements is not found in the library.
         """
         # Check for warnings related to large number of elements
-        if len(elements) > max_elements:
+        if len(elements) >= max_elements:
             warnings.warn(f"The elements list contains more than {max_elements} elements. Proceed with caution.")
 
         # Check for valid elements
