@@ -34,8 +34,11 @@ class StructureRepositioner:
             structure (Atoms): The Atoms object to be modified.
             axis (str): The axis along which to reposition atoms ('x', 'y', 'z').
         """
+        if axis.lower() not in {"x", "y", "z"}:
+            raise ValueError("Invalid axis. Must be 'x', 'y', or 'z'.")
+
         self.structure = structure
-        self.axis = axis
+        self.axis = axis.lower()
         self.axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
 
     def move_continuous_atoms(self, mode: str):

@@ -63,10 +63,10 @@ class VacuumLayerManager:
         self.threshold = threshold
 
         # Validation for axis
-        if axis not in ["x", "y", "z"]:
+        if axis.lower() not in {"x", "y", "z"}:
             raise ValueError("Invalid axis. Must be 'x', 'y', or 'z'.")
 
-        self.axis = axis
+        self.axis = axis.lower()
         self.axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
 
         # Calculate vacuum layer count
