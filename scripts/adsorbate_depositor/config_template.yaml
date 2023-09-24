@@ -1,7 +1,7 @@
 # Config File Template for Adsorbate Depositor
 
 substrate:
-  path: "./POSCAR_substrate"
+  path: "./POSCAR_substrate"       # substrate POSCAR file
   sites: >
     [
     "1",                           # single site: top
