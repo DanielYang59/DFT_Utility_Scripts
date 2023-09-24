@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: rectify naming of positions (top/bottom/middle)
+
 from pathlib import Path
 import numpy as np
 import warnings

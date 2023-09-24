@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # TODO: add vacuum layer detection (fix circular import with VacuumLayerManager)
+# TODO: test generate warning for non-parallel cell sizes
 
 from ase import Atoms
 import numpy as np
