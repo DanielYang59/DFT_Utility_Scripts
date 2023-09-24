@@ -34,8 +34,8 @@ class StructureRepositioner:
     Methods:
         __init__(self, structure: Atoms, axis: str): Initializes the StructureRepositioner and checks cell vector alignment.
         _check_cell(self): Checks the alignment of the cell vector with the given direction and raises a warning if misaligned.
-        move_continuous_atoms(self, mode: str): Moves atoms continuously along the axis.
-        # TODO: move_split_atoms(self, mode: str): Repositions atoms that are split by a vacuum layer.
+        _move_continuous_atoms(self, mode: str): Moves atoms continuously along the axis.
+        # TODO: _move_split_atoms(self, mode: str): Repositions atoms that are split by a vacuum layer.
         reposition_along_axis(self, mode: str): Main method to perform atom repositioning.
     """
 
@@ -72,7 +72,7 @@ class StructureRepositioner:
         if non_zero_count != 1:
             warnings.warn(f"The cell vector along the {self.axis} axis is not parallel to the {self.axis}-axis. Proceed with caution.")
 
-    def move_continuous_atoms(self, mode: str) -> None:
+    def _move_continuous_atoms(self, mode: str) -> None:
         """
         Move atoms continuously along the axis based on the specified mode.
 
@@ -100,7 +100,7 @@ class StructureRepositioner:
 
         self.structure.positions[:, self.axis_index] += shift_value
 
-    def move_split_atoms(self, mode: str) -> None:
+    def _move_split_atoms(self, mode: str) -> None:
         """
         Move atoms that are split by a vacuum layer along the axis.
 
@@ -151,7 +151,7 @@ class StructureRepositioner:
         # Move atoms
         # Issue a warning that the method only supports cases where atoms are continuous
         warnings.warn("This method currently only supports cases where atoms are continuous. It is not fully implemented yet.")
-        self.move_continuous_atoms(mode)
+        self._move_continuous_atoms(mode)
 
         return self.structure
 
