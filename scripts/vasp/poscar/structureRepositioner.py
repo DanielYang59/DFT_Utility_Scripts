@@ -39,7 +39,7 @@ class StructureRepositioner:
         reposition_along_axis(self, mode: str): Main method to perform atom repositioning.
     """
 
-    def __init__(self, structure: Atoms, axis: str = "z"):
+    def __init__(self, structure: Atoms, axis: str = "z") -> None:
         """
         Initialize the class with the structure and axis.
 
@@ -58,7 +58,7 @@ class StructureRepositioner:
         # Check cell vector
         self._check_cell()
 
-    def _check_cell(self):
+    def _check_cell(self) -> None:
         """Check the alignment of the cell vectors with the given direction.
 
         Raises:
@@ -72,7 +72,7 @@ class StructureRepositioner:
         if non_zero_count != 1:
             warnings.warn(f"The cell vector along the {self.axis} axis is not parallel to the {self.axis}-axis. Proceed with caution.")
 
-    def move_continuous_atoms(self, mode: str):
+    def move_continuous_atoms(self, mode: str) -> None:
         """
         Move atoms continuously along the axis based on the specified mode.
 
@@ -100,7 +100,7 @@ class StructureRepositioner:
 
         self.structure.positions[:, self.axis_index] += shift_value
 
-    def move_split_atoms(self, mode: str):
+    def move_split_atoms(self, mode: str) -> None:
         """
         Move atoms that are split by a vacuum layer along the axis.
 
@@ -130,7 +130,7 @@ class StructureRepositioner:
 
         self.structure.positions[:, self.axis_index] += shift_value
 
-    def reposition_along_axis(self, mode: str):
+    def reposition_along_axis(self, mode: str) -> Atoms:
         """
         Master function to reposition atoms based on the specified mode and
         the presence of a vacuum layer in the cell.
@@ -148,14 +148,44 @@ class StructureRepositioner:
         if mode not in {"max_bound", "min_bound", "center", "centre"}:
             raise ValueError(f"Unsupported work mode {mode}.")
 
+        # Move atoms
         # Issue a warning that the method only supports cases where atoms are continuous
         warnings.warn("This method currently only supports cases where atoms are continuous. It is not fully implemented yet.")
-
         self.move_continuous_atoms(mode)
+
+        return self.structure
 
 def main():
     """
-    Main function to handle command-line arguments and execute the atom repositioning.
+    This script is designed for repositioning atoms in a given ASE-compatible structure
+    (usually read from a POSCAR file). The repositioning can be done along a specific axis and
+    in a certain mode, which could be either moving atoms to the maximum boundary, minimum boundary,
+    or centering them along the specified axis.
+
+    Command-Line Arguments:
+        mode: Specifies how to reposition the atoms.
+            Options: "max_bound", "min_bound", "center", "centre"
+            Example: --mode max_bound
+
+        axis: Specifies along which axis (x, y, z) the atoms should be repositioned.
+            Options: "x", "y", "z"
+            Default: "z"
+            Example: --axis z
+
+    Examples:
+        Reposition atoms along the z-axis to the maximum boundary:
+        $ python script_name.py max_bound --axis z
+
+        Reposition atoms along the x-axis to the center:
+        $ python script_name.py center --axis x
+
+    Workflow:
+        1. Parse the command-line arguments.
+        2. Find or request the location of the POSCAR file to be read.
+        3. Load the structure from the POSCAR file using the ASE library.
+        4. Create an instance of the StructureRepositioner class with the loaded structure and specified axis.
+        5. Call the reposition_along_axis method to perform the repositioning based on the mode.
+        6. Write the repositioned structure to a new POSCAR file.
     """
     parser = argparse.ArgumentParser(description="Reposition atoms in an ASE structure.")
     parser.add_argument("mode", type=str, choices=["max_bound", "min_bound", "center", "centre"], help="How to reposition the atoms.")
