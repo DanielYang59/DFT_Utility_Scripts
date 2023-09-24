@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: add vacuum layer detection (fix circular import with VacuumLayerManager)
+
 from ase import Atoms
 import numpy as np
 import argparse
 from ase.io import write
 from pathlib import Path
-from vacuumLayerManager import VacuumLayerManager
-from lib.utilities import find_or_request_poscar, read_poscar
 import warnings
+
+from lib.utilities import find_or_request_poscar, read_poscar
 
 class StructureRepositioner:
     """
@@ -22,7 +24,7 @@ class StructureRepositioner:
     Methods:
         __init__(self, structure: Atoms, axis: str): Initializes the StructureRepositioner.
         move_continuous_atoms(self, mode: str): Move atoms continuously along the axis.
-        move_split_atoms(self, mode: str): Reposition atoms split by a vacuum layer.
+        # TODO: move_split_atoms(self, mode: str): Reposition atoms split by a vacuum layer.
         reposition_along_axis(self, mode: str): Main method to perform atom repositioning.
     """
 
@@ -103,18 +105,10 @@ class StructureRepositioner:
         if mode not in {"top", "bottom", "center", "centre"}:
             raise ValueError(f"Unsupported work mode {mode}.")
 
-        vacuum_manager = VacuumLayerManager(self.structure, axis=self.axis)
-        vacuum_layer_position = vacuum_manager.locate_vacuum_layer()
-        vacuum_layer_count = vacuum_manager.count_vacuum_layers()
+        # Issue a warning that the method only supports cases where atoms are continuous
+        warnings.warn("This method currently only supports cases where atoms are continuous. It is not fully implemented yet.")
 
-        if vacuum_layer_count >= 2:
-            raise RuntimeError("Atom repositioner cannot handle cases where there are more than one vacuum layers.")
-
-        if vacuum_layer_position == "middle":
-            warnings.warn("Find vacuum layer in the middle of the cell.")
-            self.move_split_atoms(mode)
-        else:
-            self.move_continuous_atoms(mode)
+        self.move_continuous_atoms(mode)
 
 def main():
     """
