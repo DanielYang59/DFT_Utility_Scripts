@@ -72,8 +72,7 @@ def main():
     structures = structure_generator.deposit(
         auto_offset_along_z=config["deposit"]["auto_offset_along_z"],
         fix_substrate=config["deposit"]["fix_substrate"],
-        target_vacuum_level=config["deposit"]["target_vacuum_level"],
-        center_along_z=config["deposit"]["center_along_z"],
+        target_vacuum_layer=config["deposit"]["target_vacuum_level"],
     )
 
     # Write generated models to file

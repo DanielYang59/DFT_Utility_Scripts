@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys
 from typing import List, Dict, Union
 from pathlib import Path
 import warnings
@@ -9,6 +10,10 @@ import numpy as np
 from ase import Atoms
 from ase.io import read, write
 from ase.constraints import FixAtoms
+
+# Import external vacuum layer manager
+sys.path.append(str(Path(__file__).resolve().parents[3] / "vasp" / "poscar"))
+from vacuumLayerManager import VacuumLayerManager
 
 TAG_DESCRIPTIONS = {
     0: "substrate",
@@ -168,14 +173,14 @@ class AdsorbateDepositor:
         # Combine substrate and adsorbate
         return poscar_substrate + adsorbate
 
-    def _check_and_adjust_distance(self, combined: Atoms, step: float = 0.01, max_move_distance: float = 50.0) -> Atoms:
+    def _check_and_adjust_distance(self, combined: Atoms, step: float = 0.01, max_move_distance: float = 25.0) -> Atoms:
         """
         Check and adjust the z-distance between adsorbate and substrate atoms.
 
         Parameters:
             combined (Atoms): The combined Atoms object for the substrate and adsorbate.
-            step (float): The distance to move the adsorbate up along the z-axis in each step.
-            max_move_distance (float): The maximum distance the adsorbate can be moved up along the z-axis to avoid potential infinite loop.
+            step (float, optional): The distance to move the adsorbate up along the z-axis in each step. Defaults to 0.01.
+            max_move_distance (float, optional): The maximum distance the adsorbate can be moved up along the z-axis to avoid potential infinite loop. Defaults to 25.0.
 
         Returns:
             Atoms: The adjusted combined Atoms object.
@@ -202,13 +207,50 @@ class AdsorbateDepositor:
 
         return combined
 
-    def deposit(self, auto_offset_along_z: bool = True, fix_substrate: bool = False) -> dict:
+    def _reset_vacuum_layer_thickness(self, poscar: Atoms, target_vacuum_layer: float, vacuum_warning_threshold: float = 5.0) -> Atoms:
+        """
+        Reset the thickness of the vacuum layer in a given atomic structure.
+
+        Parameters:
+            poscar (Atoms): The atomic structure represented as an ASE.Atoms object.
+            target_vacuum_layer (float): The target thickness for the vacuum layer in Angstroms.
+            vacuum_warning_threshold (float, optional): The threshold below which a warning is raised about a potentially too small vacuum layer thickness. Default is 5.0 Angstroms.
+
+        Returns:
+            Atoms: The adjusted atomic structure with the new vacuum layer thickness.
+
+        Raises:
+            TypeError: If 'poscar' is not an ASE.Atoms object or if 'target_vacuum_layer' is not a float or int.
+            ValueError: If 'target_vacuum_layer' is less than or equal to zero.
+        """
+        # Check poscar datatype
+        if not isinstance(poscar, Atoms):
+            raise TypeError(f"Expect structure in ASE.Atoms, got {type(poscar)}.")
+
+        # Check target vacuum layer thickness
+        if not isinstance(target_vacuum_layer, (float, int)):
+            raise TypeError(f"Expect target vacuum layer thickness in float/int, got {type(target_vacuum_layer)}.")
+
+        if target_vacuum_layer <= 0:
+            raise ValueError("Target vacuum layer thickness cannot be smaller than zero.")
+        elif target_vacuum_layer <= vacuum_warning_threshold:
+            warnings.warn(f"Small vacuum thickness of {target_vacuum_layer} Å requested.")
+
+        # Call external module to adjust vacuum layer thickness along z-axis
+        vacuum_manager = VacuumLayerManager(input_structure=poscar, axis="z")
+        vacuum_manager.adjust_vacuum_thickness(new_vacuum=target_vacuum_layer)
+
+        return poscar
+
+    def deposit(self, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0) -> dict:
         """
         Deposit adsorbates onto specified sites on the substrate.
 
         Args:
-            auto_offset_along_z (bool, optional): Whether to automatically offset the adsorbate along the Z-axis. Defaults to True.
+            auto_offset_along_z (bool, optional): Whether to automatically offset the adsorbate along the z-axis. Defaults to True.
             fix_substrate (bool, optional): Whether to fix the substrate atoms during deposition. Defaults to False.
+            target_vacuum_layer (float, optional): Final vacuum layer thickness in Å.
+            vacuum_layer_warn_threshold (float, optional): Vacuum layer thickness to generate warning.
 
         Returns:
             dict: A dictionary containing the resulting structures, indexed by a composite species name.
@@ -224,6 +266,15 @@ class AdsorbateDepositor:
         if not isinstance(fix_substrate, bool):
             raise TypeError(f"Expected 'fix_substrate' to be of type bool, but got {type(fix_substrate)}.")
 
+        # Check target vacuum layer datatype and thickness
+        if not isinstance(target_vacuum_layer, (float, int)):
+            raise TypeError(f"Expected 'target_vacuum_layer' to be of type float/int, but got {type(target_vacuum_layer)}.")
+
+        if target_vacuum_layer <= 0:
+            raise ValueError("Vacuum layer thickness should be equal or greater than zero.")
+        elif target_vacuum_layer <= vacuum_layer_warn_threshold:
+            warnings.warn(f"Small vacuum layer thickness of {target_vacuum_layer} Å found.")
+
         # Deposit adsorbates onto sites
         results = {}
         for site_name, site_info in tqdm(self.sites.items(), desc="Depositing adsorbates"):
@@ -234,12 +285,14 @@ class AdsorbateDepositor:
                 # Perform the actual deposition
                 result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference)
 
-                # Optional post-processing steps
-                ##  Offset adsorbate along z-axis
+                # (Optional) offset adsorbate along z-axis
                 if auto_offset_along_z:
-                    self._check_and_adjust_distance(result)
+                    result = self._check_and_adjust_distance(result)
 
-                ## Freeze substrate atoms (for selective dynamics)
+                # Reset vacuum layer thickness (would recenter atoms along z-axis)
+                result = self._reset_vacuum_layer_thickness(result, target_vacuum_layer)
+
+                # (Optional) freeze substrate atoms for selective dynamics
                 if fix_substrate:
                     result = self._fix_substrate(result, self.poscar_substrate)
 
