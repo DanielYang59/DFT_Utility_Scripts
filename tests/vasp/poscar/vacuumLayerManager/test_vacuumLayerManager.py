@@ -4,6 +4,7 @@
 import pytest
 from pathlib import Path
 from ase.lattice.hexagonal import Graphene
+from ase.build import graphene
 from ase.io import write
 import sys
 
@@ -45,6 +46,33 @@ def test_adjust_vacuum_thickness(sample_structure):
     vacuum_setter.adjust_vacuum_thickness(new_vacuum=15.0)
     new_thickness = vacuum_setter.calculate_vacuum_thickness()
     assert new_thickness == 15.0
+
+def test_adjust_vacuum_thickness_2D_structure():
+    """
+    Test for adjusting the vacuum thickness in a 2D graphene structure.
+    """
+    # Create output directory if it doesn't exist
+    output_dir = Path("test_output")
+    output_dir.mkdir(exist_ok=True)
+
+    # Generate a 2D graphene structure
+    atoms = graphene(size=(1, 1, 1), vacuum=5.0)
+    initial_vacuum = 10.0
+    test_path_initial = output_dir / "test_poscar_initial"
+    write(test_path_initial, atoms, format="vasp")
+
+    # Check the initial vacuum thickness
+    vacuum_setter = VacuumLayerManager(input_structure=test_path_initial, axis="z")
+    assert vacuum_setter.calculate_vacuum_thickness() == initial_vacuum
+
+    # Adjust vacuum thickness and save the structure
+    new_vacuum = 15.0
+    vacuum_setter.adjust_vacuum_thickness(new_vacuum=new_vacuum)
+    test_path_modified = output_dir / "test_poscar_modified"
+    write(test_path_modified, vacuum_setter.structure, format="vasp")
+
+    # Check the new vacuum thickness
+    assert vacuum_setter.calculate_vacuum_thickness() == new_vacuum
 
 if __name__ == "__main__":
     pytest.main()
