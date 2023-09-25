@@ -106,12 +106,12 @@ class AdsorbateDepositor:
 
         # Define tag description
         tag_descriptions = {
-            0: "substrate",
-            1: "adsorbate"
+            "substrate": 0 ,
+            "adsorbate": 1
         }
 
         # Get indices of substrate atoms
-        substrate_indices = [atom.index for atom in poscar if atom.tag == 0]  # 0 is the tag for "substrate"
+        substrate_indices = [atom.index for atom in poscar if atom.tag == tag_descriptions["substrate"]]
 
         # Set constraints to fix substrate atoms
         constraint = FixAtoms(indices=substrate_indices)
