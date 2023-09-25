@@ -8,7 +8,7 @@ from ase import Atoms
 from ase.io import read
 from typing import List, Dict
 
-from parse_adsorbate_database import parse_adsorbate_database
+from .parse_adsorbate_database import parse_adsorbate_database
 
 class AdsorbateGenerator:
     """

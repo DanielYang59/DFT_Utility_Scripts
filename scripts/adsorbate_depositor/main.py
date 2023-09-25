@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: fix script running path and file read path (relative to running path)
+
+import sys
 from pathlib import Path
+
+root_dir = str(Path(__file__).resolve().parents[1])
+sys.path.append(root_dir)
 
 from src.configHandler import ConfigHandler
 from src.adsorbateGenerator import AdsorbateGenerator
@@ -29,7 +35,7 @@ def main():
 
     """
     # Load or generate the configuration
-    cfg_handler = ConfigHandler()
+    cfg_handler = ConfigHandler(Path.cwd() / "config.yaml")  # DEBUG
     if cfg_handler.check_config_exists():
         config = cfg_handler.load_config()
     else:
@@ -40,7 +46,7 @@ def main():
 
     # Generate sites
     sites = SiteGenerator(
-        POSCAR_substrate=config["substrate"]["path"],
+        POSCAR_substrate=Path(config["substrate"]["path"]),
         distance=config["deposit"]["distance"],
         sites=config["substrate"]["sites"]
     ).generate()
@@ -48,7 +54,7 @@ def main():
     # Generate adsorbates and adsorbate reference points
     adsorbate_generator = AdsorbateGenerator(
         work_mode=config["adsorbate"]["source"],
-        path=config["adsorbate"]["path"],
+        path=Path(config["adsorbate"]["path"]),
         pathway_name=config["adsorbate"]["pathway_name"],
         generate_rotations=config["adsorbate"]["rotation"],
     )

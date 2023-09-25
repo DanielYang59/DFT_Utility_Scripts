@@ -3,7 +3,6 @@
 
 # TODO: automatically warning if min atomic distance smaller than setting
 
-import sys
 from typing import List, Dict, Union
 from pathlib import Path
 import warnings
@@ -14,8 +13,7 @@ from ase.io import read, write
 from ase.constraints import FixAtoms
 
 # Import external vacuum layer manager
-sys.path.append(str(Path(__file__).resolve().parents[3] / "vasp" / "poscar"))
-from vacuumLayerManager import VacuumLayerManager
+from vasp.poscar.vacuumLayerManager import VacuumLayerManager
 
 TAG_DESCRIPTIONS = {
     0: "substrate",
