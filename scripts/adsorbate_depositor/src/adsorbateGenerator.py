@@ -165,7 +165,7 @@ class AdsorbateGenerator:
 
         return rotated_adsorbate_dict
 
-    def _load_adsorbate_from_database_header(self) -> Dict:
+    def _load_adsorbate_from_database_header(self) -> Dict[str, Atoms]:
         """
         Load adsorbate from POSCARs based on database pathway header dict.
 
@@ -175,28 +175,25 @@ class AdsorbateGenerator:
         Raises:
             ValueError: If required keys are missing from the database header or if indexing is not continuous.
         """
+        # Check for illegal tags in adsorbate header dict
+        for key in self.adsorbate_header_dict.keys():
+            if key not in {"reference_DOI", "comment"} and not key.startswith("step_"):
+                raise ValueError(f"Illegal key {key} found in adsorbate header.")
+
+        # Check and parse "step_N" tags
         adsorbate_POSCARs = {}
+        step_keys = [key for key in self.adsorbate_header_dict.keys() if key.startswith("step_")]
 
-        for i, (step_key, step_info) in enumerate(self.adsorbate_header_dict.items(), start=1):
+        for i, step_key in enumerate(step_keys, start=1):
             if f"step_{i}" != step_key:
-                raise ValueError(f"Step keys must be indexed continuously from 1. Found {step_key} instead.")
-
-            name = step_info.get("name")
-            if not name:
-                raise ValueError(f"Missing 'name' for {step_key}.")
-
-            POSCAR_path = step_info.get("POSCAR_path")
-            if not POSCAR_path:
-                raise ValueError(f"Missing 'POSCAR_path' for {step_key}.")
-
-            adsorbate_atoms = step_info.get("adsorbate_atoms")
-            if not adsorbate_atoms:
-                raise ValueError(f"Missing 'adsorbate_atoms' for {step_key}.")
-
-            adsorbate_POSCARs[name] = self._extract_atoms(
-                path=self.database_path / POSCAR_path,
-                atom_indexes=adsorbate_atoms
-            )
+                raise ValueError(f"Discontinuous reaction step {i} detected in adsorbate header.")
+            else:
+                name = self.adsorbate_header_dict[step_key]["name"]
+                # Load POSCAR
+                adsorbate_POSCARs[name] = self._extract_atoms(
+                    POSCAR_adsorbate=self.path / self.adsorbate_header_dict[step_key]["POSCAR_path"],
+                    atom_indexes=self.adsorbate_header_dict[step_key]["adsorbate_atoms"]
+                    )
 
         return adsorbate_POSCARs
 
@@ -214,7 +211,7 @@ class AdsorbateGenerator:
             adsorbate_POSCARs = {"adsorbate": self._extract_atoms(self.path, atom_indexes)}
 
         else:
-            adsorbate_POSCARs = self._load_adsorbate_from_database_header(database_path=self.path, pathway_header_dict=self.adsorbate_header_dict)
+            adsorbate_POSCARs = self._load_adsorbate_from_database_header()
 
         # Generate rotations if required
         if self.generate_rotations:
