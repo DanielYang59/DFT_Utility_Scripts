@@ -118,7 +118,7 @@ class AdsorbateGenerator:
             List[Atoms]: A list of rotated Atoms objects.
         """
         if not isinstance(adsorbate_atoms, Atoms):
-            raise TypeError("Adsorbate fed into rotation generator should be ASE.Atoms.")
+            raise TypeError(f"Adsorbate fed into rotation generator should be ASE.Atoms, got {type(adsorbate_atoms)}.")
 
         if not adsorbate_atoms:
             raise ValueError("Empty adsorbate fed into adsorbate rotation generator.")
@@ -158,7 +158,10 @@ class AdsorbateGenerator:
         rotated_adsorbate_dict = {}
 
         for name, atoms in adsorbate_dict.items():
+            # Generate rotated Atoms
             rotated_atoms_list = self._generate_rotations(atoms)
+
+            # Generate name names (for easy POSCAR output)
             for i, rotated_atoms in enumerate(rotated_atoms_list):
                 new_name = f"{name}_rotation_{i}"
                 rotated_adsorbate_dict[new_name] = rotated_atoms
@@ -287,7 +290,7 @@ class AdsorbateGenerator:
 
         # Generate rotations if required
         if self.generate_rotations:
-            return self._generate_rotated_adsorbate_dict(self.adsorbate_header_dict)
+            return self._generate_rotated_adsorbate_dict(adsorbate_POSCARs)
 
         else:
             return adsorbate_POSCARs

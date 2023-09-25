@@ -8,6 +8,7 @@ from pathlib import Path
 import warnings
 from tqdm import tqdm
 import numpy as np
+import re
 from ase import Atoms
 from ase.io import read, write
 from ase.constraints import FixAtoms
@@ -242,11 +243,12 @@ class AdsorbateDepositor:
 
         return poscar
 
-    def deposit(self, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0) -> dict:
+    def deposit(self, rotation_generated: bool, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0) -> dict:
         """
         Deposit adsorbates onto specified sites on the substrate.
 
         Args:
+            rotation_generated (bool), Whether rotated adsorbates are generated
             auto_offset_along_z (bool, optional): Whether to automatically offset the adsorbate along the z-axis. Defaults to True.
             fix_substrate (bool, optional): Whether to fix the substrate atoms during deposition. Defaults to False.
             target_vacuum_layer (float, optional): Final vacuum layer thickness in Å.
@@ -260,6 +262,9 @@ class AdsorbateDepositor:
         """
 
         # Check the type of boolean flags
+        if not isinstance(rotation_generated, bool):
+            raise TypeError(f"Expected 'rotation_generated' to be of type bool, but got {type(rotation_generated)}.")
+
         if not isinstance(auto_offset_along_z, bool):
             raise TypeError(f"Expected 'auto_offset_along_z' to be of type bool, but got {type(auto_offset_along_z)}.")
 
@@ -279,6 +284,11 @@ class AdsorbateDepositor:
         results = {}
         for site_name, site_info in tqdm(self.sites.items(), desc="Depositing adsorbates"):
             for ads_name, ads_info in self.adsorbates.items():
+                # Recompile adsorbate name when auto_rotation activated
+                if rotation_generated:
+                    # Extract "adsorbate_name" from "adsorbate_name_rotation_N"
+                    ads_name = re.search(r"(.+)_rotation_\d+", ads_name).group(1)
+
                 # Compile adsorbate reference tag
                 ads_reference = self.adsorbate_refs[ads_name]
 
