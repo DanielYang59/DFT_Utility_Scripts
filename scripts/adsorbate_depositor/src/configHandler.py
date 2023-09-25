@@ -68,7 +68,6 @@ class ConfigHandler:
         # Check "substrate" tags
         substrate = config_data.get('substrate', {})
         sites = substrate.get('sites', [])
-        print(sites, "DEBUG")
         for site in sites:
             site_keys = [int(k) for k in site.split('_') if k.isdigit()]
             if len(site_keys) < 1:
