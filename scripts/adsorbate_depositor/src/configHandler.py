@@ -84,9 +84,9 @@ class ConfigHandler:
             raise ValueError("Invalid adsorbate source. It should be either 'POSCAR' or 'DATABASE'.")
 
         if source == "POSCAR" and not Path(path).is_file():
-            raise FileNotFoundError("Invalid path. Should point to a file when source is 'POSCAR'.")
+            raise FileNotFoundError(f"POSCAR file {path} not found.")
         elif source == "DATABASE" and not Path(path).is_dir():
-            raise FileNotFoundError("Invalid path. Should point to a directory when source is 'DATABASE'.")
+            raise FileNotFoundError(f"Path {path} not found. Should point to a directory when source is 'DATABASE'.")
 
         if not isinstance(rotation, bool):
             raise ValueError("Invalid rotation value. It should be a boolean.")
