@@ -56,7 +56,7 @@ def main():
         work_mode=config["adsorbate"]["source"],
         path=Path(config["adsorbate"]["path"]),
         pathway_name=config["adsorbate"]["pathway_name"],
-        generate_rotations=config["adsorbate"]["rotation"],
+        generate_rotations=config["adsorbate"]["rotation"]
     )
 
     adsorbates = adsorbate_generator.generate_adsorbates(atom_indexes=config["adsorbate"]["atom_indexes"])
@@ -69,16 +69,16 @@ def main():
     # Generate adsorbate-on-site structure files
     structure_generator = AdsorbateDepositor(
         distance=config["deposit"]["distance"],
-        POSCAR_substrate=config["substrate"]["path"],
+        POSCAR_substrate=Path(config["substrate"]["path"]),
         sites=sites,
         adsorbates=adsorbates,
-        adsorbate_refs=adsorbate_refs,
+        adsorbate_refs=adsorbate_refs
     )
 
     structures = structure_generator.deposit(
         auto_offset_along_z=config["deposit"]["auto_offset_along_z"],
         fix_substrate=config["deposit"]["fix_substrate"],
-        target_vacuum_layer=config["deposit"]["target_vacuum_level"],
+        target_vacuum_layer=config["deposit"]["target_vacuum_layer"]
     )
 
     # Write generated models to file
