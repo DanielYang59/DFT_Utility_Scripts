@@ -62,18 +62,19 @@ class ConfigHandler:
 
     def _check_config(self, config_data):
         """
-        Check updated config.yaml tags.
+        Check config.yaml tags.
         """
 
-        # Check substrate
+        # Check "substrate" tags
         substrate = config_data.get('substrate', {})
         sites = substrate.get('sites', [])
+        print(sites, "DEBUG")
         for site in sites:
             site_keys = [int(k) for k in site.split('_') if k.isdigit()]
             if len(site_keys) < 1:
                 raise ValueError(f"Invalid value for site key {site}. Should contain at least one integer.")
 
-        # Check adsorbate
+        # Check "adsorbate" tags
         adsorbate = config_data.get('adsorbate', {})
         source = adsorbate.get('source', None)
         path = adsorbate.get('path', None)
@@ -92,28 +93,30 @@ class ConfigHandler:
         if not isinstance(rotation, bool):
             raise ValueError("Invalid rotation value. It should be a boolean.")
 
-        if not all(isinstance(index, int) and index >= 1 for index in atom_indexes):
-            raise ValueError("Invalid atom_indexes. Should be a list of integers >= 1.")
+        # Check POSCAR mode tags
+        if source == "POSCAR":
+            if not all(isinstance(index, int) and index >= 1 for index in atom_indexes):
+                raise ValueError(f"Invalid atom_indexes {atom_indexes}. Should be a list of integers >= 1.")
 
-        if len(set(atom_indexes)) != len(atom_indexes):
-            raise ValueError("Duplicate atom indexes are not allowed.")
+            if len(set(atom_indexes)) != len(atom_indexes):
+                raise ValueError("Duplicate atom indexes are not allowed.")
 
-        if not all(isinstance(index, int) and index >= 1 for index in reference):
-            raise ValueError("Invalid reference. Should be a list of integers >= 1.")
+            if not all(isinstance(index, int) and index >= 1 for index in reference):
+                raise ValueError("Invalid reference. Should be a list of integers >= 1.")
 
-        if len(set(reference)) != len(reference):
-            raise ValueError("Duplicate reference indexes are not allowed.")
+            if len(set(reference)) != len(reference):
+                raise ValueError("Duplicate reference indexes are not allowed.")
 
-        # Check deposit
+        # Check "deposit" tags
         deposit = config_data.get('deposit', {})
         distance = deposit.get('distance', None)
-        auto_reposition = deposit.get('auto_reposition', None)
+        auto_offset_along_z = deposit.get('auto_offset_along_z', None)
 
         if not isinstance(distance, (int, float)) or distance < 0:
             raise ValueError("Invalid distance value. It should be a non-negative float/int.")
 
-        if not isinstance(auto_reposition, bool):
-            raise ValueError("Invalid auto_reposition value. It should be a boolean.")
+        if not isinstance(auto_offset_along_z, bool):
+            raise ValueError("Invalid auto_offset_along_z value. It should be a boolean.")
 
     def load_config(self) -> dict:
         """
