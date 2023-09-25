@@ -197,6 +197,41 @@ class AdsorbateGenerator:
 
         return adsorbate_POSCARs
 
+    def _load_adsorbate_ref_from_database_header(self) -> Dict[str, List[int]]:
+        """
+        Load adsorbate references based on database pathway header dict.
+
+        Returns:
+            Dict: A dictionary of loaded adsorbate references.
+
+        Raises:
+            ValueError: If required keys are missing from the database header or if indexing is not continuous.
+        """
+        # Check for illegal tags in adsorbate header dict
+        for key in self.adsorbate_header_dict.keys():
+            if key not in {"reference_DOI", "comment"} and not key.startswith("step_"):
+                raise ValueError(f"Illegal key {key} found in adsorbate header.")
+
+        # Check and parse "step_N" tags
+        adsorbate_references = {}
+        step_keys = [key for key in self.adsorbate_header_dict.keys() if key.startswith("step_")]
+
+        for i, step_key in enumerate(step_keys, start=1):
+            if f"step_{i}" != step_key:
+                raise ValueError(f"Discontinuous reaction step {i} detected in adsorbate header.")
+            else:
+                name = self.adsorbate_header_dict[step_key]["name"]
+                # Get adsorbate reference tag
+                references = self.adsorbate_header_dict[step_key]["reference_atoms"]
+
+                # Check references list
+                if not references:
+                    raise ValueError(f"Empty reference list found for adsorbate {name}.")
+
+                adsorbate_references[name] = references
+
+        return adsorbate_references
+
     def generate_adsorbates(self, atom_indexes: List[int] = None) -> Dict[str, Atoms]:
         """
         Generate adsorbates based on the working mode.
@@ -258,15 +293,5 @@ class AdsorbateGenerator:
 
         else:  # "DATABASE" mode
             if poscar_ads_ref is not None:
-                warnings.warn("Adsorbate reference set in config for DATABASE mode. Ignored.")
-
-            reference_atoms_dict = {}
-
-            for ads_name, ads_info in self.adsorbate_header_dict.items():
-                reference_atoms = ads_info.get("reference_atoms")
-                if reference_atoms is not None:
-                    reference_atoms_dict[ads_name] = reference_atoms
-                else:
-                    raise ValueError(f"Reference atoms for {ads_name} is empty.")
-
-            return reference_atoms_dict
+                warnings.warn(f"Adsorbate reference set as {poscar_ads_ref} for DATABASE mode. Ignored.")
+            return self._load_adsorbate_ref_from_database_header()

@@ -35,7 +35,7 @@ def main():
 
     """
     # Load or generate the configuration
-    cfg_handler = ConfigHandler(Path.cwd() / "config.yaml")  # DEBUG
+    cfg_handler = ConfigHandler(Path.cwd() / "config.yaml")
     if cfg_handler.check_config_exists():
         config = cfg_handler.load_config()
     else:
@@ -63,7 +63,7 @@ def main():
 
     adsorbate_refs = adsorbate_generator.generate_adsorbate_references(
         adsorbates_dict=adsorbates,
-        poscar_ads_ref=config["adsorbate"]["None"]
+        poscar_ads_ref=config["adsorbate"]["reference"]
     )
 
     # Generate adsorbate-on-site structure files
