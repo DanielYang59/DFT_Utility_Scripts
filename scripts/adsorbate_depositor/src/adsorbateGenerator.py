@@ -224,6 +224,9 @@ class AdsorbateGenerator:
                 # Get adsorbate reference tag
                 references = self.adsorbate_header_dict[step_key]["reference_atoms"]
 
+                # Offset 1-indexed (user input) to 0-indexed (Atoms object)
+                references = [(i - 1) for i in references]
+
                 # Check references list
                 if not references:
                     raise ValueError(f"Empty reference list found for adsorbate {name}.")
@@ -275,7 +278,7 @@ class AdsorbateGenerator:
             poscar_ads_ref (list): The adsorbate reference list read from config, only needed for "POSCAR" mode.
 
         Returns:
-            Dict[str, List[int]]: adsorbate reference atom index dict, the key is adsorbate name and the value being list of adsorbate atoms as reference.
+            Dict[str, List[int]]: adsorbate reference atom index dict (0-indexed), the key is adsorbate name and the value being list of adsorbate atoms as reference.
 
         """
         # Check adsorbate dict datatype
@@ -289,6 +292,8 @@ class AdsorbateGenerator:
             if len(adsorbates_dict) != 1:
                 raise RuntimeError("Code work in POSCAR mode but adsorbate dict len is not 1.")
 
+            # Offset 1-indexed (user input) to 0-indexed (Atoms object)
+            poscar_ads_ref = [(i - 1) for i in poscar_ads_ref]
             return {list(adsorbates_dict.keys()[0]): poscar_ads_ref}
 
         else:  # "DATABASE" mode
