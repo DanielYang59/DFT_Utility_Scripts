@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: automatically warning if min atomic distance smaller than setting
+# TODO: substrate/adsorbate tags to dict (avoid hardcoding)
 
 from typing import List, Dict, Union
 from pathlib import Path
@@ -174,9 +174,24 @@ class AdsorbateDepositor:
         # Combine substrate and adsorbate
         return poscar_substrate + adsorbate
 
-    def _check_and_adjust_distance(self, combined: Atoms, step: float = 0.01, max_move_distance: float = 25.0) -> Atoms:
+    def _calculate_min_distance(self, combined: Atoms) -> float:
         """
-        Check and adjust the z-distance between adsorbate and substrate atoms.
+        Check the minimum distance between adsorbate and substrate atoms.
+
+        Parameters:
+            combined (Atoms): The combined Atoms object for the substrate and adsorbate.
+
+        Returns:
+            float: The minimum distance between adsorbate and substrate atoms.
+        """
+        substrate_atoms = [atom for atom in combined if atom.tag == 0]
+        adsorbate_atoms = [atom for atom in combined if atom.tag == 1]
+
+        return min(np.linalg.norm(a.position - s.position) for a in adsorbate_atoms for s in substrate_atoms)
+
+    def _auto_offset(self, combined: Atoms, step: float = 0.01, max_move_distance: float = 25.0) -> Atoms:
+        """
+        Adjust the minimum distance between adsorbate and substrate atoms.
 
         Parameters:
             combined (Atoms): The combined Atoms object for the substrate and adsorbate.
@@ -186,13 +201,12 @@ class AdsorbateDepositor:
         Returns:
             Atoms: The adjusted combined Atoms object.
         """
-        substrate_atoms = [atom for atom in combined if atom.tag == 0]
         adsorbate_atoms = [atom for atom in combined if atom.tag == 1]
 
         moved_distance = 0.0
 
         while moved_distance < max_move_distance:
-            min_distance = min(np.linalg.norm(a.position - s.position) for a in adsorbate_atoms for s in substrate_atoms)
+            min_distance = self._calculate_min_distance(combined)
 
             if min_distance >= self.distance:
                 break
@@ -295,9 +309,15 @@ class AdsorbateDepositor:
                 # Perform the actual deposition
                 result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference)
 
-                # (Optional) offset adsorbate along z-axis
-                if auto_offset_along_z:
-                    result = self._check_and_adjust_distance(result)
+                # Check and (optionally) adjust adsorbate-substrate distance
+                min_distance = self._calculate_min_distance(result)
+                if min_distance < self.distance:
+                    if auto_offset_along_z:
+                        warnings.warn(f"Min distance between adsorbate and substrate is  {min_distance} Å, auto-offset is activated.")
+                        result = self._auto_offset(result)
+
+                    else:
+                        warnings.warn(f"Caution! Min distance between adsorbate and substrate is  {min_distance} Å, however auto-offset is disabled.")
 
                 # Reset vacuum layer thickness (would recenter atoms along z-axis)
                 result = self._reset_vacuum_layer_thickness(result, target_vacuum_layer)
