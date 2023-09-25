@@ -294,7 +294,7 @@ class AdsorbateDepositor:
 
                 # (Optional) freeze substrate atoms for selective dynamics
                 if fix_substrate:
-                    result = self._fix_substrate(result, self.poscar_substrate)
+                    result = self._fix_substrate(result)
 
                 # Compile the sample name from site and adsorbate names
                 sample_name = f"{site_name}_{ads_name}"
