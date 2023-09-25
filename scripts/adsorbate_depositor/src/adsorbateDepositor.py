@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: substrate/adsorbate tags to dict (avoid hardcoding)
-
 from typing import List, Dict, Union
 from pathlib import Path
 import warnings
@@ -153,9 +151,9 @@ class AdsorbateDepositor:
         # Override tags if requested
         if override_tags:
             for atom in poscar_substrate:
-                atom.tag = 0
+                atom.tag = TAG_DESCRIPTIONS["substrate"]
             for atom in adsorbate:
-                atom.tag = 1
+                atom.tag = TAG_DESCRIPTIONS["adsorbate"]
 
         # Calculate centroid of adsorbate reference atoms
         centroid = self._calculate_centroid(adsorbate, ads_reference)
@@ -184,8 +182,8 @@ class AdsorbateDepositor:
         Returns:
             float: The minimum distance between adsorbate and substrate atoms.
         """
-        substrate_atoms = [atom for atom in combined if atom.tag == 0]
-        adsorbate_atoms = [atom for atom in combined if atom.tag == 1]
+        substrate_atoms = [atom for atom in combined if atom.tag == TAG_DESCRIPTIONS["substrate"]]
+        adsorbate_atoms = [atom for atom in combined if atom.tag == TAG_DESCRIPTIONS["adsorbate"]]
 
         return min(np.linalg.norm(a.position - s.position) for a in adsorbate_atoms for s in substrate_atoms)
 
@@ -201,7 +199,7 @@ class AdsorbateDepositor:
         Returns:
             Atoms: The adjusted combined Atoms object.
         """
-        adsorbate_atoms = [atom for atom in combined if atom.tag == 1]
+        adsorbate_atoms = [atom for atom in combined if atom.tag == TAG_DESCRIPTIONS["adsorbate"]]
 
         moved_distance = 0.0
 
