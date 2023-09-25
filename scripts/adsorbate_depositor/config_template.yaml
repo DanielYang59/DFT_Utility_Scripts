@@ -1,4 +1,5 @@
 # Config File Template for Adsorbate Depositor
+# Note: All paths in this configuration are relative to this file.
 
 substrate:
   path: "./POSCAR_substrate"       # substrate POSCAR file
