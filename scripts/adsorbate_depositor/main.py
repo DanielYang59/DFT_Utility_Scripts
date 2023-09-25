@@ -82,7 +82,7 @@ def main():
     )
 
     # Write generated models to file
-    structure_generator.write(structures, output_dir=config["deposit"]["output_dir"])
+    structure_generator.write(structures, output_dir=Path(config["deposit"]["output_dir"]))
 
 if __name__ == "__main__":
     main()
