@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: check transformation along x/y axis
+# TODO: test transformation along x/y axis
+# TODO: "adjust vacuum layer thickness" method return Atoms object
+# TODO: test non-parallel x/y cell vector warnings
 
 from pathlib import Path
 import numpy as np

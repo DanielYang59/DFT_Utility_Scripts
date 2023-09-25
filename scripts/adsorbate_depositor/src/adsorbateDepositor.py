@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: automatically warning if min atomic distance smaller than setting
+
 import sys
 from typing import List, Dict, Union
 from pathlib import Path
