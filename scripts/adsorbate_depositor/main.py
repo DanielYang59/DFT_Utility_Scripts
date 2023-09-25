@@ -39,9 +39,8 @@ def main():
     if cfg_handler.check_config_exists():
         config = cfg_handler.load_config()
     else:
-        template_path = Path("database") / "config_template.yaml"
+        template_path = Path(__file__).parent / "config_template.yaml"
         cfg_handler.copy_config_template(template_path)
-        print("No configuration loaded. Exiting.")
         return
 
     # Generate sites

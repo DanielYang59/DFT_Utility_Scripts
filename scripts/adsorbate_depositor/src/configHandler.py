@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: avoid overwrite existing template (if not config.yaml in cwd but already a config_template.yaml)
-
 from pathlib import Path
 import yaml
 import shutil
@@ -20,6 +18,7 @@ class ConfigHandler:
             config_filename (str): The name of the configuration file. Default is 'config.yaml'.
             template_filename (str): The name of the template file. Default is 'config_template.yaml'.
         """
+        self.working_dir = Path.cwd()
         self.config_dir = Path(config_filename).parent
         self.config_path = Path(config_filename)
         self.template_path = Path(template_filename)
@@ -141,4 +140,4 @@ class ConfigHandler:
             shutil.copy(template_path, self.working_dir)
             print(f"Copied template {self.template_path.name} to {self.working_dir}")
         else:
-            raise FileExistsError("Template config file found in current dir. Template generation aborted.")
+            raise FileExistsError("Template config file found in current working dir. Template generation aborted.")
