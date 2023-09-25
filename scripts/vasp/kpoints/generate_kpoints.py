@@ -6,13 +6,14 @@ from pathlib import Path
 import warnings
 from typing import List
 
-def generate_kpoints(kpoints: List[int], mesh_type: str) -> str:
+def generate_kpoints(kpoints: List[int], mesh_type: str, lower_warn_threshold: int = 100) -> str:
     """
     Generate the contents of a VASP KPOINTS file based on the given arguments.
 
     Parameters:
         kpoints (list[int]): Three integers specifying subdivisions along reciprocal lattice vectors (a b c).
         mesh_type (str): Type of mesh ('g' for Gamma-centered, 'm' for Monkhorst-Pack).
+        lower_warn_threshold (int, optional): Lower threshold for raise a too many kpoints warning.
 
     Returns:
         str: The contents of the KPOINTS file.
@@ -29,8 +30,8 @@ def generate_kpoints(kpoints: List[int], mesh_type: str) -> str:
     if any(k <= 0 for k in kpoints):
         raise ValueError("All k-point values must be integers greater than zero.")
 
-    if any(k > 100 for k in kpoints):
-        warnings.warn("The number of k-points along at least one axis is greater than 100.")
+    if any(k > lower_warn_threshold for k in kpoints):
+        warnings.warn(f"The number of k-points along at least one axis is greater than {lower_warn_threshold}.")
 
     mesh_type_str = "Gamma-centered" if mesh_type == "g" else "Monkhorst-Pack"
 
