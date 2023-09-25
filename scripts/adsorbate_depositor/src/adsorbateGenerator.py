@@ -101,7 +101,7 @@ class AdsorbateGenerator:
                 raise ValueError(f"Illegal adsorbate index \"{index}\" (indexing starts from 1).")
 
         # Extract adsorbate atoms
-        corrected_index_list = [index - 1 for index in atom_indexes]
+        corrected_index_list = [index - 1 for index in atom_indexes]  # offset to 0-indexed (Atoms)
         adsorbate_poscar = poscar[corrected_index_list]
         if len(adsorbate_poscar) >= 10:
             warnings.warn("Large adsorbate requested (more than 10 atoms). Make sure this is intended.")
@@ -197,12 +197,47 @@ class AdsorbateGenerator:
 
         return adsorbate_POSCARs
 
+    def _regenerate_reference_indexing(self, adsorbate_atoms: List[int], reference_atoms: List[int])-> List[int]:
+        """
+        Validate and regenerate the reference atom indexing based on their order in the adsorbate atoms list.
+
+        Args:
+            adsorbate_atoms (List[int]): List of atom indexes for the adsorbate.
+            reference_atoms (List[int]): List of atom indexes used as reference.
+
+        Returns:
+            List[int]: Regenerated list of reference atoms, representing their order in the adsorbate list starting from 0 (0-indexed).
+
+        Raises:
+            ValueError: If there are repeated elements in either of the atom lists.
+            ValueError: If atom indexes are not integers starting from 1.
+            ValueError: If reference atoms are not a subset of the adsorbate atoms.
+
+        Note:
+            DEBUG: Do the Atoms object indexings keep original order after "extraction"?
+        """
+        # Make sure there are no repeated elements in two args
+        if len(set(adsorbate_atoms)) != len(adsorbate_atoms) or len(set(reference_atoms)) != len(reference_atoms):
+            raise ValueError("There should be no repeated elements in the atom lists.")
+
+        # Make sure every element is an integer starting from 1
+        for atom in adsorbate_atoms + reference_atoms:
+            if not isinstance(atom, int) or atom < 1:
+                raise ValueError("All atom indexes must be integers starting from 1.")
+
+        # Make sure reference atoms is a subset or equal of adsorbate atoms
+        if not set(reference_atoms).issubset(set(adsorbate_atoms)):
+            raise ValueError("Reference atoms must be a subset or equal to the adsorbate atoms.")
+
+        # Regenerate reference atom indexing (0-indexed)
+        return [adsorbate_atoms.index(atom) for atom in reference_atoms]
+
     def _load_adsorbate_ref_from_database_header(self) -> Dict[str, List[int]]:
         """
         Load adsorbate references based on database pathway header dict.
 
         Returns:
-            Dict: A dictionary of loaded adsorbate references.
+            Dict: A dictionary of loaded adsorbate references (0-indexed).
 
         Raises:
             ValueError: If required keys are missing from the database header or if indexing is not continuous.
@@ -222,16 +257,15 @@ class AdsorbateGenerator:
             else:
                 name = self.adsorbate_header_dict[step_key]["name"]
                 # Get adsorbate reference tag
-                references = self.adsorbate_header_dict[step_key]["reference_atoms"]
-
-                # Offset 1-indexed (user input) to 0-indexed (Atoms object)
-                references = [(i - 1) for i in references]
+                adsorbate_atoms = self.adsorbate_header_dict[step_key]["adsorbate_atoms"]
+                reference_atoms = self.adsorbate_header_dict[step_key]["reference_atoms"]
 
                 # Check references list
-                if not references:
+                if not reference_atoms:
                     raise ValueError(f"Empty reference list found for adsorbate {name}.")
 
-                adsorbate_references[name] = references
+                # Regenerate adsorbate reference tag (restart reference atom indexing, 0-indexed)
+                adsorbate_references[name] = self._regenerate_reference_indexing(adsorbate_atoms, reference_atoms)
 
         return adsorbate_references
 
