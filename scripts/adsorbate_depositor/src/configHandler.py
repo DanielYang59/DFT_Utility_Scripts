@@ -20,9 +20,20 @@ class ConfigHandler:
             config_filename (str): The name of the configuration file. Default is 'config.yaml'.
             template_filename (str): The name of the template file. Default is 'config_template.yaml'.
         """
-        self.working_dir = Path.cwd()
-        self.config_path = self.working_dir / config_filename
-        self.template_path = self.working_dir / template_filename
+        self.config_dir = Path(config_filename).parent
+        self.config_path = Path(config_filename)
+        self.template_path = Path(template_filename)
+
+    def _convert_relative_paths(self, config_data):
+        """
+        Convert relative paths to absolute paths based on the directory of config.yaml.
+
+        Parameters:
+            config_data (dict): The configuration data.
+        """
+        config_data['substrate']['path'] = str(self.config_dir / Path(config_data['substrate']['path']))
+        config_data['adsorbate']['path'] = str(self.config_dir / Path(config_data['adsorbate']['path']))
+        config_data['deposit']['output_dir'] = str(self.config_dir / Path(config_data['deposit']['output_dir']))
 
     def check_config_exists(self):
         """
@@ -114,6 +125,7 @@ class ConfigHandler:
         with open(self.config_path, "r") as f:
             config_data = yaml.safe_load(f)
         self._check_config(config_data)
+        self._convert_relative_paths(config_data)  # Convert relative paths to absolute
         return config_data
 
     def copy_config_template(self, template_path):
