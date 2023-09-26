@@ -187,13 +187,13 @@ class AdsorbateDepositor:
 
         return min(np.linalg.norm(a.position - s.position) for a in adsorbate_atoms for s in substrate_atoms)
 
-    def _auto_offset(self, combined: Atoms, move_threshold: float = 0.25, step: float = 0.01, max_move_attempts: int = 2000) -> Atoms:
+    def _auto_offset(self, combined: Atoms, move_threshold: float = 0.05, step: float = 0.01, max_move_attempts: int = 10000) -> Atoms:
         """
         Adjust the distance between adsorbate and substrate atoms.
 
         Parameters:
             combined (Atoms): The combined Atoms object for the substrate and adsorbate.
-            move_threshold (float, optional): The distance threshold in Å to stop offset. Defaults to 0.25.
+            move_threshold (float, optional): The distance threshold in Å to stop offset. Defaults to 0.05.
             step (float, optional): The distance in Å to move the adsorbate up along the z-axis in each step. Defaults to 0.01.
             max_move_attempts (int, optional): The maximum attempts the adsorbate can be moved to avoid potential infinite loop. Defaults to 2000.
 
@@ -223,8 +223,8 @@ class AdsorbateDepositor:
 
             move_attempts += 1
 
-        if move_attempts >= max_move_attempts:
-            raise RuntimeError(f"Maximum moving attempts of {max_move_attempts} reached but still cannot find a valid location. Please check your structure.")
+            if move_attempts >= max_move_attempts:
+                raise RuntimeError(f"Maximum moving attempts of {max_move_attempts} reached but still cannot find a valid location. Please check your structure.")
 
         return combined
 
@@ -263,7 +263,7 @@ class AdsorbateDepositor:
 
         return poscar
 
-    def deposit(self, rotation_generated: bool, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0, offset_threshold: float = 0.25, offset_step: float = 0.02) -> dict:
+    def deposit(self, rotation_generated: bool, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0, offset_threshold: float = 0.25, offset_step: float = 0.01) -> dict:
         """
         Deposit adsorbates onto specified sites on the substrate.
 
