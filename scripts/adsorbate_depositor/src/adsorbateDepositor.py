@@ -263,7 +263,7 @@ class AdsorbateDepositor:
 
         return poscar
 
-    def deposit(self, rotation_generated: bool, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0, offset_threshold: float = 0.25, offset_step: float = 0.01) -> dict:
+    def deposit(self, rotation_generated: bool, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0, offset_threshold: float = 0.05, offset_step: float = 0.01) -> dict:
         """
         Deposit adsorbates onto specified sites on the substrate.
 
@@ -273,7 +273,7 @@ class AdsorbateDepositor:
             fix_substrate (bool, optional): Whether to fix the substrate atoms during deposition. Defaults to False.
             target_vacuum_layer (float, optional): Final vacuum layer thickness in Å.
             vacuum_layer_warn_threshold (float, optional): Vacuum layer thickness to generate warning.
-            offset_threshold (float, optional): The distance delta in Å to activate adsorbate offset. Defaults to 0.25.
+            offset_threshold (float, optional): The distance delta in Å to activate adsorbate offset. Defaults to 0.05.
             offset_step (float, optional): The distance in Å to move the adsorbate up along the z-axis in each step. Defaults to 0.01.
 
         Returns:
