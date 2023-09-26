@@ -224,7 +224,7 @@ class AdsorbateDepositor:
             move_attempts += 1
 
             if move_attempts >= max_move_attempts:
-                raise RuntimeError(f"Maximum moving attempts of {max_move_attempts} reached but still cannot find a valid location. Please check your structure.")
+                raise RuntimeError(f"Maximum moving distance of {max_move_attempts * step} Å reached but still cannot find a valid location. Please check your structure.")
 
         return combined
 
