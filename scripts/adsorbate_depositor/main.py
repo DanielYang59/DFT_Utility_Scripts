@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: fix script running path and file read path (relative to running path)
-
 import sys
 from pathlib import Path
+import argparse
 
 root_dir = str(Path(__file__).resolve().parents[1])
 sys.path.append(root_dir)
@@ -34,8 +33,13 @@ def main():
     Atomistic structures of substrate with adsorbates are saved in the specified output directory.
 
     """
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Deposit adsorbates on substrates.")
+    parser.add_argument("--config", default="config.yaml", help="Name of the configuration file. Defaults to 'config.yaml'.")
+    args = parser.parse_args()
+
     # Load or generate the configuration
-    cfg_handler = ConfigHandler(Path.cwd() / "config.yaml")
+    cfg_handler = ConfigHandler(Path.cwd() / args.config)
     if cfg_handler.check_config_exists():
         config = cfg_handler.load_config()
     else:
