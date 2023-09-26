@@ -62,6 +62,7 @@ def main():
 
     adsorbate_refs = adsorbate_generator.generate_adsorbate_references(
         adsorbates_dict=adsorbates,
+        poscar_ads=config["adsorbate"]["atom_indexes"],
         poscar_ads_ref=config["adsorbate"]["reference"]
     )
 

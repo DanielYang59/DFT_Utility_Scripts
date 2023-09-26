@@ -306,12 +306,13 @@ class AdsorbateGenerator:
         if len(poscar_ads_ref) != len(set(poscar_ads_ref)):
             raise ValueError("No duplicates are allowed in poscar_ads_ref.")
 
-    def generate_adsorbate_references(self, adsorbates_dict: dict, poscar_ads_ref: List[int]) -> Dict[str, List[int]]:
+    def generate_adsorbate_references(self, adsorbates_dict: dict, poscar_ads: List[int], poscar_ads_ref: List[int]) -> Dict[str, List[int]]:
         """
         Generate adsorbate reference points from adsorbates dict, based on adsorbate names.
 
         Args:
             adsorbates_dict (dict): The pre-generated adsorbate dict.
+            poscar_ads (list): The adsorbate list read from config, only needed for "POSCAR" mode.
             poscar_ads_ref (list): The adsorbate reference list read from config, only needed for "POSCAR" mode.
 
         Returns:
@@ -329,10 +330,9 @@ class AdsorbateGenerator:
             if len(adsorbates_dict) != 1:
                 raise RuntimeError("In POSCAR mode but adsorbate dict length is not 1.")
 
-            # Offset 1-indexed (user input) to 0-indexed (Atoms object)
-            poscar_ads_ref = [(i - 1) for i in poscar_ads_ref]
+            # Regenerate reference atom indexing
+            return {list(adsorbates_dict.keys())[0]: self._regenerate_reference_indexing(poscar_ads, poscar_ads_ref)}
 
-            return {list(adsorbates_dict.keys())[0]: poscar_ads_ref}
 
         else:  # "DATABASE" mode
             if poscar_ads_ref is not None:
