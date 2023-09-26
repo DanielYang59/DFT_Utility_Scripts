@@ -76,7 +76,6 @@ def main():
 
     structures = structure_generator.deposit(
         rotation_generated=config["adsorbate"]["rotation"],
-        auto_offset_along_z=config["deposit"]["auto_offset_along_z"],
         fix_substrate=config["deposit"]["fix_substrate"],
         target_vacuum_layer=config["deposit"]["target_vacuum_layer"]
     )

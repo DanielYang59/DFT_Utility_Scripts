@@ -20,6 +20,5 @@ adsorbate:
 deposit:
   distance: 2.0                    # distance of adsorbate reference point to selected site (in Å)
   target_vacuum_layer: 10.0        # vacuum layer thickness in Å for final models (would re-center along z-axis)
-  auto_offset_along_z: True        # auto offset along z-axis to maintain minimum adsorbate-substrate distance
   fix_substrate: True              # fix substrate for selective dynamics
   output_dir: "./generated_models" # output directory name

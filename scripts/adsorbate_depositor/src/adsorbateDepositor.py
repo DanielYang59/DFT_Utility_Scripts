@@ -187,36 +187,44 @@ class AdsorbateDepositor:
 
         return min(np.linalg.norm(a.position - s.position) for a in adsorbate_atoms for s in substrate_atoms)
 
-    def _auto_offset(self, combined: Atoms, step: float = 0.01, max_move_distance: float = 25.0) -> Atoms:
+    def _auto_offset(self, combined: Atoms, move_threshold: float = 0.25, step: float = 0.01, max_move_attempts: int = 200) -> Atoms:
         """
-        Adjust the minimum distance between adsorbate and substrate atoms.
+        Adjust the distance between adsorbate and substrate atoms.
 
         Parameters:
             combined (Atoms): The combined Atoms object for the substrate and adsorbate.
-            step (float, optional): The distance to move the adsorbate up along the z-axis in each step. Defaults to 0.01.
-            max_move_distance (float, optional): The maximum distance the adsorbate can be moved up along the z-axis to avoid potential infinite loop. Defaults to 25.0.
+            move_threshold (float, optional): The distance threshold in Å to stop offset. Defaults to 0.25.
+            step (float, optional): The distance in Å to move the adsorbate up along the z-axis in each step. Defaults to 0.01.
+            max_move_attempts (int, optional): The maximum attempts the adsorbate can be moved to avoid potential infinite loop. Defaults to 200.
 
         Returns:
             Atoms: The adjusted combined Atoms object.
         """
         adsorbate_atoms = [atom for atom in combined if atom.tag == TAG_DESCRIPTIONS["adsorbate"]]
 
-        moved_distance = 0.0
+        move_attempts = 0
 
-        while moved_distance < max_move_distance:
-            min_distance = self._calculate_min_distance(combined)
+        while move_attempts < max_move_attempts:
+            current_min_distance = self._calculate_min_distance(combined)
 
-            if min_distance >= self.distance:
+            # Break offset when distance within rational range
+            if (self.distance - move_threshold) <= current_min_distance <= (self.distance + move_threshold):
                 break
 
-            # Move adsorbate up along z-axis by step
+            # Move adsorbate along z-axis by step
             for atom in adsorbate_atoms:
-                atom.position[2] += step
+                # Current distance greater than expected
+                if current_min_distance >= (self.distance + move_threshold):
+                    atom.position[2] -= step
 
-            moved_distance += step
+                # Current distance smaller than expected
+                elif current_min_distance <= (self.distance - move_threshold):
+                    atom.position[2] += step
 
-        if moved_distance >= max_move_distance:
-            raise RuntimeError(f"Maximum moving distance of {max_move_distance} Å reached but still cannot find a valid location. Please check your structure.")
+            move_attempts += 1
+
+        if move_attempts >= max_move_attempts:
+            raise RuntimeError(f"Maximum moving attempts of {max_move_attempts} reached but still cannot find a valid location. Please check your structure.")
 
         return combined
 
@@ -255,7 +263,7 @@ class AdsorbateDepositor:
 
         return poscar
 
-    def deposit(self, rotation_generated: bool, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0) -> dict:
+    def deposit(self, rotation_generated: bool, auto_offset_along_z: bool = True, fix_substrate: bool = False,  target_vacuum_layer: float = 10.0, vacuum_layer_warn_threshold: float = 5.0, offset_threshold: float = 0.25, offset_step: float = 0.02) -> dict:
         """
         Deposit adsorbates onto specified sites on the substrate.
 
@@ -265,6 +273,8 @@ class AdsorbateDepositor:
             fix_substrate (bool, optional): Whether to fix the substrate atoms during deposition. Defaults to False.
             target_vacuum_layer (float, optional): Final vacuum layer thickness in Å.
             vacuum_layer_warn_threshold (float, optional): Vacuum layer thickness to generate warning.
+            offset_threshold (float, optional): The distance delta in Å to activate adsorbate offset. Defaults to 0.25.
+            offset_step (float, optional): The distance in Å to move the adsorbate up along the z-axis in each step. Defaults to 0.01.
 
         Returns:
             dict: A dictionary containing the resulting structures, indexed by a composite species name.
@@ -307,20 +317,20 @@ class AdsorbateDepositor:
                 # Perform the actual deposition
                 result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference)
 
-                # Check and (optionally) adjust adsorbate-substrate distance
+                # Check and adjust adsorbate-substrate distance
                 min_distance = self._calculate_min_distance(result)
-                if min_distance < self.distance:
+                if min_distance < (self.distance - offset_threshold) or min_distance > (self.distance + offset_threshold):
                     if auto_offset_along_z:
                         warnings.warn(f"Min distance between adsorbate and substrate is  {min_distance} Å, auto-offset is activated.")
-                        result = self._auto_offset(result)
+                        result = self._auto_offset(result, move_threshold=offset_threshold, step=offset_step)
 
                     else:
-                        warnings.warn(f"Caution! Min distance between adsorbate and substrate is  {min_distance} Å, however auto-offset is disabled.")
+                        warnings.warn(f"Min distance between adsorbate and substrate is  {min_distance} Å, however auto-offset is disabled.")
 
                 # Reset vacuum layer thickness (would recenter atoms along z-axis)
                 result = self._reset_vacuum_layer_thickness(result, target_vacuum_layer)
 
-                # (Optional) freeze substrate atoms for selective dynamics
+                # (Optionally) freeze substrate atoms for selective dynamics
                 if fix_substrate:
                     result = self._fix_substrate(result)
 
