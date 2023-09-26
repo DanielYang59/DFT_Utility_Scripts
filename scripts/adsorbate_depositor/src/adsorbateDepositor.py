@@ -305,14 +305,16 @@ class AdsorbateDepositor:
         # Deposit adsorbates onto sites
         results = {}
         for site_name, site_info in tqdm(self.sites.items(), desc="Depositing adsorbates"):
-            for ads_tag, ads_info in self.adsorbates.items():
+            for ads_name, ads_info in self.adsorbates.items():
                 # Recompile adsorbate name when auto_rotation activated
                 if rotation_generated:
                     # Extract "adsorbate_name" from "adsorbate_name_rotation_N" if rotation activated
-                    ads_name = re.search(r"(.+)_rotation_\d+", ads_tag).group(1)
+                    ads_ref_tag = re.search(r"(.+)_rotation_\d+", ads_name).group(1)
 
-                # Compile adsorbate reference tag
-                ads_reference = self.adsorbate_refs[ads_name]
+                    # Get adsorbate reference
+                    ads_reference = self.adsorbate_refs[ads_ref_tag]
+                else:
+                    ads_reference = self.adsorbate_refs[ads_name]
 
                 # Perform the actual deposition
                 result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference)
@@ -334,11 +336,8 @@ class AdsorbateDepositor:
                 if fix_substrate:
                     result = self._fix_substrate(result)
 
-                # Compile the sample name from site and adsorbate names
-                sample_name = f"{site_name}_{ads_tag}"
-
                 # Save the post-processed result
-                results[sample_name] = result
+                results[f"{site_name}_{ads_name}"] = result
 
         return results
 
