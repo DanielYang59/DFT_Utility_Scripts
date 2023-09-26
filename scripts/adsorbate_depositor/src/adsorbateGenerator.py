@@ -200,6 +200,49 @@ class AdsorbateGenerator:
 
         return adsorbate_POSCARs
 
+    def generate_adsorbates(self, atom_indexes: List[int] = None) -> Dict[str, Atoms]:
+        """
+        Generate adsorbates based on the working mode.
+
+        Args:
+            atom_indexes (List[int]): Atom indexes to extract (only required for "POSCAR" mode).
+
+        Returns:
+            Dict[str, Atoms]: Dictionary of generated adsorbates, where keys are adsorbate names and values are Atoms objects.
+        """
+        if self.work_mode == "POSCAR":
+            adsorbate_POSCARs = {"adsorbate": self._extract_atoms(self.path, atom_indexes)}
+
+        else:
+            adsorbate_POSCARs = self._load_adsorbate_from_database_header()
+
+        # Generate rotations if required
+        if self.generate_rotations:
+            return self._generate_rotated_adsorbate_dict(adsorbate_POSCARs)
+
+        else:
+            return adsorbate_POSCARs
+
+    def _validate_poscar_ads_ref(self, poscar_ads_ref: List[int]) -> None:
+        """
+        Validates the `poscar_ads_ref` list to ensure it meets the required specifications.
+
+        Parameters:
+            poscar_ads_ref (List[int]): A list of integers representing the reference indexes in a POSCAR file.
+
+        Raises:
+            TypeError: If `poscar_ads_ref` is not a list or contains non-integer elements.
+            ValueError: If any integer in `poscar_ads_ref` is less than 1 or if duplicates are present.
+        """
+        if not isinstance(poscar_ads_ref, list) or not all(isinstance(x, int) for x in poscar_ads_ref):
+            raise TypeError("poscar_ads_ref should be a list of integers.")
+
+        if any(x < 1 for x in poscar_ads_ref):
+            raise ValueError("All integers in poscar_ads_ref should be greater or equal to 1.")
+
+        if len(poscar_ads_ref) != len(set(poscar_ads_ref)):
+            raise ValueError("No duplicates are allowed in poscar_ads_ref.")
+
     def _regenerate_reference_indexing(self, adsorbate_atoms: List[int], reference_atoms: List[int])-> List[int]:
         """
         Validate and regenerate the reference atom indexing based on their order in the adsorbate atoms list.
@@ -263,6 +306,10 @@ class AdsorbateGenerator:
                 adsorbate_atoms = self.adsorbate_header_dict[step_key]["adsorbate_atoms"]
                 reference_atoms = self.adsorbate_header_dict[step_key]["reference_atoms"]
 
+                # Validate atom indexing list
+                self._validate_poscar_ads_ref(adsorbate_atoms)
+                self._validate_poscar_ads_ref(reference_atoms)
+
                 # Check references list
                 if not reference_atoms:
                     raise ValueError(f"Empty reference list found for adsorbate {name}.")
@@ -271,40 +318,6 @@ class AdsorbateGenerator:
                 adsorbate_references[name] = self._regenerate_reference_indexing(adsorbate_atoms, reference_atoms)
 
         return adsorbate_references
-
-    def generate_adsorbates(self, atom_indexes: List[int] = None) -> Dict[str, Atoms]:
-        """
-        Generate adsorbates based on the working mode.
-
-        Args:
-            atom_indexes (List[int]): Atom indexes to extract (only required for "POSCAR" mode).
-
-        Returns:
-            Dict[str, Atoms]: Dictionary of generated adsorbates, where keys are adsorbate names and values are Atoms objects.
-        """
-        if self.work_mode == "POSCAR":
-            adsorbate_POSCARs = {"adsorbate": self._extract_atoms(self.path, atom_indexes)}
-
-        else:
-            adsorbate_POSCARs = self._load_adsorbate_from_database_header()
-
-        # Generate rotations if required
-        if self.generate_rotations:
-            return self._generate_rotated_adsorbate_dict(adsorbate_POSCARs)
-
-        else:
-            return adsorbate_POSCARs
-
-    def _validate_poscar_ads_ref(self, poscar_ads_ref: List[int]) -> None:
-        """Validates the poscar_ads_ref list."""
-        if not isinstance(poscar_ads_ref, list) or not all(isinstance(x, int) for x in poscar_ads_ref):
-            raise TypeError("poscar_ads_ref should be a list of integers.")
-
-        if any(x < 1 for x in poscar_ads_ref):
-            raise ValueError("All integers in poscar_ads_ref should be greater or equal to 1.")
-
-        if len(poscar_ads_ref) != len(set(poscar_ads_ref)):
-            raise ValueError("No duplicates are allowed in poscar_ads_ref.")
 
     def generate_adsorbate_references(self, adsorbates_dict: dict, poscar_ads: List[int], poscar_ads_ref: List[int]) -> Dict[str, List[int]]:
         """
@@ -325,16 +338,8 @@ class AdsorbateGenerator:
 
         # Generate adsorbate reference points dict based on adsorbate names
         if self.work_mode == "POSCAR":
-            self._validate_poscar_ads_ref(poscar_ads_ref)
-
-            if len(adsorbates_dict) != 1:
-                raise RuntimeError("In POSCAR mode but adsorbate dict length is not 1.")
-
-            # Regenerate reference atom indexing
-            return {list(adsorbates_dict.keys())[0]: self._regenerate_reference_indexing(poscar_ads, poscar_ads_ref)}
-
+            generated_ads_ref = self._regenerate_reference_indexing(poscar_ads, poscar_ads_ref)
+            return {key: generated_ads_ref for key in adsorbates_dict}
 
         else:  # "DATABASE" mode
-            if poscar_ads_ref is not None:
-                warnings.warn(f"Adsorbate reference set as {poscar_ads_ref} for DATABASE mode. Ignored.")
             return self._load_adsorbate_ref_from_database_header()
