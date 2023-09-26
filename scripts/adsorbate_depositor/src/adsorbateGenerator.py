@@ -327,11 +327,12 @@ class AdsorbateGenerator:
             self._validate_poscar_ads_ref(poscar_ads_ref)
 
             if len(adsorbates_dict) != 1:
-                raise RuntimeError("Code work in POSCAR mode but adsorbate dict len is not 1.")
+                raise RuntimeError("In POSCAR mode but adsorbate dict length is not 1.")
 
             # Offset 1-indexed (user input) to 0-indexed (Atoms object)
             poscar_ads_ref = [(i - 1) for i in poscar_ads_ref]
-            return {list(adsorbates_dict.keys()[0]): poscar_ads_ref}
+
+            return {list(adsorbates_dict.keys())[0]: poscar_ads_ref}
 
         else:  # "DATABASE" mode
             if poscar_ads_ref is not None:
