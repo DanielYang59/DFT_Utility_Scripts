@@ -187,7 +187,7 @@ class AdsorbateDepositor:
 
         return min(np.linalg.norm(a.position - s.position) for a in adsorbate_atoms for s in substrate_atoms)
 
-    def _auto_offset(self, combined: Atoms, move_threshold: float = 0.25, step: float = 0.01, max_move_attempts: int = 200) -> Atoms:
+    def _auto_offset(self, combined: Atoms, move_threshold: float = 0.25, step: float = 0.01, max_move_attempts: int = 2000) -> Atoms:
         """
         Adjust the distance between adsorbate and substrate atoms.
 
@@ -195,7 +195,7 @@ class AdsorbateDepositor:
             combined (Atoms): The combined Atoms object for the substrate and adsorbate.
             move_threshold (float, optional): The distance threshold in Å to stop offset. Defaults to 0.25.
             step (float, optional): The distance in Å to move the adsorbate up along the z-axis in each step. Defaults to 0.01.
-            max_move_attempts (int, optional): The maximum attempts the adsorbate can be moved to avoid potential infinite loop. Defaults to 200.
+            max_move_attempts (int, optional): The maximum attempts the adsorbate can be moved to avoid potential infinite loop. Defaults to 2000.
 
         Returns:
             Atoms: The adjusted combined Atoms object.
