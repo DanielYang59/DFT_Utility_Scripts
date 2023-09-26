@@ -339,7 +339,7 @@ class AdsorbateGenerator:
         # Generate adsorbate reference points dict based on adsorbate names
         if self.work_mode == "POSCAR":
             generated_ads_ref = self._regenerate_reference_indexing(poscar_ads, poscar_ads_ref)
-            return {key: generated_ads_ref for key in adsorbates_dict}
+            return {"adsorbate": generated_ads_ref, }
 
         else:  # "DATABASE" mode
             return self._load_adsorbate_ref_from_database_header()
