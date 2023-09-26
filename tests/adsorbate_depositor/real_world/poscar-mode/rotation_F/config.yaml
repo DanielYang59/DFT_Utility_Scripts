@@ -1,0 +1,22 @@
+# Config File Template for Adsorbate Depositor
+
+substrate:
+  path: "./POSCAR_graphene"       # substrate POSCAR file
+  sites:
+#    - "28"                     # single site: top
+#    - "26_27"                   # double site: bridge
+    - "19_26_27"                 # triple site: centroid
+
+adsorbate:
+  source: "POSCAR"                 # or "DATABASE"
+  path: "./POSCAR_COOH"                       # path to POSCAR file or DATABASE dir
+  atom_indexes: [96, 101, 102, 103]               # required for "POSCAR"-sourced adsorbate generation, adsorbate atom indexes
+  reference: [96, ]                  # required for "POSCAR"-sourced adsorbate generation, reference point index list
+  pathway_name: "pathway_1"        # required for "DATABASE"-sourced adsorbate generation, pathway name
+  rotation: False                   # generate rotated adsorbates
+
+deposit:
+  distance: 2.0                    # distance of adsorbate reference point to selected site (in Å)
+  target_vacuum_layer: 5          # vacuum layer thickness in Å for final models (would re-center along z-axis)
+  fix_substrate: True              # fix substrate for selective dynamics
+  output_dir: "./generated_models"   # output directory name

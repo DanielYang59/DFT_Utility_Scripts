@@ -81,7 +81,16 @@ class AdsorbateDepositor:
         self.adsorbate_refs = adsorbate_refs
 
     def _calculate_centroid(self, adsorbate: Atoms, ads_reference: List[int]) -> np.ndarray:
-        """Calculate the centroid of given atom indices in the adsorbate."""
+        """
+        Calculate the centroid of a given set of atom indices in the adsorbate structure.
+
+        Parameters:
+            adsorbate (Atoms): The adsorbate structure represented as an 'Atoms' object.
+            ads_reference (List[int]): List of integer indices representing the atoms whose centroid needs to be calculated.
+
+        Returns:
+            np.ndarray: The centroid coordinates as a NumPy array [x, y, z].
+        """
         positions = [adsorbate[index].position for index in ads_reference]
         return np.mean(positions, axis=0)
 
@@ -313,6 +322,7 @@ class AdsorbateDepositor:
 
                     # Get adsorbate reference
                     ads_reference = self.adsorbate_refs[ads_ref_tag]
+
                 else:
                     ads_reference = self.adsorbate_refs[ads_name]
 
