@@ -108,13 +108,9 @@ class ConfigHandler:
         # Check "deposit" tags
         deposit = config_data.get('deposit', {})
         distance = deposit.get('distance', None)
-        auto_offset_along_z = deposit.get('auto_offset_along_z', None)
 
         if not isinstance(distance, (int, float)) or distance < 0:
             raise ValueError("Invalid distance value. It should be a non-negative float/int.")
-
-        if not isinstance(auto_offset_along_z, bool):
-            raise ValueError("Invalid auto_offset_along_z value. It should be a boolean.")
 
     def load_config(self) -> dict:
         """
