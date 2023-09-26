@@ -4,6 +4,7 @@
 # TODO: test transformation along x/y axis
 # TODO: "adjust vacuum layer thickness" method return Atoms object
 # TODO: test non-parallel x/y cell vector warnings
+# TODO: need best fixing for "negative vacuum layer thickness" in calculate_vacuum_thickness method
 
 from pathlib import Path
 import numpy as np
@@ -185,6 +186,10 @@ class VacuumLayerManager:
         max_position = self.structure.positions[:, self.axis_index].max()
 
         vacuum_layer_thickness = cell_dim - (max_position - min_position)
+        if vacuum_layer_thickness < 0:
+            warnings.warn("Negative vacuum layer thickness found (there might be atoms outside the cell). Proceed with caution")
+            # TODO: need a better fix
+            return 0  # return 0 so that following adjustment could proceed (otherwise would stop running)
 
         # Warn if vacuum layer thickness is suspicious
         if vacuum_layer_thickness <= warn_lower_threshold:
@@ -192,7 +197,6 @@ class VacuumLayerManager:
         if vacuum_layer_thickness >= (cell_dim * warn_upper_ratio_threshold):
             warnings.warn("The vacuum layer thickness along the selected axis is very close to the cell dimension. Please double-check your structure.")
 
-        assert vacuum_layer_thickness >= 0
         return vacuum_layer_thickness
 
     def adjust_vacuum_thickness(self, new_vacuum: float, vacuum_warning_threshold: float = 5.0) -> None:
@@ -223,7 +227,7 @@ class VacuumLayerManager:
 
         """
         # Check new vacuum layer thickness
-        if new_vacuum <= 0:
+        if new_vacuum < 0:
             raise ValueError("Vacuum layer thickness cannot be negative.")
         elif new_vacuum <= vacuum_warning_threshold:
             warnings.warn(f"Small vacuum thickness of {new_vacuum} Å requested.")
