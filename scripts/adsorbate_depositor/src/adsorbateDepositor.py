@@ -15,8 +15,8 @@ from ase.constraints import FixAtoms
 from vasp.poscar.vacuumLayerManager import VacuumLayerManager
 
 TAG_DESCRIPTIONS = {
-    0: "substrate",
-    1: "adsorbate"
+    "substrate": 0,
+    "adsorbate": 1
 }
 
 class AdsorbateDepositor:
