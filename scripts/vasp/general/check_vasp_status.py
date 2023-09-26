@@ -27,10 +27,10 @@ class VaspDirChecker:
             FileNotFoundError: If the directory is not a valid VASP directory.
         """
         self.dir_path = dir_path
-        if not self._check_input_files():
+        if not self.is_valid_vasp_dir():
             raise FileNotFoundError("Essential VASP input files are missing.")
 
-    def _check_input_files(self) -> bool:
+    def is_valid_vasp_dir(self) -> bool:
         """
         Checks if all four essential VASP input files exist in the directory.
 
