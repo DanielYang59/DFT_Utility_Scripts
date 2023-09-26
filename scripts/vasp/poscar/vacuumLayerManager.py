@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # TODO: test transformation along x/y axis
+# TODO: "adjust vacuum layer thickness" method return Atoms object
 # TODO: test non-parallel x/y cell vector warnings
-# TODO: need better fixing for "negative vacuum layer thickness" in calculate_vacuum_thickness method
+# TODO: need best fixing for "negative vacuum layer thickness" in calculate_vacuum_thickness method
 
 from pathlib import Path
 import numpy as np
@@ -243,8 +244,8 @@ class VacuumLayerManager:
 
         # Move atoms back to the center
         atom_repositioner = StructureRepositioner(structure=self.structure, axis=self.axis)
+        self.structure = atom_repositioner.reposition_along_axis(mode="center")
         warnings.warn(f"Vacuum layer would be adjusted. Atoms would be centered along {self.axis}-axis.")
-        return atom_repositioner.reposition_along_axis(mode="center")
 
 def main(args):
     """
