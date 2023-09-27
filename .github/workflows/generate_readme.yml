@@ -18,6 +18,9 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: Install dependencies
+      run: pip install PyYAML
+
     - name: Generate README Parts using Python3
       run: python3 .maintenance/generate_readme/generate_readme_parts.py
 
