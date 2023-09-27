@@ -33,4 +33,6 @@ jobs:
         git config --local user.name "GitHub Action"
         git add README.md
         git commit -m "Automatically update README.md" || exit 0
-        git push
+        git push origin HEAD:${{ github.ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
