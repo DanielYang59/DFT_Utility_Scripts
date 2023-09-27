@@ -33,11 +33,11 @@ The `vasp_cleanup.py` script is a Python utility designed to clean up unnecessar
 ## vasp/poscar
 Overview not found in scripts/vasp/poscar/README.md.
 
-## vasp/potcar
-This script is designed to generate a POTCAR file used in VASP calculations by reading elements from a POSCAR file and concatenating the corresponding POTCAR files from a given library.
-
 ## vasp/kpoints
 This Python script generates a regular KPOINTS file for VASP calculations. The user specifies the number of k-points along each of the three axes (`a`, `b`, `c`). They can also choose between a Gamma-centered or Monkhorst-Pack mesh type.
+
+## vasp/potcar
+This script is designed to generate a POTCAR file used in VASP calculations by reading elements from a POSCAR file and concatenating the corresponding POTCAR files from a given library.
 
 
 # Contributing to the Project
