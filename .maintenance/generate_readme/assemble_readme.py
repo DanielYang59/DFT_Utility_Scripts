@@ -70,7 +70,7 @@ class ReadmeAssembler:
         # Concatenate section files to form README
         readme_content = ""
         for section in self.recipe:
-            section_path = Path(section["file"])
+            section_path = Path(section["source"])
             if section_path.is_file():
                 with open(section_path, "r") as file:
                     readme_content += file.read() + "\n\n"
@@ -80,8 +80,8 @@ class ReadmeAssembler:
             file.write(readme_content)
 
 def main():
-    recipe_file = Path(".maintenance/readme_recipe.yaml")
-    output_file = Path("README.md")
+    recipe_file = Path("./readme_recipe.yaml")
+    output_file = Path("../../README.md")
     generator = ReadmeAssembler(recipe_file)
     generator.generate(output_file)
 
