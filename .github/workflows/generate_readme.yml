@@ -13,8 +13,21 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
     - name: Generate README Parts using Python3
-      run: python3 generate_readme_parts.py
+      run: python3 .maintenance/generate_readme/generate_readme_parts.py
 
     - name: Assemble Complete README using Python3
-      run: python3 assemble_readme.py
+      run: python3 .maintenance/generate_readme/assemble_readme.py
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md
+        git commit -m "Automatically update README.md" || exit 0
+        git push
