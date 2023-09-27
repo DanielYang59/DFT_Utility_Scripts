@@ -4,7 +4,7 @@
 import yaml
 from pathlib import Path
 
-class ReadmeGenerator:
+class ReadmeAssembler:
     """A class to generate a README.md file based on a YAML 'recipe' file.
 
     This class provides a way to dynamically generate a README.md file by
@@ -82,7 +82,7 @@ class ReadmeGenerator:
 def main():
     recipe_file = Path(".maintenance/readme_recipe.yaml")
     output_file = Path("README.md")
-    generator = ReadmeGenerator(recipe_file)
+    generator = ReadmeAssembler(recipe_file)
     generator.generate(output_file)
 
 if __name__ == "__main__":
