@@ -6,10 +6,18 @@ The `adsorbate_depositor` project is a Python-based tool designed for generating
 
 ## Features
 
-- **Configurable Settings**: Customize deposition settings via a YAML-based configuration file.
-- **Multiple Site Support**: Supports various adsorption sites on the substrate.
-- **Adsorbate Rotation**: Automatically generate rotated versions of adsorbates.
-- **File Output**: Outputs the generated structure in VASP POSCAR format.
+* **Configurable Settings** : Customize deposition settings via a YAML-based configuration file.
+* **Multiple Site Support** : Supports various adsorption sites on the substrate.
+* **Adsorbate Rotation** : Automatically generate rotated versions of adsorbates.
+* **File Output** : Outputs the generated structure in VASP POSCAR format.
+
+## Workflow
+
+1. **Load Configuration** : The script starts by reading a `config.yaml` file located in the current working directory. If the configuration file is not found, a template configuration will be generated for you.
+2. **Generate Site** : In this step, the script identifies and prepares the sites on the substrate where the adsorbates will be deposited.
+3. **Generate Adsorbate** : Based on the settings in the `config.yaml`, the script will generate the adsorbate structures to be used.
+4. **Adsorbate Deposition** : The adsorbates generated are then deposited onto the pre-selected sites on the substrate.
+5. **Distance Adjustment** : Finally, the script adjusts the minimum distance between the adsorbate and the substrate based on the preset value in the `config.yaml`.
 
 ## Installation
 
@@ -21,22 +29,20 @@ git clone https://github.com/yourusername/adsorbate_depositor.git
 
 Navigate to the cloned directory and install the required packages.
 
-## Usage
-
-Run the `main.py` script to start the generation process.
-
-```bash
-python main.py
-```
-
 ## Directory Structure
 
-* `src/`: Contains the source code for the project.
-  * `configHandler.py`: Manages reading and writing of configuration files.
-  * `adsorbateGenerator.py`: Responsible for generating adsorbate structures.
-  * `siteGenerator.py`: Generates various adsorption sites on the substrate.
-  * `adsorbateDepositor.py`: Handles the deposition of adsorbates onto the substrate at specified sites.
-
-## Contributing
-
-If you'd like to contribute, please fork the repository and make changes as you'd like. Pull requests are warmly welcome.
+```css
+adsorbate_depositor/
+├── README.md
+├── config_template.yaml
+├── database/
+│   ├── CO2RR/
+│   ├── HER/
+│   └── NITRR/
+├── main.py
+└── src/
+    ├── adsorbateDepositor.py
+    ├── adsorbateGenerator.py
+    ├── configHandler.py
+    └── siteGenerator.py
+```
