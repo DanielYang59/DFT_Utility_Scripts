@@ -21,18 +21,50 @@ class ReadmePartsGenerator:
             raise FileNotFoundError(f"Working dir {root_dir} not found.")
         self.root_dir = Path(root_dir)
 
-    def save_to_file(self, content: str, file_path: Path, header: str = "") -> None:
+    def save_to_file(self, content: str, file_path: Path, header: str = "", wrap_code_block: bool = False) -> None:
         """Save content to a specified file.
 
         Args:
             content (str): The content to save.
             file_path (Path): The path to the file where to save the content.
             header (str): The header to prepend to the content.
+            wrap_code_block (bool): Whether to wrap the content in a Markdown code block.
         """
         with file_path.open("w") as f:
             if header:
-                f.write(header + "\n\n")
+                f.write(f"{header}\n\n")
+            if wrap_code_block:
+                f.write("```\n")
             f.write(content)
+            if wrap_code_block:
+                f.write("\n```\n")
+
+    @staticmethod
+    def _generate_tree(dir_path: Path, prefix="", exclude=None) -> list:
+        """Internal static method to generate the directory tree structure.
+
+        Args:
+            dir_path (Path): The directory path to generate the tree for.
+            prefix (str): The prefix for the current recursion.
+            exclude (list): List of directory names to exclude.
+
+        Returns:
+            list: A list of strings representing the directory tree.
+        """
+        lines = []
+        child_dirs = [child for child in dir_path.iterdir() if child.is_dir() and child.name not in exclude]
+
+        should_include_children = any((child / "README.md").exists() for child in child_dirs)
+
+        for child in sorted(child_dirs):
+            child_lines = ReadmePartsGenerator._generate_tree(child, prefix + "    ", exclude)
+            if child_lines:
+                lines.extend([f"{prefix}│   {line}" for line in child_lines])
+
+        if (dir_path / "README.md").exists() or should_include_children:
+            lines.append(f"{prefix}└── {dir_path.name}")
+
+        return lines
 
     def generate_tree_structure(self, exclude: list = None) -> str:
         """Generate a string that represents the tree-like directory structure.
@@ -46,16 +78,7 @@ class ReadmePartsGenerator:
         if exclude is None:
             exclude = []
 
-        def _generate_tree(dir_path, prefix=""):
-            entries = []
-            for entry in dir_path.iterdir():
-                if entry.name not in exclude:
-                    if entry.is_dir():
-                        entries.append(f"{prefix}├── {entry.name}/")
-                        entries.extend(_generate_tree(entry, prefix + "│   "))
-            return entries
-
-        tree_str = '\n'.join(_generate_tree(self.root_dir))
+        tree_str = '\n'.join(reversed(self._generate_tree(self.root_dir, exclude=exclude)))
         return tree_str
 
     def _extract_overview(self, readme_path: Path) -> str:
@@ -82,12 +105,19 @@ class ReadmePartsGenerator:
             str: Markdown-formatted text containing overviews.
         """
         overviews = []
-        for dir_entry in self.root_dir.iterdir():
+
+        # Recursively find all directories containing a README.md file
+        for dir_entry in self.root_dir.rglob('*'):
             if dir_entry.is_dir():
                 readme_path = dir_entry / "README.md"
                 if readme_path.exists():
+                    # Include the parent directory
+                    parent_dir = dir_entry.relative_to(self.root_dir)
                     overview = self._extract_overview(readme_path)
-                    overviews.append(f"### {dir_entry.name}\n{overview}\n")
+                    overviews.append(f"## {parent_dir}\n{overview}\n")
+
+        if not overviews:
+            raise AssertionError("No overviews were found.")
 
         return "\n".join(overviews)
 
@@ -97,11 +127,11 @@ def main():
 
     # Generate tree structure
     tree_structure = readme_gen.generate_tree_structure(exclude=[".git", "__pycache__"])
-    readme_gen.save_to_file(tree_structure, Path("readme_parts/project_structure.md"), header="# Project Structure")
+    readme_gen.save_to_file(tree_structure, Path("readme_parts/project_structure.md"), header="# Project Structure", wrap_code_block=True)
 
     # Generate overviews
     overviews = readme_gen.generate_overviews()
-    readme_gen.save_to_file(overviews, Path("readme_parts/overviews.md"), header="# Module Overviews")
+    readme_gen.save_to_file(overviews, Path("readme_parts/overviews.md"), header="# Module Overviews", wrap_code_block=False)
 
 if __name__ == "__main__":
     main()
