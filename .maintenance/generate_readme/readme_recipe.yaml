@@ -1,12 +1,27 @@
+# README Recipe Configuration
+#
+# This YAML file defines the structure of the main README.md file for this repository.
+# The 'readme_sections' list contains entries specifying the order and content of each section
+# to be included in the final README.md.
+#
+# Fields:
+# - name: The name/title of the section.
+# - source: The path to the Markdown file containing the content for that section.
+#
+# NOTE: Sections will appear in the README.md in the order they are listed here.
 
 readme_sections:
   - name: "About this Project"
     source: "readme_parts/about_this_project.md"
-  - name: "Table of Contents"
-    source: "readme_parts/table_of_contents.md"
-  - name: "Structure"
-    source: "readme_parts/structure.md"
+
+  - name: "Project Structure"
+    source: "readme_parts/project_structure.md"
+
+  - name: "Overviews or Project Modules"
+    source: "readme_parts/overviews.md"
+
   - name: "Contributing"
     source: "readme_parts/contributing.md"
+
   - name: "License"
     source: "readme_parts/license.md"
