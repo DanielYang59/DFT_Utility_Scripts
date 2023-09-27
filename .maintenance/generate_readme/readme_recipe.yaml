@@ -1,0 +1,12 @@
+
+readme_sections:
+  - name: "About this Project"
+    source: "readme_parts/about_this_project.md"
+  - name: "Table of Contents"
+    source: "readme_parts/table_of_contents.md"
+  - name: "Structure"
+    source: "readme_parts/structure.md"
+  - name: "Contributing"
+    source: "readme_parts/contributing.md"
+  - name: "License"
+    source: "readme_parts/license.md"
