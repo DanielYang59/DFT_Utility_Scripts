@@ -1,14 +1,11 @@
 # Project Structure
 
-├── vasp/
-│   ├── general/
-│   ├── poscar/
-│   │   ├── lib/
-│   ├── potcar/
-│   ├── kpoints/
-├── adsorbate_depositor/
-│   ├── database/
-│   │   ├── HER/
-│   │   ├── CO2RR/
-│   │   ├── NITRR/
-│   ├── src/
+```
+└── scripts
+│       └── vasp
+│       │           └── potcar
+│       │           └── poscar
+│       │           └── kpoints
+│       │           └── general
+│       └── adsorbate_depositor
+```
