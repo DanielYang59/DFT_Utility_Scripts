@@ -17,19 +17,21 @@ class ReadmePartsGenerator:
         Args:
             root_dir (str): The root directory where to start generating the README parts.
         """
-        # Check working dir
         if not root_dir.is_dir():
             raise FileNotFoundError(f"Working dir {root_dir} not found.")
         self.root_dir = Path(root_dir)
 
-    def save_to_file(self, content: str, file_path: Path) -> None:
+    def save_to_file(self, content: str, file_path: Path, header: str = "") -> None:
         """Save content to a specified file.
 
         Args:
             content (str): The content to save.
             file_path (Path): The path to the file where to save the content.
+            header (str): The header to prepend to the content.
         """
         with file_path.open("w") as f:
+            if header:
+                f.write(header + "\n\n")
             f.write(content)
 
     def generate_tree_structure(self, exclude: list = None) -> str:
@@ -51,9 +53,6 @@ class ReadmePartsGenerator:
                     if entry.is_dir():
                         entries.append(f"{prefix}├── {entry.name}/")
                         entries.extend(_generate_tree(entry, prefix + "│   "))
-                    # Uncomment below if you want to include files as well
-                    # else:
-                    #     entries.append(f"{prefix}├── {entry.name}")
             return entries
 
         tree_str = '\n'.join(_generate_tree(self.root_dir))
@@ -68,13 +67,11 @@ class ReadmePartsGenerator:
         Returns:
             str: Extracted 'Overview' section as a string.
         """
-        # Import README
         if not readme_path.is_file():
             raise FileNotFoundError(f"README {readme_path} not found.")
         with readme_path.open("r") as f:
             text = f.read()
 
-        # Get the "Overview" part
         overview_match = re.search(r"## Overview\n(.+?)(##|$)", text, re.DOTALL)
         return overview_match.group(1).strip() if overview_match else f"Overview not found in {readme_path}."
 
@@ -100,11 +97,11 @@ def main():
 
     # Generate tree structure
     tree_structure = readme_gen.generate_tree_structure(exclude=[".git", "__pycache__"])
-    readme_gen.save_to_file(tree_structure, Path("readme_parts/project_structure.md"))
+    readme_gen.save_to_file(tree_structure, Path("readme_parts/project_structure.md"), header="# Project Structure")
 
     # Generate overviews
     overviews = readme_gen.generate_overviews()
-    readme_gen.save_to_file(overviews, Path("readme_parts/overviews.md"))
+    readme_gen.save_to_file(overviews, Path("readme_parts/overviews.md"), header="# Module Overviews")
 
 if __name__ == "__main__":
     main()
