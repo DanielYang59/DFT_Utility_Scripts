@@ -31,7 +31,7 @@ The `adsorbate_depositor` project is a Python-based tool designed for generating
 The `vasp_cleanup.py` script is a Python utility designed to clean up unnecessary VASP (Vienna Ab initio Simulation Package) output files in a given directory. The script retains essential input files like `INCAR`, `POSCAR`, `POTCAR`, and `KPOINTS`, along with the job submission script (default is `script.sh`). All other standard VASP output files are moved to a backup directory for safekeeping.
 
 ## vasp/poscar
-Overview not found in ../../scripts/vasp/poscar/README.md.
+Overview not found in scripts/vasp/poscar/README.md.
 
 ## vasp/potcar
 This script is designed to generate a POTCAR file used in VASP calculations by reading elements from a POSCAR file and concatenating the corresponding POTCAR files from a given library.

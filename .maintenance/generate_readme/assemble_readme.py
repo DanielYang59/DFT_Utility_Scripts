@@ -32,6 +32,7 @@ class ReadmeAssembler:
             FileNotFoundError: Raised if the file does not exist.
         """
         # Load README recipe file
+        self.recipe_file_path = recipe_file.resolve()
         self.recipe = self._parse_recipe(recipe_file)
 
     def _parse_recipe(self, recipe_file_path: Path) -> dict:
@@ -70,7 +71,8 @@ class ReadmeAssembler:
         # Concatenate section files to form README
         readme_content = ""
         for section in self.recipe:
-            section_path = Path(section["source"])
+            # Make the path relative to the location of the recipe file
+            section_path = self.recipe_file_path.parent / section["source"]
             if section_path.is_file():
                 with open(section_path, "r") as file:
                     readme_content += file.read() + "\n\n"
@@ -80,8 +82,8 @@ class ReadmeAssembler:
             file.write(readme_content)
 
 def main():
-    recipe_file = Path("./readme_recipe.yaml")
-    output_file = Path("../../README.md")
+    recipe_file = Path(".maintenance/generate_readme/readme_recipe.yaml")
+    output_file = Path("./README.md")
     generator = ReadmeAssembler(recipe_file)
     generator.generate(output_file)
 

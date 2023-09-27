@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: fix project structure
+# TODO: create link to child READMEs
+
 from pathlib import Path
 import re
 
@@ -123,15 +126,15 @@ class ReadmePartsGenerator:
 
 def main():
     # Initialize README generator
-    readme_gen = ReadmePartsGenerator(Path("../../scripts"))
+    readme_gen = ReadmePartsGenerator(Path("./scripts"))
 
     # Generate tree structure
     tree_structure = readme_gen.generate_tree_structure(exclude=[".git", "__pycache__"])
-    readme_gen.save_to_file(tree_structure, Path("readme_parts/project_structure.md"), header="# Project Structure", wrap_code_block=True)
+    readme_gen.save_to_file(tree_structure, Path(".maintenance/generate_readme/readme_parts/project_structure.md"), header="# Project Structure", wrap_code_block=True)
 
     # Generate overviews
     overviews = readme_gen.generate_overviews()
-    readme_gen.save_to_file(overviews, Path("readme_parts/overviews.md"), header="# Module Overviews", wrap_code_block=False)
+    readme_gen.save_to_file(overviews, Path(".maintenance/generate_readme/readme_parts/overviews.md"), header="# Module Overviews", wrap_code_block=False)
 
 if __name__ == "__main__":
     main()
