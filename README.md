@@ -2,208 +2,65 @@
 
 Collection of Essential Scripts for Density Functional Theory (DFT) Calculations.
 
-# ⚠️ Project Under Development ⚠️
+## ⚠️ Project Under Development ⚠️
 
 **This project is currently under active development and the scripts have not been fully tested.**
 
 If you find any issues or have suggestions, please [raise an issue](https://github.com/your-repo-link/issues) on this repository.
 
----
 
-## Table of Contents
+# Project Structure
 
-- [general](#general)
-- [doscar](#doscar)
-- [potcar](#potcar)
-- [kpoints](#kpoints)
-- [cohp](#cohp)
-- [reaction_diagram](#reaction_diagram)
+├── vasp/
+│   ├── general/
+│   ├── poscar/
+│   │   ├── lib/
+│   ├── potcar/
+│   ├── kpoints/
+├── adsorbate_depositor/
+│   ├── database/
+│   │   ├── HER/
+│   │   ├── CO2RR/
+│   │   ├── NITRR/
+│   ├── src/
 
-## general
+# Module Overviews
 
-# VASP Cleanup Script
 
-## Overview
 
-The `vasp_cleanup.py` script is a Python utility designed to clean up unnecessary VASP (Vienna Ab initio Simulation Package) output files in a given directory. The script retains essential input files like `INCAR`, `POSCAR`, `POTCAR`, and `KPOINTS`, along with the job submission script (default is `script.sh`). All other standard VASP output files are moved to a backup directory for safekeeping.
+# Contributing to the Project
 
-## Requirements
+We welcome contributions from everyone, whether you are an experienced developer or just getting started. Here's how you can contribute:
 
-- Python 3.x
-- No external Python packages are required.
+## Reporting Issues
 
-## Features
+- Please browse through the open issues before creating a new one to check if someone else has already reported the same issue.
+- Use the issue template provided to describe the problem clearly.
 
-- Moves standard VASP output files to a backup directory.
-- Creates a new backup directory if previous ones exist.
-- Provides an optional verbosity setting for console output.
+## Creating a Pull Request
 
-## Usage
+1. **Fork the Repository**: Create a fork of this repository on GitHub.
+2. **Clone Locally**: Clone your forked repository onto your local machine.
+3. **Create a Branch**: Create a new branch in your local repository. Choose a descriptive name like `add-new-feature` or `fix-bug`.
+4. **Make Changes**: Make the necessary changes to the code.
+5. **Commit**: Commit your changes with a descriptive commit message.
+6. **Push to Your Fork**: Push the branch to your forked repository on GitHub.
+7. **Create a Pull Request**: From your fork, create a new pull request in the original repository.
 
-1. Navigate to the directory containing your VASP files in a terminal.
-2. Run the script by specifying its full path:
+## Coding Guidelines
 
-   ```
-   python3 /path/to/vasp_cleanup.py
-   ```
+- Please adhere to the coding standards used throughout the project.
+- Add comments to your code. It makes it easier for others to understand what your code does.
+- Document your changes adequately in the README and in any relevant documentation.
 
-### Optional Parameters
+## Review Process
 
-- `--job_script`: The name of the job submission script you'd like to keep. Default is `script.sh`.
-- `--verbose`: Sets the verbosity level. Can be either "silent" or "verbose". Default is "silent".
+- We aim to review pull requests within a week.
+- We may suggest changes, so please be open to feedback.
 
-### Example Usage from Python
-
-If you prefer to call the script's function from within another Python script, you can do so like this:
-
-```python
-from pathlib import Path
-from vasp_cleanup import clean_vasp_files
-
-directory = Path(os.getcwd())
-clean_vasp_files(directory, job_script="my_script.sh", verbose="verbose")
-```
-
-## doscar
-
-## potcar
-
-# POTCAR Generation Script
-
-## Overview
-
-This script is designed to generate a POTCAR file used in VASP calculations by reading elements from a POSCAR file and concatenating the corresponding POTCAR files from a given library.
-
-## Requirements
-
-- Python 3.x
-- Your operating system should have an environment variable named `POTCAR_LIBRARY_PATH` set to the path of your POTCAR library.
-
-## Directory Structure
-
-The project is structured as follows:
-
-\`\`\`
-ROOT/
-├── scripts/
-│   └── potcar/
-│       └── generate_potcar.py
-└── tests/
-    └── potcar/
-        ├── __init__.py
-        ├── test_generate_potcar.py
-        └── potcar_lib/
-\`\`\`
-
-## Usage
-
-Run the script in the terminal like so:
-
-\`\`\`bash
-python generate_potcar.py
-\`\`\`
-
-This will read the POSCAR file in the current directory, look for the required POTCAR files in the directory specified by `POTCAR_LIBRARY_PATH`, and then generate a new POTCAR file in the current directory.
-
-### Optional: Specifying a Custom POSCAR File
-
-You can optionally specify the path to a POSCAR file:
-
-\`\`\`bash
-python generate_potcar.py --poscarfile /path/to/your/POSCAR
-\`\`\`
-
-## Functions
-
-- `generate_potcar(potcar_lib, elements, output_potcarfile=Path("POTCAR"))`
-
-  - Generates a POTCAR file based on the elements list.
-- `get_elements_from_poscar(poscarfile)`
-
-  - Reads the element types from a given POSCAR file.
-- `get_potcar_library_path()`
-
-  - Fetches the POTCAR library path from the environment variable `POTCAR_LIBRARY_PATH`.
-
-## Testing
-
-To run the tests, navigate to
-
-## kpoints
-
-# VASP KPOINTS File Generator
-
-## Overview
-
-This Python script generates a regular KPOINTS file for VASP calculations. The user specifies the number of k-points along each of the three axes (`a`, `b`, `c`). They can also choose between a Gamma-centered or Monkhorst-Pack mesh type.
-
-## Requirements
-
-- Python 3.x
-
-## Usage
-
-### Syntax
-
-```bash
-python3 kpoints.py <a> <b> <c> [-m <mesh_type_initial>]
-```
-
-## cohp
-
-## reaction_diagram
-
-# Reaction Diagram Plotter
-
-## Overview
-
-The Reaction Diagram Plotter is a Python-based tool that generates reaction pathway diagrams using free energy changes (Delta G) for each reaction step. The tool outputs a `.png` file that visualizes the reaction pathway.
-
-## Features
-
-- Configurable plot aesthetics, including line thickness, axis labels, and tick marks
-- Reads input from CSV files for molecular species and intermediates, and from JSON for reaction data
-- Built-in calculation for free energy changes of each step in the reaction pathway
-- Output directory can be specified
-
-## Dependencies
-
-- Python 3.x
-- matplotlib
-- pathlib
-
-## Installation
-
-Clone the repository to your local machine:
-
-\```bash
-git clone https://github.com/your-username/reaction-diagram-plotter.git
-\```
-
-Install the required Python packages:
-
-\```bash
-pip install matplotlib
-\```
-
-## Usage
-
-1. Add your molecular species data to `data/molecular_species_energy.csv`.
-2. Add your intermediates data to `data/intermediate_energy.csv`.
-3. Add your reaction pathway data to `data/reaction.json`.
-
-Run the main script:
-
-\```bash
-python main.py
-\```
-
-By default, the output will be saved in an `output` folder in `.png` format.
-
-## Contributing
-
-Contributions are welcome. Please open an issue or create a pull request with your changes.
 
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+

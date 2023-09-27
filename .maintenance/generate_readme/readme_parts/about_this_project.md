@@ -2,7 +2,7 @@
 
 Collection of Essential Scripts for Density Functional Theory (DFT) Calculations.
 
-# ⚠️ Project Under Development ⚠️
+## ⚠️ Project Under Development ⚠️
 
 **This project is currently under active development and the scripts have not been fully tested.**
 

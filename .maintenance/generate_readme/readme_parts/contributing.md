@@ -1,13 +1,13 @@
-## Contributing to the Project
+# Contributing to the Project
 
 We welcome contributions from everyone, whether you are an experienced developer or just getting started. Here's how you can contribute:
 
-### Reporting Issues
+## Reporting Issues
 
 - Please browse through the open issues before creating a new one to check if someone else has already reported the same issue.
 - Use the issue template provided to describe the problem clearly.
 
-### Creating a Pull Request
+## Creating a Pull Request
 
 1. **Fork the Repository**: Create a fork of this repository on GitHub.
 2. **Clone Locally**: Clone your forked repository onto your local machine.
@@ -17,17 +17,13 @@ We welcome contributions from everyone, whether you are an experienced developer
 6. **Push to Your Fork**: Push the branch to your forked repository on GitHub.
 7. **Create a Pull Request**: From your fork, create a new pull request in the original repository.
 
-### Coding Guidelines
+## Coding Guidelines
 
 - Please adhere to the coding standards used throughout the project.
 - Add comments to your code. It makes it easier for others to understand what your code does.
 - Document your changes adequately in the README and in any relevant documentation.
 
-### Review Process
+## Review Process
 
 - We aim to review pull requests within a week.
 - We may suggest changes, so please be open to feedback.
-
-## License
-
-By contributing to this project, you agree to abide by the [license](LICENSE).
