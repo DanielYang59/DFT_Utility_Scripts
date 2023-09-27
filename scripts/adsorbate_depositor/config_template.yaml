@@ -11,7 +11,7 @@ substrate:
 
 adsorbate:
   source: "POSCAR"                 # or "DATABASE"
-  path: ""../database/CO2RR"       # path to POSCAR file or DATABASE dir
+  path: "../database/CO2RR"       # path to POSCAR file or DATABASE dir
   atom_indexes: None               # required for "POSCAR"-sourced adsorbate generation, adsorbate atom indexes
   reference: None                  # required for "POSCAR"-sourced adsorbate generation, reference point index list
   pathway_name: "pathway_1"        # required for "DATABASE"-sourced adsorbate generation, pathway name
