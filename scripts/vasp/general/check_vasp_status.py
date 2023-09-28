@@ -54,8 +54,12 @@ class VaspDirChecker:
         if not outcar_path.exists():
             return False  # OUTCAR not found
 
-        outcar = Outcar(str(outcar_path))
-        return outcar.converged
+        with outcar_path.open('r') as f:
+            for line in f:
+                if "reached required accuracy" in line:
+                    return True
+
+        return False
 
     def get_final_energy(self) -> float:
         """
