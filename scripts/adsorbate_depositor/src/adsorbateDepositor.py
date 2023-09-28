@@ -80,7 +80,8 @@ class AdsorbateDepositor:
         self.adsorbates = adsorbates
         self.adsorbate_refs = adsorbate_refs
 
-    def _calculate_centroid(self, adsorbate: Atoms, ads_reference: List[int]) -> np.ndarray:
+    @staticmethod
+    def _calculate_centroid(adsorbate: Atoms, ads_reference: List[int]) -> np.ndarray:
         """
         Calculate the centroid of a given set of atom indices in the adsorbate structure.
 
@@ -165,7 +166,7 @@ class AdsorbateDepositor:
                 atom.tag = TAG_DESCRIPTIONS["adsorbate"]
 
         # Calculate centroid of adsorbate reference atoms
-        centroid = self._calculate_centroid(adsorbate, ads_reference)
+        centroid = AdsorbateDepositor._calculate_centroid(adsorbate, ads_reference)
 
         # Calculate vector to translate centroid to target site
         translation_vec = np.array(site) - centroid
@@ -181,7 +182,8 @@ class AdsorbateDepositor:
         # Combine substrate and adsorbate
         return poscar_substrate + adsorbate
 
-    def _calculate_min_distance(self, combined: Atoms) -> float:
+    @staticmethod
+    def _calculate_min_distance(combined: Atoms) -> float:
         """
         Check the minimum distance between adsorbate and substrate atoms.
 
@@ -214,7 +216,7 @@ class AdsorbateDepositor:
         move_attempts = 0
 
         while move_attempts < max_move_attempts:
-            current_min_distance = self._calculate_min_distance(combined)
+            current_min_distance = AdsorbateDepositor._calculate_min_distance(combined)
 
             # Break offset when distance within rational range
             if (self.distance - move_threshold) <= current_min_distance <= (self.distance + move_threshold):
@@ -330,7 +332,7 @@ class AdsorbateDepositor:
                 result = self._deposit_adsorbate_on_site(self.poscar_substrate, site_info, ads_info, ads_reference)
 
                 # Check and adjust adsorbate-substrate distance
-                min_distance = self._calculate_min_distance(result)
+                min_distance = AdsorbateDepositor._calculate_min_distance(result)
                 if min_distance < (self.distance - offset_threshold) or min_distance > (self.distance + offset_threshold):
                     if auto_offset_along_z:
                         warnings.warn(f"Min distance between adsorbate and substrate is  {min_distance} Å, auto-offset is activated.")

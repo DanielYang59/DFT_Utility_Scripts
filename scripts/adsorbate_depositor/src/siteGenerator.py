@@ -74,7 +74,8 @@ class SiteGenerator:
 
         return site_components
 
-    def _calculate_centroid(self, atom_positions: List[List[float]]) -> List[float]:
+    @staticmethod
+    def _calculate_centroid(atom_positions: List[List[float]]) -> List[float]:
         """
         Compute the centroid of the given atom positions.
 
@@ -116,7 +117,7 @@ class SiteGenerator:
             position = atoms.positions[site_components[0] - 1].tolist()
         else:
             atom_positions = [atoms.positions[i - 1] for i in site_components]
-            position = self._calculate_centroid(atom_positions)
+            position = SiteGenerator._calculate_centroid(atom_positions)
 
         position[2] += self.distance if direction == "z_top" else -self.distance
 
