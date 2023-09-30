@@ -4,7 +4,6 @@
 from pathlib import Path
 import yaml
 import shutil
-import warnings
 
 class YAMLConfigParser:
     def __init__(self, config_file_path: Path, template_file_path: Path) -> None:
@@ -39,4 +38,4 @@ class YAMLConfigParser:
             raise FileNotFoundError(f"Template config file {template_file_path} not found.")
 
         shutil.copy(template_file_path, Path.cwd())
-        warnings.warn("Config file not found in current working dir. A template would be copied.")
+        raise FileNotFoundError("Config file not found in current working dir. A template would be copied.")
