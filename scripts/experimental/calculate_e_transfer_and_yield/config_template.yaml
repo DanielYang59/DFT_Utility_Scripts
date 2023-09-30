@@ -1,14 +1,15 @@
 # Config File Template for electron transfer and yield calculatopr
 
+dataExtract:
+  samples: ["a", "b"]
+
 calculation:
   N: 0.36  # N in Ir/N
   e_offset: +0.965
+  disk_suffix: "_1"
+  ring_suffix: "_2"
 
 plotting:
   e_range: [0, 1.0]
   n_range: [0, 4]
   yield_range: [0, 100]
-
-dataExtract:
-  datasection_name: "Segment1"
-  columns: ["E(V)", "I(A)"]
