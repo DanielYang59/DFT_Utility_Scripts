@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from ase.io import read
 from pymatgen.io.vasp.outputs import Outcar
 
 class VaspDirChecker:
@@ -54,7 +55,7 @@ class VaspDirChecker:
         if not outcar_path.exists():
             return False  # OUTCAR not found
 
-        with outcar_path.open('r') as f:
+        with outcar_path.open('r', encoding="utf-8") as f:
             for line in f:
                 if "reached required accuracy" in line:
                     return True
@@ -63,7 +64,7 @@ class VaspDirChecker:
 
     def get_final_energy(self) -> float:
         """
-        Gets the final energy of the VASP job from the OUTCAR file.
+        Gets the final energy of the VASP job from the OUTCAR file using ASE.
 
         Returns:
             float: The final energy of the VASP job.
@@ -75,8 +76,10 @@ class VaspDirChecker:
         if not outcar_path.exists():
             raise FileNotFoundError("OUTCAR file not found.")
 
-        outcar = Outcar(str(outcar_path))
-        return outcar.final_energy
+        atoms = read(outcar_path, format="vasp-out")
+        final_energy = atoms.get_potential_energy()
+
+        return final_energy
 
 def main() -> list:
     """

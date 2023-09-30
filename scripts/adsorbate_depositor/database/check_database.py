@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 import yaml
 
-def read_yaml_file(file_path):
+def read_yaml_file(file_path: Path) -> dict:
     """Reads a YAML file and returns the parsed data."""
     try:
         with file_path.open("r", encoding="utf-8") as file:
@@ -17,7 +17,7 @@ def read_yaml_file(file_path):
             print(f"Error position: (Line:{mark.line+1}, Column:{mark.column+1})")
         return None
 
-def check_database(header_filename="pathway_database_header.yaml"):
+def check_database(header_filename: str = "pathway_database_header.yaml") -> None:
     """Checks the integrity and structure of the adsorbate database."""
     passed = []
     failed = []

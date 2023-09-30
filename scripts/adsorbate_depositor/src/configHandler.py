@@ -10,7 +10,7 @@ class ConfigHandler:
     Class to handle operations related to the config.yaml file.
     """
 
-    def __init__(self, config_filename="config.yaml", template_filename="config_template.yaml"):
+    def __init__(self, config_filename: str = "config.yaml", template_filename: str = "config_template.yaml") -> None:
         """
         Initialize ConfigHandler and find the location of the configuration file.
 
@@ -23,7 +23,7 @@ class ConfigHandler:
         self.config_path = Path(config_filename)
         self.template_path = Path(template_filename)
 
-    def _convert_relative_paths(self, config_data):
+    def _convert_relative_paths(self, config_data: dict) -> None:
         """
         Convert relative paths to absolute paths based on the directory of config.yaml.
 
@@ -34,7 +34,7 @@ class ConfigHandler:
         config_data['adsorbate']['path'] = str(self.config_dir / Path(config_data['adsorbate']['path']))
         config_data['deposit']['output_dir'] = str(self.config_dir / Path(config_data['deposit']['output_dir']))
 
-    def check_config_exists(self):
+    def check_config_exists(self) -> bool:
         """
         Check if the configuration file exists in the current working directory.
 
@@ -47,7 +47,7 @@ class ConfigHandler:
             print(f"{self.config_path.name} does not exist at {self.config_path}")
             return False
 
-    def check_template_exists(self):
+    def check_template_exists(self) -> bool:
         """
         Check if the template file exists in the current working directory to avoid overwriting.
 
@@ -59,11 +59,11 @@ class ConfigHandler:
             return True
         return False
 
-    def _check_config(self, config_data):
+    def _check_config(self, config_data) -> None:
         """
         Check config.yaml tags.
-        """
 
+        """
         # Check "substrate" tags
         substrate = config_data.get('substrate', {})
         sites = substrate.get('sites', [])
@@ -125,12 +125,12 @@ class ConfigHandler:
         self._convert_relative_paths(config_data)  # Convert relative paths to absolute
         return config_data
 
-    def copy_config_template(self, template_path):
+    def copy_config_template(self, template_path: Path) -> None:
         """
         Copy a template configuration file to the current working directory.
 
         Parameters:
-            template_path (str): The path to the template file.
+            template_path (Path): The path to the template file.
         """
         if not self.check_template_exists():
             shutil.copy(template_path, self.working_dir)
