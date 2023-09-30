@@ -48,13 +48,19 @@ class e_transfer_and_yield_plotter:
         mpl.rcParams['axes.linewidth'] = 2.5
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
 
-        for sample_name, sample_data in self.data.items():
+        # Define colors
+        colors = self.config["colors"]  # Default colors if not specified in config
+        if len(colors) != len(self.data):
+            raise RuntimeError("Color dict length is not the same as samples.")
+
+        for i, (sample_name, sample_data) in enumerate(self.data.items()):
             x = sample_data[0]
             h2o2_yield = sample_data[1]
             electron_transfer_numbers = sample_data[2]
 
-            ax1.plot(x, h2o2_yield, label=f'{sample_name} - H2O2 yield')
-            ax2.plot(x, electron_transfer_numbers, label=f'{sample_name} - Electron transfer numbers')
+            ax1.plot(x, h2o2_yield, linewidth=2.5, color=colors[i], label=f'{sample_name} - H2O2 yield')
+
+            ax2.plot(x, electron_transfer_numbers, linewidth=2.5, color=colors[i], label=f'{sample_name} - Electron transfer numbers')
 
         # Set titles
         ax1.set_ylabel(r'$\mathrm{H_2O_2 \, Yield}$', fontsize=16)
