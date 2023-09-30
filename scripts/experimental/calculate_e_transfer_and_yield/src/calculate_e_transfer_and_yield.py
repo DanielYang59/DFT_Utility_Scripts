@@ -42,7 +42,7 @@ class Calculator:
 
         """
         # Load disk data
-        disk_extractor = ParExtractor(par_file=Path.cwd() / f"{self.sample_name}{self.disk_suffix}")
+        disk_extractor = ParExtractor(par_file=Path.cwd() / f"{self.sample_name}{self.disk_suffix}.par")
         disk_data_dict = disk_extractor.extract_columns(datasection_name="Segment1", columns=["E(V)", "I(A)"])
 
         # Extract disk data
@@ -50,7 +50,7 @@ class Calculator:
         self.Id = np.array(disk_data_dict["I(A)"], dtype=float)
 
         # Load ring data
-        ring_extractor = ParExtractor(par_file=Path.cwd() / f"{self.sample_name}{self.ring_suffix}")
+        ring_extractor = ParExtractor(par_file=Path.cwd() / f"{self.sample_name}{self.ring_suffix}.par")
         ring_data_dict = ring_extractor.extract_columns(datasection_name="Segment1", columns=["E(V)", "I(A)"])
 
         # Extract ring data
