@@ -88,7 +88,7 @@ class ParExtractor:
 
         return pd.DataFrame(data, columns=headers)
 
-    def extract_columns(self, datasection_name: str, columns: List(str)) -> Dict[str, pd.DataFrame]:
+    def extract_columns(self, datasection_name: str, columns: List[str]) -> Dict[str, pd.DataFrame]:
         """
         Extracts specified columns from the data section and returns them as a dictionary of Pandas Series.
 
