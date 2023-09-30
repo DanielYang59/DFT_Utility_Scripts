@@ -30,8 +30,8 @@ def main():
         # Prepare values for plotting
         data[sample_name] = [
             calculator.extract_potential(source="disk", offset=config["calculation"]["e_offset"]),
-            calculator.calculate_e_transfer(),
             calculator.calculate_yield(),
+            calculator.calculate_e_transfer(),
             ]
 
     # Pass curves data into plotter for plotting
