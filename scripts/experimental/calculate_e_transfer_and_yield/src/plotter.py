@@ -4,6 +4,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Dict, List
+import matplotlib as mpl
+from matplotlib import rcParams
+
+rcParams['font.family'] = 'sans-serif'
+rcParams['font.sans-serif'] = ['Arial']
 
 class e_transfer_and_yield_plotter:
     def __init__(self, data: Dict[str, List[np.ndarray]], config: Dict[str, list], savename: str = "figure.png") -> None:
@@ -29,6 +34,9 @@ class e_transfer_and_yield_plotter:
                     all(isinstance(arr, np.ndarray) for arr in sample_data)):
                 raise TypeError("Each value in data dictionary must be a list containing three numpy arrays.")
 
+        # Parse args
+        self.data = data
+        self.config = config
         self.savename = savename
 
     def plot(self):
@@ -36,6 +44,8 @@ class e_transfer_and_yield_plotter:
         Plots H2O2 yield and electron transfer numbers for each sample in the data dictionary.
 
         """
+        # Create plot
+        mpl.rcParams['axes.linewidth'] = 2.5
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
 
         for sample_name, sample_data in self.data.items():
@@ -46,10 +56,23 @@ class e_transfer_and_yield_plotter:
             ax1.plot(x, h2o2_yield, label=f'{sample_name} - H2O2 yield')
             ax2.plot(x, electron_transfer_numbers, label=f'{sample_name} - Electron transfer numbers')
 
-        ax1.set_ylabel('H2O2 Yield')
-        ax2.set_ylabel('Electron Transfer Numbers')
-        ax2.set_xlabel('X Label')  # You can replace 'X Label' with your actual x-axis label
+        # Set titles
+        ax1.set_ylabel(r'$\mathrm{H_2O_2 \, Yield}$', fontsize=16)
+        ax2.set_ylabel('Electron Transfer Numbers', fontsize=16)
+        ax2.set_xlabel('Potential (V vs RHE)', fontsize=20)
 
+        # Set x and y range
+        ax1.set_xlim(self.config["e_range"])
+        ax2.set_xlim(self.config["e_range"])
+
+        ax1.set_ylim(self.config["yield_range"])
+        ax2.set_ylim(self.config["n_range"])
+
+        # Increase tick length and thickness
+        ax1.tick_params(axis='both', which='both', length=5, width=2.5)
+        ax2.tick_params(axis='both', which='both', length=5, width=2.5)
+
+        # Show legend
         ax1.legend()
         ax2.legend()
 
