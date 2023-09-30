@@ -2,12 +2,12 @@
 
 dataExtract:
   samples: ["a", "b"]
+  disk_suffix: "_1"
+  ring_suffix: "_2"
 
 calculation:
   N: 0.36  # N in Ir/N
   e_offset: +0.965
-  disk_suffix: "_1"
-  ring_suffix: "_2"
 
 plotting:
   e_range: [0, 1.0]
