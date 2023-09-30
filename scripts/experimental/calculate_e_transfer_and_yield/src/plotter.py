@@ -58,12 +58,12 @@ class e_transfer_and_yield_plotter:
             h2o2_yield = sample_data[1]
             electron_transfer_numbers = sample_data[2]
 
-            ax1.plot(x, h2o2_yield, linewidth=2.5, color=colors[i], label=f'{sample_name} - H2O2 yield')
+            ax1.plot(x, h2o2_yield, linewidth=2.5, color=colors[i], label={sample_name})
 
-            ax2.plot(x, electron_transfer_numbers, linewidth=2.5, color=colors[i], label=f'{sample_name} - Electron transfer numbers')
+            ax2.plot(x, electron_transfer_numbers, linewidth=2.5, color=colors[i])
 
         # Set titles
-        ax1.set_ylabel(r'$\mathrm{H_2O_2 \, Yield}$', fontsize=16)
+        ax1.set_ylabel(r'$\mathrm{H_2O_2 \, Yield}$ (%)', fontsize=16)
         ax2.set_ylabel('Electron Transfer Numbers', fontsize=16)
         ax2.set_xlabel('Potential (V vs RHE)', fontsize=20)
 
