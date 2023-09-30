@@ -46,7 +46,7 @@ class ReadmeAssembler:
             list: A list of dictionaries, each containing information about a section of the README.
         """
         try:
-            with open(recipe_file_path, "r") as file:
+            with recipe_file_path.open("r", encoding="utf-8") as file:
                 recipe_data = yaml.safe_load(file)
                 return recipe_data.get("readme_sections", [])
 
@@ -74,11 +74,11 @@ class ReadmeAssembler:
             # Make the path relative to the location of the recipe file
             section_path = self.recipe_file_path.parent / section["source"]
             if section_path.is_file():
-                with open(section_path, "r") as file:
+                with section_path.open("r", encoding="utf-8") as file:
                     readme_content += file.read() + "\n\n"
 
         # Write README to file
-        with open(output_file, "w") as file:
+        with output_file.open("w", encoding="utf-8") as file:
             file.write(readme_content)
 
 def main():

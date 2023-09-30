@@ -23,7 +23,7 @@ def parse_adsorbate_database(path: Path, pathway_name: str, header: str = "pathw
     if not header_path.is_file():
         raise FileNotFoundError(f"The header YAML file {header_path} does not exist.")
 
-    with header_path.open("r") as f:
+    with header_path.open("r", encoding="utf-8") as f:
         database_dict = yaml.safe_load(f)
 
     # Validate the loaded dictionary

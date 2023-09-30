@@ -119,7 +119,7 @@ class ConfigHandler:
         Returns:
             dict: The validated configuration data.
         """
-        with open(self.config_path, "r") as f:
+        with self.config_path.open("r", encoding="utf-8") as f:
             config_data = yaml.safe_load(f)
         self._check_config(config_data)
         self._convert_relative_paths(config_data)  # Convert relative paths to absolute

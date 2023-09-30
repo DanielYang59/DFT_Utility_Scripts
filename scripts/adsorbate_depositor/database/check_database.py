@@ -8,7 +8,7 @@ import yaml
 def read_yaml_file(file_path):
     """Reads a YAML file and returns the parsed data."""
     try:
-        with open(file_path, "r", encoding="utf-8") as file:
+        with file_path.open("r", encoding="utf-8") as file:
             return yaml.safe_load(file)
     except yaml.YAMLError as exc:
         print(f"Failed to read {file_path}.")

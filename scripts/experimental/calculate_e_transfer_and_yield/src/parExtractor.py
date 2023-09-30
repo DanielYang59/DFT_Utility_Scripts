@@ -56,7 +56,7 @@ class ParExtractor:
         pattern = re.compile(f"{re.escape(start_tag)}(.*?)\\n{re.escape(end_tag)}", re.DOTALL)
 
         # Import and extract data section to str
-        with open(self.par_file, 'r') as file:
+        with self.par_file.open("r", encoding="utf-8") as file:
             content = file.read()
             match = pattern.search(content)
             if match:

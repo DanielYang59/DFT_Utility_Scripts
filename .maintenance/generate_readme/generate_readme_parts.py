@@ -33,7 +33,7 @@ class ReadmePartsGenerator:
             header (str): The header to prepend to the content.
             wrap_code_block (bool): Whether to wrap the content in a Markdown code block.
         """
-        with file_path.open("w") as f:
+        with file_path.open("w", encoding="utf-8") as f:
             if header:
                 f.write(f"{header}\n\n")
             if wrap_code_block:
@@ -95,7 +95,7 @@ class ReadmePartsGenerator:
         """
         if not readme_path.is_file():
             raise FileNotFoundError(f"README {readme_path} not found.")
-        with readme_path.open("r") as f:
+        with readme_path.open("r", encoding="utf-8") as f:
             text = f.read()
 
         overview_match = re.search(r"## Overview\n(.+?)(##|$)", text, re.DOTALL)

@@ -21,7 +21,7 @@ class YAMLConfigParser:
         Returns:
             dict: Parsed YAML data.
         """
-        with open(self.config_file_path, 'r') as file:
+        with self.config_file_path.open("r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
         return data
 
