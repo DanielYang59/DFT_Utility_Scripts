@@ -8,3 +8,7 @@ plotting:
   e_range: [0, 1.0]
   n_range: [0, 4]
   yield_range: [0, 100]
+
+dataExtract:
+  datasection_name: "Segment1"
+  columns: ["E(V)", "I(A)"]
