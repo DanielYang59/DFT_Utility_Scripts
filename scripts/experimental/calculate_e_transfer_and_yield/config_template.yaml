@@ -1,0 +1,10 @@
+# Config File Template for electron transfer and yield calculatopr
+
+calculation:
+  N: 0.36  # N in Ir/N
+  e_offset: +0.965
+
+plotting:
+  e_range: [0, 1.0]
+  n_range: [0, 4]
+  yield_range: [0, 100]
