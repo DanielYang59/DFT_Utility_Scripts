@@ -66,7 +66,7 @@ def main():
 
     # Save to a file
     kpoints_file_path = Path("KPOINTS")
-    with kpoints_file_path.open("w") as f:
+    with kpoints_file_path.open("w", encoding="utf-8") as f:
         f.write(kpoints_content)
 
     print(f"KPOINTS file generated with {args.mesh} mesh and k-points: {args.kpoints}")

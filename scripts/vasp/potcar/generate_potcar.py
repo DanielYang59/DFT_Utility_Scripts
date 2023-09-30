@@ -45,7 +45,7 @@ class PotcarGenerator:
         if not poscarfile.is_file():
             raise FileNotFoundError(f"The POSCAR file {poscarfile} does not exist.")
 
-        with poscarfile.open() as f:
+        with poscarfile.open('r', encoding="utf-8") as f:
             lines = f.readlines()
         elements = lines[5].strip().split()
 
@@ -113,11 +113,11 @@ class PotcarGenerator:
                 raise FileNotFoundError(f"POTCAR for {element} not found in {self.potcar_lib}.")
 
             # Write output POTCAR file
-            with element_potcar_path.open() as f:
+            with element_potcar_path.open("r", encoding="utf-8") as f:
                 potcar_data += f.read()
 
         # Write the combined POTCAR data to the output path
-        with output_potcarfile.open("w") as f:
+        with output_potcarfile.open("w", encoding="utf-8") as f:
             f.write(potcar_data)
 
 def main(poscarfile: Path = Path("POSCAR")) -> None:
