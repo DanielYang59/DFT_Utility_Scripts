@@ -38,8 +38,13 @@ def check_database(header_filename: str = "pathway_database_header.yaml") -> Non
                         if indices != list(range(1, len(steps) + 1)):
                             failed.append(f"{pathway} in {header_file} has non-continuous step indexing.")
                             continue
+
                         # More validation logic here.
-                        passed.append(str(header_file))
+                        if "*" in pathway_data["name"]:  # make sure no * in name
+                            failed.append(f"Name of {pathway} in {header_file} has asterisk *.")
+
+                        else:
+                            passed.append(str(header_file))
                     # Validation logic ends here
                 else:
                     failed.append(f"Failed to read {header_file}.")

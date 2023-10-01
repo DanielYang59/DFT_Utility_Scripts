@@ -49,7 +49,7 @@ pathways:
 
 1. `pathway_N` should be indexed continuously from 1 and should not have duplicates.
 2. `step_M` within each `pathway_N` should also be indexed continuously from 1 and should not have duplicates.
-3. Different steps should not have the same `name` tag within the same `pathway_N`.
+3. Different steps should not have the same `name` tag within the same `pathway_N`. **Do NOT use asterisk (*) signs in `name`.**
 4. The `reference_atoms` should be a subset (or the same set) of `adsorbate_atoms`.
 5. Neither `adsorbate_atoms` nor `reference_atoms` should be empty, should contain only non-negative integers, and should not have duplicates.
 
