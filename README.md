@@ -37,7 +37,7 @@ This script is designed to generate a POTCAR file used in VASP calculations by r
 This Python script generates a regular KPOINTS file for VASP calculations. The user specifies the number of k-points along each of the three axes (`a`, `b`, `c`). They can also choose between a Gamma-centered or Monkhorst-Pack mesh type.
 
 ## vasp/poscar
-Overview not found in scripts/vasp/poscar/README.md.
+This Python package simplifies the manipulation and management of VASP POSCAR files. It provides convenient scripts and utilities for various tasks, including transferring between Cartesian and Direct coordinate systems, repositioning the entire structure, and adjusting vacuum layer thickness.
 
 
 # Contributing to the Project
