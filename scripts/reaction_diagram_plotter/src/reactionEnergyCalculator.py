@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import json
 from pathlib import Path
 from typing import Union, Dict
 import pandas as pd
@@ -63,95 +62,47 @@ class ReactionEnergyCalculator:
         energy_data = pd.read_csv(file)
         return dict(zip(energy_data['name'], energy_data[energy_name]))
 
-    def _extract_reaction_pathway(self, pathway_json_content: dict) -> dict:
-        """
-        Extract and check reaction pathways from the given JSON content.
+    def _calculate_half_reaction_energy(self, species: Dict[str, int]) -> float:
+        """TODO:
 
         Args:
-            pathway_json_content (dict): JSON content containing reaction pathways.
+            species (Dict[str, int]): _description_
 
         Returns:
-            dict: Extracted reaction pathways with keys as integers and values as dictionaries.
-
-        Raises:
-            ValueError: If the JSON content does not follow the expected format.
+            float: _description_
         """
-        extracted_pathways = {}
-        current_reaction_key = None
+        # Calculate half reaction energy
+        energy = 0
 
-        for key, value in pathway_json_content.items():
-            # Check if the key is "name" or "comment"
-            if key in ["name", "comment"]:
-                # Metadata key, continue to the next iteration
-                continue
+        # Check half reaction dict
+        for name, num in species.items():
+            # Validate species name and number
+            if not isinstance(name, str):
+                raise TypeError(f"Name for species {name} is not in expected type str, got {type(name)}.")
+            if not isinstance(num, int) or num <= 1:
+                raise ValueError(f"Get illegal stoichiometric number '{num}' for species {name}.")
 
-            # Check if the key is a continuous integer
-            try:
-                reaction_key = int(key)
-                if reaction_key <= 0:
-                    raise ValueError("Reaction pathway keys must be positive integers.")
-                if reaction_key in extracted_pathways:
-                    raise ValueError("Duplicate reaction pathway key found.")
+            # Calculate species energy based on its type
+            # Species is "ion"
+            if name.endswith("-") or name.endswith("+"):
+                pass
 
-            except ValueError:
-                raise ValueError("Invalid reaction pathway key found. Keys must be continuous integers.")
+            # Species is "reaction intermediate"
+            elif name.startswith("*"):
+                pass
 
-            # Assign the current reaction key
-            current_reaction_key = reaction_key
+            # Species is "molecule"
+            elif name.endswith("_g") or name.endswith("_l"):
+                pass
 
-            # Check the structure of the reaction pathway
-            if not all(k in value and "reactants" in value and "products" in value for k in ["reactants", "products"]):
-                raise ValueError(f"Invalid structure for reaction pathway {current_reaction_key}.")
+            # Unrecognizable species type
+            else:
+                raise ValueError(f"Unrecognizable species type for {name}.")
 
-            # Add the valid reaction pathway to the extracted_pathways dictionary
-            extracted_pathways[current_reaction_key] = value
+        return energy
 
-        if current_reaction_key is None:
-            raise ValueError("No valid reaction pathways found.")
-
-        return extracted_pathways
-
-    def import_reaction_pathway(self, pathway_file: Path) -> None:
-        """
-        Import and parse a reaction pathway from a JSON file.
-
-        Args:
-            pathway_file (Path): Path to the reaction pathway JSON file.
-
-        Raises:
-            FileNotFoundError: If the JSON file is not found or has an illegal extension.
-
-        Example JSON file format:
-            {
-                "name": "pathway_name",
-                "comment": "Example pathway for reaction diagram plotter",
-                "1": {
-                    "reactants": {"*": 1, "CO2": 1, "H+": 1, "e-": 1},
-                    "products": {"*COOH": 1}
-                },
-                ...
-                "8": {
-                    "reactants": {"*OH": 1, "H2O_l": 1, "CH4_g": 1, "H+": 1, "e-": 1},
-                    "products": {"*": 1, "H2O_l": 2, "CH4_g": 1}
-                }
-            }
-
-        Parses the JSON file and stores the reaction pathway in the 'self.reaction_pathway' attribute.
-        Also checks the integrity of the reaction pathway using the '_check_reaction_pathway' method.
-        """
-        # Check reaction pathway file
-        if not pathway_file.is_file() or pathway_file.suffix != ".json":
-            raise FileNotFoundError(f"Reaction pathway JSON file '{pathway_file}' not found or illegal.")
-
-        # Load and parse the reaction pathway JSON file
-        with open(pathway_file, 'r', encoding="utf-8") as json_file:
-            reaction_pathway_content = json.load(json_file)
-
-        # Extract and check reaction information
-        self.reaction_pathway = self._extract_reaction_pathway(reaction_pathway_content)
-
-    def _calculate_free_energy_change_for_step(self, pathway: dict, warn_threshold: float = 50) -> float:
-        """Calculate free energy change for given reaction step.
+    def _calculate_energy_change_for_step(self, pathway: dict, warn_threshold: float = 50) -> float:
+        """Calculate energy change for given reaction step.
 
         Args:
             pathway (dict): _description_
@@ -160,45 +111,38 @@ class ReactionEnergyCalculator:
             float: _description_
 
         """
-        # Calculate free energy for products
+        # Calculate energy for products
+        products_energy = self._calculate_half_reaction_energy(pathway["products"])
+        print(products_energy)
 
+        import sys
+        sys.exit()
+        #DEBUG
+        # Calculate energy for reactants
+        reactants_energy = self._calculate_half_reaction_energy(pathway["reactants"])
 
-        # Calculate free energy for reactants
+        # Calculate energy change
+        energy_change = products_energy - reactants_energy
 
+        # Warn if suspicious energy change value
+        if energy_change >= warn_threshold or energy_change <= -warn_threshold:
+            warnings.warn(f"Large free energy change of {energy_change} eV found.")
 
-        # Calculate free energy change
-        free_energy_change = None
+        return energy_change
 
-
-        # Warn if suspicious free energy change value
-        if free_energy_change >= warn_threshold or free_energy_change <= -warn_threshold:
-            warnings.warn(f"Large free energy change of {free_energy_change} eV found.")
-
-        return free_energy_change
-
-    def calculate_free_energy_change(self) -> Dict[int, float]:
-        """Calculate free energy change for each reaction step.
+    def calculate_energy_change(self) -> Dict[int, float]:
+        """Calculate energy change for each reaction step.
 
         Returns:
             Dict[int, float]: _description_
         """
-        # Calculate free energy change for each reaction step
-        free_energy_change = {}
+        # Calculate energy change for each reaction step
+        energy_change = {}
         for index, pathway in self.reaction_pathway.items():
-            free_energy_change[index] = self._calculate_free_energy_change_for_step(pathway)
+            energy_change[index] = self._calculate_energy_change_for_step(pathway)
 
-        return free_energy_change
+        return energy_change
 
 # Test area
 if __name__ == "__main__":
-    # Initiate reaction energy calculator
-    calculator = ReactionEnergyCalculator(
-        intermediate_energy_file=Path("../example_usage/example_intermediate_energies.csv"),
-        species_energy_file=Path("../example_usage/example_species_energies.csv")
-        )
-
-    # Import reaction pathway
-    calculator.import_reaction_pathway(pathway_file=Path("../example_usage/example_reaction_pathway.json"))
-
-    # Calculator free energy changes
-    calculator.calculate_free_energy_change()
+    pass
