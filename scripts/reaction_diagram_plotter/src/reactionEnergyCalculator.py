@@ -179,8 +179,12 @@ class ReactionEnergyCalculator:
 
 # Test area
 if __name__ == "__main__":
+    from pathlib import Path
+
     # Import reaction pathway
-    pathway = {1: {'reactants': {'*': 1, 'NO3-': 1}, 'products': {'*NO3': 1, 'e-': 1}}, 2: {'reactants': {'*NO3': 1, 'H2O_l': 1, 'e-': 2}, 'products': {'*NO2': 1, 'OH-': 2}}, 3: {'reactants': {'*NO2': 1, 'H2O_l': 1, 'e-': 2}, 'products': {'*NO': 1, 'OH-': 2}}, 4: {'reactants': {'*NO': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NHO': 1, 'OH-': 1}}, 5: {'reactants': {'*NHO': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NH2O': 1, 'OH-': 1}}, 6: {'reactants': {'*NH2O': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NH2OH': 1, 'OH-': 1}}, 7: {'reactants': {'*NH2OH': 1, 'e-': 1}, 'products': {'*NH2': 1, 'OH-': 1}}, 8: {'reactants': {'*NH2': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NH3': 1, 'OH-': 1}}}
+    from reactionPathwayParser import ReactionPathwayParser
+    parser = ReactionPathwayParser()
+    pathway = parser.import_reaction_pathway(Path("../example_usage/example_reaction_pathway.json"))
 
     # Initiate reaction energy calculator
     from pathlib import Path
