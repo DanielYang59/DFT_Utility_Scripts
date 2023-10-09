@@ -1,46 +1,46 @@
 
 {
-    "name":"CO2RR",
+    "name":"NITRR",
 
-    "comment":"Example CO2RR pathway for reaction diagram plotter",
+    "comment":"Example NITRR pathway for reaction diagram plotter",
 
     "1":{
-        "reactants":{"*":1, "CO2":1, "H+":1, "e-":1},
-        "products":{"*COOH":1}
+        "reactants":{"*":1, "NO3-":1},
+        "products":{"*NO3":1, "e-":1}
     },
 
     "2":{
-        "reactants":{"*COOH":1, "H+":1, "e-":1},
-        "products":{"*CO":1, "H2O_l":1}
+        "reactants":{"*NO3":1, "H2O_l":1, "e-":2},
+        "products":{"*NO2":1, "OH-":2}
     },
 
     "3":{
-        "reactants":{"*CO":1, "H2O_l":1,"H+":1, "e-":1},
-        "products":{"*CHO":1, "H2O_l":1}
+        "reactants":{"*NO2":1, "H2O_l":1, "e-":2},
+        "products":{"*NO":1, "OH-":2}
     },
 
     "4":{
-        "reactants":{"*CHO":1, "H2O_l":1, "H+":1, "e-":1},
-        "products":{"*CH2O":1, "H2O_l":1}
+        "reactants":{"*NO":1, "H2O_l":1, "e-":1},
+        "products":{"*NHO":1, "OH-":1}
     },
 
     "5":{
-        "reactants":{"*CH2O":1, "H2O_l":1, "H+":1, "e-":1},
-        "products":{"*OCH3":1, "H2O_l":1}
+        "reactants":{"*NHO":1, "H2O_l":1, "e-":1},
+        "products":{"*NH2O":1, "OH-":1}
     },
 
     "6":{
-        "reactants":{"*OCH3":1, "H2O_l":1, "H+":1, "e-":1},
-        "products":{"*O":1, "H2O_l":1, "CH4_g":1}
+        "reactants":{"*NH2O":1, "H2O_l":1, "e-":1},
+        "products":{"*NH2OH":1, "OH-":1}
     },
 
     "7":{
-        "reactants":{"*O":1, "H2O_l":1, "CH4_g":1, "H+":1, "e-":1},
-        "products":{"*OH":1, "H2O_l":1, "CH4_g":1}
+        "reactants":{"*NH2OH":1, "e-":1},
+        "products":{"*NH2":1, "OH-":1}
     },
 
     "8":{
-        "reactants":{"*OH":1, "H2O_l":1, "CH4_g":1, "H+":1, "e-":1},
-        "products":{"*":1, "H2O_l":2, "CH4_g":1}
+        "reactants":{"*NH2":1, "H2O_l":1, "e-":1},
+        "products":{"*NH3":1, "OH-":1}
     }
 }

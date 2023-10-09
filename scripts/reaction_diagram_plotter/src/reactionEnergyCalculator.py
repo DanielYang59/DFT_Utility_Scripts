@@ -60,12 +60,16 @@ class ReactionEnergyCalculator:
                 raise ValueError(f"Get illegal stoichiometric number '{num}' for species {name}.")
 
             # Calculate species energy based on its type
-            # Species is "ion"
-            if name.endswith("-") or name.endswith("+"):
+            # Species is "electron (e-)"
+            if name == "e-":
                 pass
 
             # Species is "reaction intermediate"
             elif name.startswith("*"):
+                pass
+
+            # Species is "ion"
+            elif name.endswith("-") or name.endswith("+"):
                 pass
 
             # Species is "molecule"
@@ -126,14 +130,14 @@ class ReactionEnergyCalculator:
 
             # Verbose
             if self.verbose:
-                print(f"Step {index + 1}: product_energy {products_energy} eV, reaction")
+                print(f"Step {index}: product_energy {products_energy} eV, reactant_energy {reactants_energy} eV.")
 
         return energy_change
 
 # Test area
 if __name__ == "__main__":
     # Import reaction pathway
-    pathway = {1: {'reactants': {'*': 1, 'CO2': 1, 'H+': 1, 'e-': 1}, 'products': {'*COOH': 1}}, 2: {'reactants': {'*COOH': 1, 'H+': 1, 'e-': 1}, 'products': {'*CO': 1, 'H2O_l': 1}}, 3: {'reactants': {'*CO': 1, 'H2O_l': 1, 'H+': 1, 'e-': 1}, 'products': {'*CHO': 1, 'H2O_l': 1}}, 4: {'reactants': {'*CHO': 1, 'H2O_l': 1, 'H+': 1, 'e-': 1}, 'products': {'*CH2O': 1, 'H2O_l': 1}}, 5: {'reactants': {'*CH2O': 1, 'H2O_l': 1, 'H+': 1, 'e-': 1}, 'products': {'*OCH3': 1, 'H2O_l': 1}}, 6: {'reactants': {'*OCH3': 1, 'H2O_l': 1, 'H+': 1, 'e-': 1}, 'products': {'*O': 1, 'H2O_l': 1, 'CH4_g': 1}}, 7: {'reactants': {'*O': 1, 'H2O_l': 1, 'CH4_g': 1, 'H+': 1, 'e-': 1}, 'products': {'*OH': 1, 'H2O_l': 1, 'CH4_g': 1}}, 8: {'reactants': {'*OH': 1, 'H2O_l': 1, 'CH4_g': 1, 'H+': 1, 'e-': 1}, 'products': {'*': 1, 'H2O_l': 2, 'CH4_g': 1}}}
+    pathway = {1: {'reactants': {'*': 1, 'NO3-': 1}, 'products': {'*NO3': 1, 'e-': 1}}, 2: {'reactants': {'*NO3': 1, 'H2O_l': 1, 'e-': 2}, 'products': {'*NO2': 1, 'OH-': 2}}, 3: {'reactants': {'*NO2': 1, 'H2O_l': 1, 'e-': 2}, 'products': {'*NO': 1, 'OH-': 2}}, 4: {'reactants': {'*NO': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NHO': 1, 'OH-': 1}}, 5: {'reactants': {'*NHO': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NH2O': 1, 'OH-': 1}}, 6: {'reactants': {'*NH2O': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NH2OH': 1, 'OH-': 1}}, 7: {'reactants': {'*NH2OH': 1, 'e-': 1}, 'products': {'*NH2': 1, 'OH-': 1}}, 8: {'reactants': {'*NH2': 1, 'H2O_l': 1, 'e-': 1}, 'products': {'*NH3': 1, 'OH-': 1}}}
 
     # Initiate reaction energy calculator
     calculator = ReactionEnergyCalculator(
