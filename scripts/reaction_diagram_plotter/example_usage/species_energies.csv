@@ -1,0 +1,7 @@
+name,dft_energy,correction,free_energy,comment
+H+,,,-3.3836,Calculated as 0.5 * H2_g
+OH-,,,,
+NO3-,,,,
+H2O_l,,,-14.22,need double check
+H2_g,,,-6.7672,
+HNO3_g,,,-28.6585,
