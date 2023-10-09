@@ -3,17 +3,44 @@
 
 import json
 from pathlib import Path
-from typing import Dict
+from typing import Union, Dict
 import pandas as pd
+import warnings
 
 class ReactionEnergyCalculator:
-    """TODO:
+    """
+    TODO:
     """
 
-    def __init__(self, intermediate_energy_file: Path, species_energy_file: Path) -> None:
+    def __init__(self, intermediate_energy_file: Path, species_energy_file: Path, external_potential: Union[float, int] = 0, pH: Union[float, int] = 7) -> None:
+        """
+        Initialize the class instance with energy files, external potential, and pH.
+
+        Args:
+            intermediate_energy_file (Path): Path to the intermediate energy CSV file.
+            species_energy_file (Path): Path to the species energy CSV file.
+            external_potential (Union[float, int], optional): External potential in volts. Defaults to 0.
+            pH (Union[float, int], optional): pH value (0 to 14). Defaults to 7.
+
+        Raises:
+            TypeError: If external_potential or pH is not a float or an integer.
+            ValueError: If pH is not within the range of 0 to 14.
+        """
         # Import intermediate energies and species energies
         self.intermediate_energies = self._import_energy_csv_file(intermediate_energy_file)
         self.species_energies = self._import_energy_csv_file(species_energy_file)
+
+        # Check and set external_potential
+        if not isinstance(external_potential, (float, int)):
+            raise TypeError("External potential must be a float or an integer.")
+        self.external_potential = external_potential
+
+        # Check and set pH
+        if not isinstance(pH, (float, int)):
+            raise TypeError("pH must be a float or an integer.")
+        if not 0 <= pH <= 14:
+            raise ValueError("pH must be within the range of 0 to 14.")
+        self.pH = pH
 
     def _import_energy_csv_file(self, file: Path, energy_name: str = "free_energy") -> Dict[str, float]:
         """
@@ -123,11 +150,44 @@ class ReactionEnergyCalculator:
         # Extract and check reaction information
         self.reaction_pathway = self._extract_reaction_pathway(reaction_pathway_content)
 
-    def _calculate_free_energy_change_for_step(self, ) -> float:
-        pass
+    def _calculate_free_energy_change_for_step(self, pathway: dict, warn_threshold: float = 50) -> float:
+        """Calculate free energy change for given reaction step.
+
+        Args:
+            pathway (dict): _description_
+
+        Returns:
+            float: _description_
+
+        """
+        # Calculate free energy for products
+
+
+        # Calculate free energy for reactants
+
+
+        # Calculate free energy change
+        free_energy_change = None
+
+
+        # Warn if suspicious free energy change value
+        if free_energy_change >= warn_threshold or free_energy_change <= -warn_threshold:
+            warnings.warn(f"Large free energy change of {free_energy_change} eV found.")
+
+        return free_energy_change
 
     def calculate_free_energy_change(self) -> Dict[int, float]:
-        pass
+        """Calculate free energy change for each reaction step.
+
+        Returns:
+            Dict[int, float]: _description_
+        """
+        # Calculate free energy change for each reaction step
+        free_energy_change = {}
+        for index, pathway in self.reaction_pathway.items():
+            free_energy_change[index] = self._calculate_free_energy_change_for_step(pathway)
+
+        return free_energy_change
 
 # Test area
 if __name__ == "__main__":
