@@ -2,19 +2,61 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import warnings
 
 from src.reactionPathwayParser import ReactionPathwayParser
+from src.energyReader import EnergyReader
+from src.reactionEnergyCalculator import ReactionEnergyCalculator
+from src.diagramPlotter import DiagramPlotter
 
 def main():
-    # Import and parse reaction pathway
-    pass
+    # Get external potential and pH from argument
+    external_potential, pH = parse_command_line_arguments()
 
+    # Import reaction pathway
+    pathway_parser = ReactionPathwayParser()
+    reaction_pathways = pathway_parser.import_reaction_pathway(pathway_file="reaction_pathway.json")
 
-    # Import and parse species (molecules/ions) energies
+    # Initiate energy reader
+    energy_reader = EnergyReader(
+        intermediate_energy_file="intermediate_energies.csv",
+        species_energy_file="species_energies.csv"
+        )
 
+    # Initiate reaction energy calculator
+    calculator = ReactionEnergyCalculator(
+        external_potential=external_potential,
+        pH=pH,
+        verbose=True,
+        )
 
-    # Take external potential U and pH
+    # Calculate energy changes
+    energy_changes = calculator.calculate_energy_change(reaction_pathways, energy_reader)
 
+    # Generate reaction diagram plot
+    plotter = DiagramPlotter(energy_changes)
+
+def parse_command_line_arguments():
+    """
+    Parse command line arguments for external potential and pH values.
+
+    Returns:
+        float: External potential value.
+        float: pH value.
+    """
+    parser = argparse.ArgumentParser(description='Description of your program')
+    parser.add_argument('-U', '--external_potential', type=float, default=0, help='External potential in volts')
+    parser.add_argument('-ph', '--pH', type=float, default=7, help='pH value (0 to 14)')
+    args = parser.parse_args()
+
+    # Generate a warning if default value is used
+    if args.external_potential == 0:
+        warnings.warn("Warning: Using default external potential 0 V.")
+
+    if args.pH == 7:
+        warnings.warn("Warning: Using default pH 7.")
+
+    return args.external_potential, args.pH
 
 if __name__ == "__main__":
     main()
