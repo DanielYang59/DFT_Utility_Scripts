@@ -1,0 +1,46 @@
+
+{
+    "name":"CO2RR",
+
+    "comment":"Example CO2RR pathway for reaction diagram plotter",
+
+    "1":{
+        "reactants":{"*":1, "CO2":1, "H+":1, "e-":1},
+        "products":{"*COOH":1}
+    },
+
+    "2":{
+        "reactants":{"*COOH":1, "H+":1, "e-":1},
+        "products":{"*CO":1, "H2O_l":1}
+    },
+
+    "3":{
+        "reactants":{"*CO":1, "H2O_l":1,"H+":1, "e-":1},
+        "products":{"*CHO":1, "H2O_l":1}
+    },
+
+    "4":{
+        "reactants":{"*CHO":1, "H2O_l":1, "H+":1, "e-":1},
+        "products":{"*CH2O":1, "H2O_l":1}
+    },
+
+    "5":{
+        "reactants":{"*CH2O":1, "H2O_l":1, "H+":1, "e-":1},
+        "products":{"*OCH3":1, "H2O_l":1}
+    },
+
+    "6":{
+        "reactants":{"*OCH3":1, "H2O_l":1, "H+":1, "e-":1},
+        "products":{"*O":1, "H2O_l":1, "CH4_g":1}
+    },
+
+    "7":{
+        "reactants":{"*O":1, "H2O_l":1, "CH4_g":1, "H+":1, "e-":1},
+        "products":{"*OH":1, "H2O_l":1, "CH4_g":1}
+    },
+
+    "8":{
+        "reactants":{"*OH":1, "H2O_l":1, "CH4_g":1, "H+":1, "e-":1},
+        "products":{"*":1, "H2O_l":2, "CH4_g":1}
+    }
+}
