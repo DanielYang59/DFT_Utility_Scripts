@@ -7,6 +7,9 @@ from typing import Dict
 import pandas as pd
 
 class ReactionEnergyCalculator:
+    """TODO:
+    """
+
     def __init__(self, intermediate_energy_file: Path, species_energy_file: Path) -> None:
         # Import intermediate energies and species energies
         self.intermediate_energies = self._import_energy_csv_file(intermediate_energy_file)
@@ -33,13 +36,53 @@ class ReactionEnergyCalculator:
         energy_data = pd.read_csv(file)
         return dict(zip(energy_data['name'], energy_data[energy_name]))
 
-    def _check_reaction_pathway(self):
+    def _extract_reaction_pathway(self, pathway_json_content: dict) -> dict:
         """
-        Check reaction pathways.
-        # TODO:
+        Extract and check reaction pathways from the given JSON content.
 
+        Args:
+            pathway_json_content (dict): JSON content containing reaction pathways.
+
+        Returns:
+            dict: Extracted reaction pathways with keys as integers and values as dictionaries.
+
+        Raises:
+            ValueError: If the JSON content does not follow the expected format.
         """
-        pass
+        extracted_pathways = {}
+        current_reaction_key = None
+
+        for key, value in pathway_json_content.items():
+            # Check if the key is "name" or "comment"
+            if key in ["name", "comment"]:
+                # Metadata key, continue to the next iteration
+                continue
+
+            # Check if the key is a continuous integer
+            try:
+                reaction_key = int(key)
+                if reaction_key <= 0:
+                    raise ValueError("Reaction pathway keys must be positive integers.")
+                if reaction_key in extracted_pathways:
+                    raise ValueError("Duplicate reaction pathway key found.")
+
+            except ValueError:
+                raise ValueError("Invalid reaction pathway key found. Keys must be continuous integers.")
+
+            # Assign the current reaction key
+            current_reaction_key = reaction_key
+
+            # Check the structure of the reaction pathway
+            if not all(k in value and "reactants" in value and "products" in value for k in ["reactants", "products"]):
+                raise ValueError(f"Invalid structure for reaction pathway {current_reaction_key}.")
+
+            # Add the valid reaction pathway to the extracted_pathways dictionary
+            extracted_pathways[current_reaction_key] = value
+
+        if current_reaction_key is None:
+            raise ValueError("No valid reaction pathways found.")
+
+        return extracted_pathways
 
     def import_reaction_pathway(self, pathway_file: Path) -> None:
         """
@@ -75,10 +118,10 @@ class ReactionEnergyCalculator:
 
         # Load and parse the reaction pathway JSON file
         with open(pathway_file, 'r', encoding="utf-8") as json_file:
-            self.reaction_pathway = json.load(json_file)
+            reaction_pathway_content = json.load(json_file)
 
-        # Check reaction pathway
-        self._check_reaction_pathway()
+        # Extract and check reaction information
+        self.reaction_pathway = self._extract_reaction_pathway(reaction_pathway_content)
 
     def _calculate_free_energy_change_for_step(self, ) -> float:
         pass
