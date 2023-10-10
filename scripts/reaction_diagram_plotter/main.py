@@ -35,6 +35,7 @@ def main():
 
     # Generate reaction diagram plot
     plotter = DiagramPlotter(energy_changes)
+    plotter.generate_plot()
 
 def parse_command_line_arguments():
     """
