@@ -102,18 +102,18 @@ class ReactionEnergyCalculator:
             # Calculate species energy based on its type
             # Species is "PEP (proton electron pair)"
             if name == "PEP":
-                pep_energy = 0.5 * energy_reader.read_molecule_or_ion_energy("H2_g")
+                pep_energy = 0.5 * self.energy_reader.read_molecule_or_ion_energy("H2_g")
                 energy -= num * self.external_potential  # -neU
                 energy += num * pep_energy
 
             # Species is "ion" or "molecule"
             elif name.endswith("-") or name.endswith("+") or name.endswith("_g") or name.endswith("_l"):
-                species_energy = energy_reader.read_molecule_or_ion_energy(name)
+                species_energy = self.energy_reader.read_molecule_or_ion_energy(name)
                 energy += num * species_energy
 
             # Species is "reaction intermediate"
             elif name.startswith("*"):
-                species_energy = energy_reader.read_intermediate_energy(name)
+                species_energy = self.energy_reader.read_intermediate_energy(name)
                 energy += num * species_energy
 
             # Unrecognizable species type
