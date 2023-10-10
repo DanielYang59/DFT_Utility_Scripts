@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from typing import Dict, Optional
 from pathlib import Path
 
@@ -28,23 +29,31 @@ class DiagramPlotter:
         Returns:
             None
         """
+        mpl.rcParams['axes.linewidth'] = 2.5
+
         fig, ax = plt.subplots(figsize=(10, 6))
 
         # Sort the energy changes dictionary based on reaction steps
         sorted_steps = sorted(self.energy_changes.keys())
         energies = [self.energy_changes[step] for step in sorted_steps]
 
-        # Create a horizontal line for each energy at every reaction step
-        for idx, (step, energy) in enumerate(zip(sorted_steps, energies)):
-            ax.hlines(y=energy, xmin=0, xmax=step, color='black', linewidth=2)
+        # Create a horizontal line for each energy with a length of 0.75 units at every reaction step
+        for step, energy in zip(sorted_steps, energies):
+            ax.hlines(y=energy, xmin=step, xmax=step + 0.75, color='black', linewidth=2.5)
 
         # Set x-ticks and y-ticks to display reaction steps and energy values
-        plt.xticks(range(1, len(sorted_steps) + 1), sorted_steps, fontsize=20)
+        plt.xticks(range(len(sorted_steps) + 1), [str(i) for i in range(len(sorted_steps) + 1)], fontsize=20)
         plt.yticks(fontsize=20)
 
         # Set labels
         plt.xlabel('Reaction Step', fontsize=20)
         plt.ylabel('Free Energy Change (eV)', fontsize=20)
+
+        # Set x-axis to start from 0
+        plt.xlim(0, len(sorted_steps) + 1)
+
+        # Set tick length to 5
+        ax.tick_params(axis='both', length=5, width=2.5)
 
         # Set savefig DPI to 300
         plt.rcParams['savefig.dpi'] = 300
