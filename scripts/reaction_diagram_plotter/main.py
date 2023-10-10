@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import warnings
 from pathlib import Path
 
 from src.reactionPathwayParser import ReactionPathwayParser
@@ -13,6 +12,7 @@ from src.diagramPlotter import DiagramPlotter
 def main():
     # Get external potential and pH from argument
     external_potential, pH = parse_command_line_arguments()
+    print(f"Working on external potential {external_potential} V and pH {pH}.")
 
     # Import reaction pathway
     pathway_parser = ReactionPathwayParser()
@@ -50,13 +50,6 @@ def parse_command_line_arguments():
     parser.add_argument('-U', '--external_potential', type=float, default=0, help='External potential in volts')
     parser.add_argument('-ph', '--pH', type=float, default=7, help='pH value (0 to 14)')
     args = parser.parse_args()
-
-    # Generate a warning if default value is used
-    if args.external_potential == 0:
-        warnings.warn("Warning: Using default external potential 0 V.")
-
-    if args.pH == 7:
-        warnings.warn("Warning: Using default pH 7.")
 
     return args.external_potential, args.pH
 
