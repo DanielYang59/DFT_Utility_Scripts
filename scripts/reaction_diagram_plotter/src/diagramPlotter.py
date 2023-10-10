@@ -38,9 +38,18 @@ class DiagramPlotter:
         energies = [self.energy_changes[step] for step in sorted_steps]
 
         # Create a horizontal line for each energy with a length of 0.75 units at the center of every reaction step
-        for step, energy in zip(sorted_steps, energies):
+        for i in range(len(sorted_steps)):
+            step = sorted_steps[i]
+            energy = energies[i]
             line_center = step  # the center of the step
             ax.hlines(y=energy, xmin=line_center - 0.375, xmax=line_center + 0.375, color='black', linewidth=4)
+
+            # Add a dotted line connecting the end of this line with the start of the next line
+            if i < len(sorted_steps) - 1:
+                next_step = sorted_steps[i + 1]
+                next_energy = energies[i + 1]
+                next_line_center = next_step  # the center of the next step
+                ax.plot([line_center + 0.375, next_line_center - 0.375], [energy, next_energy], color='black', linestyle='dotted', linewidth=2.5)
 
         # Set x-ticks and y-ticks to display reaction steps and energy values
         plt.xticks(range(len(sorted_steps) + 1), [str(i) for i in range(len(sorted_steps) + 1)], fontsize=20)
