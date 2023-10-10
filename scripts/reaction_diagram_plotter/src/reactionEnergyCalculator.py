@@ -178,24 +178,3 @@ class ReactionEnergyCalculator:
                 print(f"Step {index}: product_energy {products_energy} eV, reactant_energy {reactants_energy} eV.")
 
         return energy_change
-
-# Test area
-if __name__ == "__main__":
-    from pathlib import Path
-
-    # Import reaction pathway
-    from reactionPathwayParser import ReactionPathwayParser
-    parser = ReactionPathwayParser()
-    pathway = parser.import_reaction_pathway(Path("../example_usage/example_reaction_pathway.json"))
-
-    # Initiate reaction energy calculator
-    from pathlib import Path
-    energy_reader = EnergyReader(
-        intermediate_energy_file=Path("../example_usage/example_intermediate_energies.csv"),
-        species_energy_file=Path("../example_usage/example_species_energies.csv")
-        )
-    calculator = ReactionEnergyCalculator(
-        external_potential=0
-        )
-
-    calculator.calculate_energy_change(pathway, energy_reader)

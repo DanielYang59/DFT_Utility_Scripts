@@ -150,12 +150,3 @@ class ReactionPathwayParser:
 
         # Extract and check reaction information
         return self._extract_reaction_pathway(reaction_pathway_content)
-
-# Test area
-if __name__ == "__main__":
-    # Initiate reaction pathway parser
-    parser = ReactionPathwayParser()
-
-    # Import reaction pathway
-    pathway = parser.import_reaction_pathway(pathway_file=Path("../example_usage/example_reaction_pathway.json"))
-    print(pathway)
