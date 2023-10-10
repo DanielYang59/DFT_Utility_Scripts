@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import Union, Dict
-from energyReader import EnergyReader
+from .energyReader import EnergyReader
 
 class ReactionEnergyCalculator:
     """
