@@ -3,6 +3,7 @@
 
 import argparse
 import warnings
+from pathlib import Path
 
 from src.reactionPathwayParser import ReactionPathwayParser
 from src.energyReader import EnergyReader
@@ -15,12 +16,12 @@ def main():
 
     # Import reaction pathway
     pathway_parser = ReactionPathwayParser()
-    reaction_pathways = pathway_parser.import_reaction_pathway(pathway_file="reaction_pathway.json")
+    reaction_pathways = pathway_parser.import_reaction_pathway(pathway_file=Path("reaction_pathway.json"))
 
     # Initiate energy reader
     energy_reader = EnergyReader(
-        intermediate_energy_file="intermediate_energies.csv",
-        species_energy_file="species_energies.csv"
+        intermediate_energy_file=Path("intermediate_energies.csv"),
+        species_energy_file=Path("species_energies.csv")
         )
 
     # Initiate reaction energy calculator
