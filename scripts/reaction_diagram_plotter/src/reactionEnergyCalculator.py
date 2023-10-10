@@ -175,6 +175,25 @@ class ReactionEnergyCalculator:
 
             # Verbose
             if self.verbose:
-                print(f"Step {index}: product_energy {products_energy} eV, reactant_energy {reactants_energy} eV.")
+                print(f"Step {index}: product_energy {products_energy:.4f} eV, reactant_energy {reactants_energy:.4f} eV.")
 
         return energy_change
+
+    def print_energy_changes(self, energy_changes: Dict[int, float]) -> None:
+        """
+        Print the energy changes for each reaction step and the step with the largest energy change.
+
+        Args:
+            energy_changes (dict): A dictionary where keys are integers (reaction steps) and
+                values are floats (corresponding energy changes in eV).
+
+        """
+        # Print energy changes
+        print("Energy Changes:")
+        for step, energy in energy_changes.items():
+            print(f"Step {step}: Energy Change = {energy:.4f} eV")
+
+        # Find and print the largest energy change
+        largest_energy_change_step = max(energy_changes, key=energy_changes.get)
+        largest_energy_change = energy_changes[largest_energy_change_step]
+        print(f"Largest Energy Change: Step {largest_energy_change_step}, Energy Change = {largest_energy_change:.4f} eV")
