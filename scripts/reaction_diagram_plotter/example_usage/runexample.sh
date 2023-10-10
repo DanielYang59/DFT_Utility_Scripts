@@ -1,9 +1,10 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 
-# First define external potential (V) and pH
-EXTERNAL_POTENTIAL = 0
-PH = 7
+# Define external potential (V) and pH
+EXTERNAL_POTENTIAL=0
+PH=7
 
-# TODO:
+# Call the plotter
 
+python3 ../main.py -U $EXTERNAL_POTENTIAL -ph $PH
