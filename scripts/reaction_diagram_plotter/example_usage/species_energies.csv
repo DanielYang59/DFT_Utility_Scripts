@@ -1,0 +1,6 @@
+name,dft_energy,correction,free_energy,comment
+H++NO3-,,,,
+H++OH-,,,,
+H2O_l,,,-14.22,need double check
+H2_g,,,-6.7672,
+HNO3_g,,,-28.6585,
