@@ -3,7 +3,7 @@
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from pathlib import Path
 
 class DiagramPlotter:
@@ -17,6 +17,26 @@ class DiagramPlotter:
         """
         self.energy_changes = energy_changes
 
+    def _calculate_absolute_energies(self, energies: List[float]):
+        """
+        Calculate absolute energies based on the delta energy changes.
+        
+        Args:
+            input_list (List[float]): List of floats representing delta values.
+
+        Returns:
+            List[float]: List of absolute values calculated based on deltas.
+        """
+        abs_energies = [0]  # Starting with 0 as the initial value
+        current_value = 0  # Initialize the current value
+        
+        for delta in energies:
+            current_value += delta
+            abs_energies.append(abs(current_value))
+
+        assert len(abs_energies) == len(energies) + 1
+        return abs_energies
+        
     def generate_plot(self, saveplot: Optional[bool] = False, path: Optional[Path] = None, show_plot: Optional[bool] = True) -> None:
         """
         Generate and optionally save/display a reaction diagram plot based on energy_changes.
@@ -36,6 +56,9 @@ class DiagramPlotter:
         # Sort the energy changes dictionary based on reaction steps
         sorted_steps = sorted(self.energy_changes.keys())
         energies = [self.energy_changes[step] for step in sorted_steps]
+        
+        # Recalculate absolute energy positions
+        energies = self._calculate_absolute_energies(energies)
 
         # Create a horizontal line for each energy with a length of 0.75 units at the center of every reaction step
         for i in range(len(sorted_steps)):
