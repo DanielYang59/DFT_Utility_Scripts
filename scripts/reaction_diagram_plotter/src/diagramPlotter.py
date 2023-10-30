@@ -32,7 +32,7 @@ class DiagramPlotter:
         
         for delta in energies:
             current_value += delta
-            abs_energies.append(abs(current_value))
+            abs_energies.append(current_value)
 
         assert len(abs_energies) == len(energies) + 1
         return abs_energies
