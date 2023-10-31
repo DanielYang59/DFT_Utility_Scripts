@@ -33,6 +33,9 @@ def main(configfile=Path("PDOSIN")):  # NOTE: rewrite to current working dir
     # Import vasprun.xml file
     vasprunxml_reader = VasprunXmlReader()
     
+    ## Read fermi level and ispin
+    fermi_level = vasprunxml_reader 
+    
     
     # For each curve required, fetch PDOS data
     
