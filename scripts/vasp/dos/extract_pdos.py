@@ -19,28 +19,37 @@ from src.outputPdosGenerator import OutputPdosGenerator
 
 def main(configfile=Path("PDOSIN")):  # NOTE: rewrite to current working dir
     # Read config file 
-    config_parser = VasprunXmlReader(configfile=configfile)
+    config_parser = UserConfigParser(configfile=configfile)
     
-    if configfile.is_file():
-        config_parser.read_config()
-        
-    
-    # or generate config template (and exist)
-    else:
+    if not configfile.is_file():  # or generate config template
         config_parser.generate_config_template()
+    
+    config_parser.read_config()
+    
+    # Get requested curve list
+    requested_curves = config_parser.parse()
 
 
     # Import vasprun.xml file
-    vasprunxml_reader = VasprunXmlReader()
+    vasprunxml_reader = VasprunXmlReader(vasprunXmlFile="vasprun.xml")  # NOTE: rewrite to current working dir
     
-    ## Read fermi level and ispin
-    fermi_level = vasprunxml_reader 
+    ## Read fermi level and ISPIN tag
+    # TODO: read fermi level
+    ispin = vasprunxml_reader.read_incar_tag(tag="ISPIN")
     
     
     # For each curve required, fetch PDOS data
+    fetched_pdos_data = [
+        vasprunxml_reader.read_curve(curve_info=requested_curve)
+        for requested_curve in requested_curves
+        ]
+    
+    
+    # TODO: remember to insert energy data
     
     
     # Output fetched PDOS data
+    output_generator = OutputPdosGenerator(fetched_pdos_data)
 
 
 if __name__ == "__main__":

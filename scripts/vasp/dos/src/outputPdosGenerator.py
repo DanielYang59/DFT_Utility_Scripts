@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 
+from pathlib import Path
+
+
 class OutputPdosGenerator:
-    def __init__(self) -> None:
+    def __init__(self, filename: Path) -> None:
         pass
     
     
