@@ -81,20 +81,22 @@ class PotcarGenerator:
 
         return potcar_path
 
-    def generate_potcar(self, elements: List[str], output_potcarfile: Path = Path("POTCAR"), max_elements: int = 20) -> None:
+    def generate_potcar(self, elements: List[str], output_potcarfile: Path = Path("POTCAR"), warn_element_num: int = 20, verbose: bool = True) -> None:
         """
         Generate a POTCAR file based on a list of elements.
 
         Parameters:
             elements (list): A list containing the chemical symbols of the elements.
             output_potcarfile (Path): A Path object for the output POTCAR file. Defaults to 'POTCAR' in the current directory.
+            warn_element_num (int, Optional): The number of element count threshold to generate "too many elements" warning. Defaults to 20.
+            verbose (bool, Optional): Print list of elements. Defaults to True.
 
         Raises:
             FileNotFoundError: If POTCAR for any of the specified elements is not found in the library.
         """
         # Check for warnings related to large number of elements
-        if len(elements) >= max_elements:
-            warnings.warn(f"The elements list contains more than {max_elements} elements. Proceed with caution.")
+        if len(elements) >= warn_element_num:
+            warnings.warn(f"The elements list contains more than {warn_element_num} elements. Proceed with caution.")
 
         # Check for valid elements
         valid_elements = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"]
@@ -116,6 +118,10 @@ class PotcarGenerator:
             with element_potcar_path.open("r", encoding="utf-8") as f:
                 potcar_data += f.read()
 
+        # Print element list
+        if verbose:
+            print(f"POTCAR for elements: '{','.join(elements)}' generated.")
+        
         # Write the combined POTCAR data to the output path
         with output_potcarfile.open("w", encoding="utf-8") as f:
             f.write(potcar_data)

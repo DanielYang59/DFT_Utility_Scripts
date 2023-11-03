@@ -1,0 +1,9 @@
+ase==3.22.1
+matplotlib==3.8.0
+numpy==1.26.0
+pandas==2.1.1
+pymatgen==2023.9.10
+pytest==7.4.2
+PyYAML==6.0.1
+PyYAML==6.0.1
+tqdm==4.66.1
