@@ -335,15 +335,16 @@ class AdsorbateGenerator:
         # Check adsorbate dict datatype
         if not isinstance(adsorbates_dict, dict):
             raise TypeError("Wrong datatype for adsorbate dict is provided.")
-        
-        # Check POSCAR indexes and reference indexes data type
-        if not isinstance(poscar_ads, list) or not all(isinstance(num, int) for num in poscar_ads):
-            raise ValueError("Expect adsorbate indexes come in a list.")
-        if not isinstance(poscar_ads_ref, list) or not all(isinstance(num, int) for num in poscar_ads_ref):
-            raise ValueError("Expect adsorbate reference indexes come in a list.")
+
+        # "POSCAR" mode
+        if self.work_mode == "POSCAR":
+            # Check POSCAR indexes and reference indexes data type
+            if not isinstance(poscar_ads, list) or not all(isinstance(num, int) for num in poscar_ads):
+                raise ValueError("Expect adsorbate indexes come in a list.")
+            if not isinstance(poscar_ads_ref, list) or not all(isinstance(num, int) for num in poscar_ads_ref):
+                raise ValueError("Expect adsorbate reference indexes come in a list.")
 
         # Generate adsorbate reference points dict based on adsorbate names
-        if self.work_mode == "POSCAR":
             generated_ads_ref = self._regenerate_reference_indexing(poscar_ads, poscar_ads_ref)
             return {"adsorbate": generated_ads_ref, }
 
