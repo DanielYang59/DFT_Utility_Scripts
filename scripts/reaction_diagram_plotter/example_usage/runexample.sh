@@ -3,7 +3,7 @@
 
 # Define external potential (V) and pH
 EXTERNAL_POTENTIAL=0
-PH=7
+PH=0
 
 # Call the plotter
 
