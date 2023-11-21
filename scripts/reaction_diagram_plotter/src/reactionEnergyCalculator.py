@@ -38,13 +38,13 @@ class ReactionEnergyCalculator:
     values in the energy calculations. Verbose output can be controlled using the `verbose` parameter.
     """
 
-    def __init__(self, external_potential: Union[float, int] = 0, pH: Union[float, int] = 7, verbose: bool = True) -> None:
+    def __init__(self, external_potential: Union[float, int] = 0, pH: Union[float, int] = 0, verbose: bool = True) -> None:
         """
         Initialize the class instance with external potential and pH.
 
         Args:
             external_potential (Union[float, int], optional): External potential in volts. Defaults to 0.
-            pH (Union[float, int], optional): pH value (0 to 14). Defaults to 7.
+            pH (Union[float, int], optional): pH value (0 to 14). Defaults to 0.
             verbose (bool, optional): global verbose level. Defaults to True.
 
         Raises:
