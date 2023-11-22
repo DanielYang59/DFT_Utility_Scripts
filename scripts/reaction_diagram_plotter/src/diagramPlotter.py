@@ -17,7 +17,7 @@ class DiagramPlotter:
         """
         self.energy_changes = energy_changes
 
-    def _calculate_absolute_energies(self, energies: List[float]):
+    def _calculate_absolute_energies(self, energies: List[float]) -> List[float]:
         """
         Calculate absolute energies based on the delta energy changes.
         
@@ -56,9 +56,11 @@ class DiagramPlotter:
         # Sort the energy changes dictionary based on reaction steps
         sorted_steps = sorted(self.energy_changes.keys())
         energies = [self.energy_changes[step] for step in sorted_steps]
+        print(energies)  #DEBUG
         
         # Recalculate absolute energy positions
         energies = self._calculate_absolute_energies(energies)
+        print(energies)  #DEBUG
 
         # Create a horizontal line for each energy with a length of 0.75 units at the center of every reaction step
         for i in range(len(sorted_steps)):
