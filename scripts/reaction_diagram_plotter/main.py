@@ -32,7 +32,7 @@ def main():
         )
 
     # Calculate energy changes
-    energy_changes = calculator.calculate_energy_change(reaction_pathways, energy_reader)
+    energy_changes = calculator.calculate_energy_changes(reaction_pathways, energy_reader)
 
     # Print energy changes
     calculator.print_energy_changes(energy_changes)

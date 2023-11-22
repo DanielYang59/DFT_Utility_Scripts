@@ -19,9 +19,6 @@ class DiagramPlotter:
         self.energy_changes = [energy_changes[step] for step in sorted(energy_changes.keys())]
         self.absolute_energies = self._calculate_absolute_energies()
 
-        # Calculate total energy change
-        self.total_energy_change = self._calculate_total_energy_change()
-
     def _calculate_absolute_energies(self) -> List[float]:
         """
         Calculate absolute energies based on energy changes.
@@ -38,15 +35,6 @@ class DiagramPlotter:
 
         assert len(abs_energies) == len(self.energy_changes) + 1
         return abs_energies
-
-    def _calculate_total_energy_change(self) -> float:
-        """
-        Calculate total energy change based on energy changes.
-
-        Returns:
-            float: total energy change in eV.
-        """
-        return sum(self.energy_changes)
 
     def generate_plot(self, saveplot: Optional[bool] = False, path: Optional[Path] = None, show_plot: Optional[bool] = True) -> None:
         """

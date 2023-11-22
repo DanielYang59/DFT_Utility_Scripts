@@ -141,9 +141,9 @@ class ReactionEnergyCalculator:
 
         return products_energy, reactants_energy
 
-    def calculate_energy_change(self, reaction_pathways: Dict[int, dict], energy_reader: EnergyReader) -> Dict[int, float]:
+    def calculate_energy_changes(self, reaction_pathways: Dict[int, dict], energy_reader: EnergyReader) -> Dict[int, float]:
         """
-        Calculate the energy change for each reaction step in the provided reaction pathways.
+        Calculate the energy changes for each reaction step in the provided reaction pathways.
 
         Args:
             reaction_pathways (dict): A dictionary containing reaction steps as keys and their respective pathway details.
@@ -192,6 +192,10 @@ class ReactionEnergyCalculator:
         print("Energy Changes:")
         for step, energy in energy_changes.items():
             print(f"Step {step}: Energy Change = {energy:.4f} eV")
+
+        # Print total energy change
+        total_energy_change = sum(energy_changes.values())
+        print(f"The total energy change is {total_energy_change:.4f} eV.")
 
         # Find and print the largest energy change
         largest_energy_change_step = max(energy_changes, key=energy_changes.get)
