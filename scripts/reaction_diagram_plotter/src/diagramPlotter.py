@@ -19,9 +19,8 @@ class DiagramPlotter:
         self.energy_changes = [energy_changes[step] for step in sorted(energy_changes.keys())]
         self.absolute_energies = self._calculate_absolute_energies()
 
-        # Calculate total energy change and equilibrium potential
+        # Calculate total energy change
         self.total_energy_change = self._calculate_total_energy_change()
-        self.equilibrium_potential = self._calculate_equilibrium_potential()
 
     def _calculate_absolute_energies(self) -> List[float]:
         """
@@ -48,15 +47,6 @@ class DiagramPlotter:
             float: total energy change in eV.
         """
         return sum(self.energy_changes)
-
-    def _calculate_equilibrium_potential(self) -> float:
-        """
-        Calculate equilibrium potential from total energy change and total electron transfer.
-
-        Returns:
-            float: equilibrium potential in V.
-        """
-        pass
 
     def generate_plot(self, saveplot: Optional[bool] = False, path: Optional[Path] = None, show_plot: Optional[bool] = True) -> None:
         """
