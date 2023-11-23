@@ -47,7 +47,27 @@ class VasprunXmlReader:
             return None
 
     def read_fermi_level(self) -> float:
-        pass
+        """
+        Read the Fermi level in eV from the VASP vasprun.xml file.
+
+        Returns:
+            float: The Fermi level value.
+
+        Raises:
+            RuntimeError: If the <i name="efermi"> tag is not found in the <dos> element.
+
+        This function extracts the Fermi level value from the vasprun.xml file.
+        It searches for the <i name="efermi"> tag within the <dos> element and returns its float value.
+        If the tag is not found, a RuntimeError is raised.
+
+        """
+        # Find the <i name="efermi"> tag within the <dos> element
+        efermi_element = self.vasprun_root.find(".//dos/i[@name='efermi']")
+
+        if efermi_element is not None:
+            return float(efermi_element.text.strip())
+        else:
+            raise RuntimeError("Cannot find fermi level in vasprun.xml.")
 
     def read_pdos(self) -> np.ndarray:
         # Validate INCAR tags before proceeding
@@ -66,3 +86,7 @@ if __name__ == "__main__":
     # Test read INCAR tags
     nedos = reader._read_incar_tag(tag="NEDOS")
     print(nedos)
+
+    # Test read fermi level
+    fermi_level = reader.read_fermi_level()
+    print(fermi_level)
