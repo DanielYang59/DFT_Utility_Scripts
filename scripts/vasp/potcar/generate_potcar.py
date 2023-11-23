@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import argparse
 import os
 from pathlib import Path
 import warnings
@@ -165,9 +166,17 @@ def main(poscarfile: Path = Path("POSCAR")) -> None:
     Parameters:
         poscarfile (Path): Path to the POSCAR file. Defaults to 'POSCAR' in the current directory.
     """
+    # Fetch command line options
+    parser = argparse.ArgumentParser(description="Generate POTCAR file based on elements listed in a POSCAR file.")
+    parser.add_argument("--poscar", type=Path, default=Path("POSCAR"), help="Path to the POSCAR file.")
+    parser.add_argument("--fetch-recommended", action="store_true", default=False, help="Fetch VASP recommended PAW potentials.")
+
+    args = parser.parse_args()
+
+    # Call POTCAR generator
     potcar_gen = PotcarGenerator()
-    elements = potcar_gen.get_elements_from_poscar(poscarfile)
-    potcar_gen.generate_potcar(elements)
+    elements = potcar_gen.get_elements_from_poscar(args.poscar)
+    potcar_gen.generate_potcar(elements, fetch_recommended=args.fetch_recommended)
 
 if __name__ == "__main__":
     main()
