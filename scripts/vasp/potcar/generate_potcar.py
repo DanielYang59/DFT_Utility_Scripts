@@ -57,7 +57,7 @@ class PotcarGenerator:
 
         return potcar_path
 
-    def _load_recommended_potentials(self, potential_file: Path = "recommended_paw_potentials.yaml") -> Dict[str, str]:
+    def _load_recommended_potentials(self, potential_file: Path = Path("recommended_paw_potentials.yaml")) -> Dict[str, str]:
         """
         Load VASP recommended PAW potentials from a YAML file.
 
@@ -70,6 +70,9 @@ class PotcarGenerator:
         Raises:
             FileNotFoundError: If the specified potential_file is not found.
         """
+        # Recompile potential path
+        d = Path(__file__).resolve().parent
+        potential_file = d / potential_file
 
         if not potential_file.is_file():
             raise FileNotFoundError(f"VASP recommended potential file {potential_file} not found.")
