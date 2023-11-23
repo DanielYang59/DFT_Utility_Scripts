@@ -156,7 +156,7 @@ class PotcarGenerator:
 
         # Print element list
         if verbose:
-            print(f"POTCAR for elements: '{','.join(elements)}' generated.")
+            print(f"POTCAR for elements: '{', '.join(elements)}' generated.")
 
         # Write the combined POTCAR data to the output path
         with output_potcarfile.open("w", encoding="utf-8") as f:
