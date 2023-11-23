@@ -43,8 +43,7 @@ def main(configfile=Path("PDOSIN")) -> None:
     # Import vasprun.xml file
     vasprunxml_reader = VasprunXmlReader(vasprunXmlFile=cwd / "vasprun.xml")
 
-    ## Read fermi level and ISPIN tag from vasprun.xml
-    ispin = vasprunxml_reader.read_incar_tag(tag="ISPIN")  # TODO: need to consider ispin = 1
+    ## Read fermi level from vasprun.xml
     fermi_level = vasprunxml_reader.read_fermi_level()
 
     # For each curve required, fetch PDOS data
@@ -59,7 +58,7 @@ def main(configfile=Path("PDOSIN")) -> None:
 
     # Output fetched PDOS data
     output_generator = OutputPdosGenerator(fetched_pdos_data, energies)
-    output_generator.write(cwd / "PDOS.dat")
+    output_generator.write(cwd / "PDOS.csv")
 
 if __name__ == "__main__":
     main()
