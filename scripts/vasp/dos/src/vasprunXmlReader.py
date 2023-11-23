@@ -4,6 +4,7 @@
 from pathlib import Path
 import numpy as np
 import xml.etree.ElementTree as ET
+import warnings
 
 class VasprunXmlReader:
     def __init__(self, vasprunXmlFile: Path) -> None:
@@ -15,13 +16,43 @@ class VasprunXmlReader:
         vasprun_tree = ET.parse(vasprunXmlFile)
         self.vasprun_root = vasprun_tree.getroot()
 
-    def _validate_incar_tags_for_pdos_calc(self, nedos_warn_threshold: int = 500) -> None:
-        # IBRION = -1
-        # NSW = 0
-        # LORBIT = 11 (handle 10)
+    def _validate_incar_tags_for_pdos_calc(self) -> None:
+        """
+        Validate INCAR tags for spin-polarized PDOS calculation.
 
-        # How to handle ISPIN = 1
-        pass
+        Raises:
+            RuntimeError: If the IBRION, NSW, or ISPIN tags are not set to the expected values.
+            UserWarning: If the LORBITAL tag has a value other than 11, as the script is intended for LORBITAL=11.
+
+        This function fetches relevant INCAR tags for a PDOS calculation and checks if they are set to the expected values.
+        The validation criteria are as follows:
+        - IBRION should be set to -1 for "no ion updating."
+        - NSW should be set to 0 for "0 ionic steps."
+        - ISPIN should be set to 2 for "spin-polarized calculation."
+        - LORBITAL should be set to 11.
+
+        """
+        # Fetch related INCAR tags
+        ibrion = self._read_incar_tag("IBRION")
+        nsw = self._read_incar_tag("NSW")
+        lorbital = self._read_incar_tag("LORBITAL")
+        ispin = self._read_incar_tag("ISPIN")
+
+        # IBRION tag should be -1 for "no ion updating"
+        if ibrion != "-1":
+            raise RuntimeError("IBRION tag should be -1.")
+
+        # NSW tag should be 0 for "0 ionic steps"
+        if nsw != "0":
+            raise RuntimeError("NSW tag should be 0.")
+
+        # ISPIN should be 2 for "spin-polarized calculation"
+        if ispin != "2":
+            raise RuntimeError("ISPIN != 2 is currently not supported.")
+
+        # LORBIT should be 11 for
+        if lorbital != "11":
+            warnings.warn("Script intended for LORBITAL=11, other values are not tested.")
 
     def _read_incar_tag(self, tag: str) -> str:
         """
@@ -72,8 +103,6 @@ class VasprunXmlReader:
     def read_pdos(self) -> np.ndarray:
         # Validate INCAR tags before proceeding
         self._validate_incar_tags_for_pdos_calc()
-
-        #
 
     def read_energies(self) -> np.ndarray:
         pass
