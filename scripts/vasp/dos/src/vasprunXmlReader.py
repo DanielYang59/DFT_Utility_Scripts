@@ -102,13 +102,68 @@ class VasprunXmlReader:
             raise RuntimeError("Cannot find fermi level in vasprun.xml.")
 
     def _parse_curve_info(self, curve_info: str) -> list:
+        """
+        Parses the curve information string and standardizes the orbital selections to binary values.
+
+        Parameters:
+            curve_info (str): The curve information string containing orbital selections.
+
+        Returns:
+            list: A list containing the standardized curve information with binary orbital selections.
+        """
         # Convert curve info string to list
-        assert isinstance(curve_info, str)
+        curve_info = curve_info.split()
+        if len(curve_info) != 5 or not isinstance(curve_info, str):
+            raise ValueError(f"Please check curve info line: {curve_info}.")
+
+        # Standardize curve selection entry to binary
+        standardized_curve_info = [curve_info[0], ]
+        for i, orbitals in enumerate(curve_info[1:]):
+            # s orbital
+            if i == 0:
+                if orbitals in {"1", "s"}:
+                    standardized_curve_info.append(1)
+                elif orbitals in {"0", "nos"}:
+                    standardized_curve_info.append(0)
+                else:
+                    raise ValueError(f"Illegal s orbital selection {orbitals}.")
+
+            # p orbital
+            elif i == 1:
+                if orbitals == "p":
+                    standardized_curve_info.extend([1] * 3)
+                elif orbitals == "nop":
+                    standardized_curve_info.extend([0] * 3)
+                elif len(orbitals) == 3 and all(o in {"0", "1"} for o in orbitals):
+                    standardized_curve_info.extend([int(o) for o in orbitals])
+                else:
+                    raise ValueError(f"Illegal p orbital selection {orbitals}.")
+
+            # d orbital
+            elif i == 2:
+                if orbitals == "d":
+                    standardized_curve_info.extend([1] * 5)
+                elif orbitals == "nod":
+                    standardized_curve_info.extend([0] * 5)
+                elif len(orbitals) == 5 and all(o in {"0", "1"} for o in orbitals):
+                    standardized_curve_info.extend([int(o) for o in orbitals])
+                else:
+                    raise ValueError(f"Illegal d orbital selection {orbitals}.")
+
+            # f orbital
+            elif i == 3:
+                if orbitals == "f":
+                    standardized_curve_info.extend([1] * 7)
+                elif orbitals == "nof":
+                    standardized_curve_info.extend([0] * 7)
+                elif len(orbitals) == 7 and all(o in {"0", "1"} for o in orbitals):
+                    standardized_curve_info.extend([int(o) for o in orbitals])
+                else:
+                    raise ValueError(f"Illegal f orbital selection {orbitals}.")
 
         # Check output curve info list
-        assert len(curve_info) == 17
-        for v in curve_info[1:]:
-            assert v in {0, 1}
+        assert len(standardized_curve_info) == 17
+        return standardized_curve_info
 
     def _parse_atom_selection(self, atom_selection: str) -> list:
         # Assert no duplicates
@@ -124,10 +179,8 @@ class VasprunXmlReader:
     def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
         pass
 
-
     def read_pdos(self, curve_info: str) -> Tuple(dict, dict):
         """
-        DEBUG: check return type hint
         Reads the PDOS for selected atoms.
 
         Parameters:
@@ -174,3 +227,5 @@ if __name__ == "__main__":
     # Test read fermi level
     fermi_level = reader._read_fermi_level()
     print(fermi_level)
+
+    # DEBUG: check return type hint of read_dos method
