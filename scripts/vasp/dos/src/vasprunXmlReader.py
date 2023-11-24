@@ -16,6 +16,9 @@ class VasprunXmlReader:
         vasprun_tree = ET.parse(vasprunXmlFile)
         self.vasprun_root = vasprun_tree.getroot()
 
+        # Validate INCAR tags before proceeding
+        self._validate_incar_tags_for_pdos_calc()
+
     def _validate_incar_tags_for_pdos_calc(self) -> None:
         """
         Validate INCAR tags for spin-polarized PDOS calculation.
@@ -77,7 +80,7 @@ class VasprunXmlReader:
         else:
             return None
 
-    def read_fermi_level(self) -> float:
+    def _read_fermi_level(self) -> float:
         """
         Read the Fermi level in eV from the VASP vasprun.xml file.
 
@@ -100,11 +103,50 @@ class VasprunXmlReader:
         else:
             raise RuntimeError("Cannot find fermi level in vasprun.xml.")
 
-    def read_pdos(self) -> np.ndarray:
-        # Validate INCAR tags before proceeding
-        self._validate_incar_tags_for_pdos_calc()
+    def _parse_curve_info(self, curve_info: str) -> list:
+        # Convert curve info string to list
+        assert isinstance(curve_info, str)
+
+        # Check output curve info list
+        assert len(curve_info) == 17
+        for v in curve_info[1:]:
+            assert v in {0, 1}
+
+    def _parse_atom_selection(self, atom_selection: str) -> list:
+
+        # Assert no duplicates
+
+
+        # Make sure consistent indexing
+        pass
+
+    def read_pdos(self, curve_info: str) -> np.ndarray:
+        """
+        Reads the PDOS for selected atoms.
+
+        Parameters:
+            curve_info (str): A string containing information about the requested PDOS.
+
+        Returns:
+            dict: A dictionary where keys are atom indices and values are arrays representing the PDOS for the corresponding atoms.
+        """
+        # Parse curve info str
+        curve_info = self._parse_curve_info(curve_info)
+
+        # Parse atom selection list
+        atom_selections = self._parse_atom_selection(curve_info[0])
+
+        # Read PDOS of selected atoms
+        pdos_dict = {}
+        for index in atom_selections:
+            pdos_dict[index] = self.read_pdos(index)
+
+        return pdos_dict
 
     def read_energies(self) -> np.ndarray:
+        # Read energy array from vasprun.xml
+
+        # Remember to handle fermi level
         pass
 
 # Test area
@@ -117,5 +159,5 @@ if __name__ == "__main__":
     print(nedos)
 
     # Test read fermi level
-    fermi_level = reader.read_fermi_level()
+    fermi_level = reader._read_fermi_level()
     print(fermi_level)
