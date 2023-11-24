@@ -51,7 +51,7 @@ def parse_command_line_arguments():
     """
     parser = argparse.ArgumentParser(description='Description of your program')
     parser.add_argument('-U', '--external_potential', type=float, default=0, help='External potential in volts')
-    parser.add_argument('-ph', '--pH', type=float, default=7, help='pH value (0 to 14)')
+    parser.add_argument('-ph', '--pH', type=float, default=0, help='pH value (0 to 14)')
     args = parser.parse_args()
 
     return args.external_potential, args.pH
