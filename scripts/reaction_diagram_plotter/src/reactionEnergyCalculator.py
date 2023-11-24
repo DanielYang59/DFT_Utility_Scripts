@@ -220,7 +220,7 @@ class ReactionEnergyCalculator:
             pH_correction = 0
 
         elif net_proton_count == 0 or net_hydroxide_count == 0:
-            pH_correction = (net_proton_count - net_hydroxide_count) * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * self.pH)  # DEBUG: need double check
+            pH_correction = (net_proton_count - net_hydroxide_count) * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * self.pH)
 
         else:
             raise RuntimeError("Reaction equation should not have H+ and OH- simultaneously.")
