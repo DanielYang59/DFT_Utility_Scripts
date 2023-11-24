@@ -101,6 +101,24 @@ class VasprunXmlReader:
         else:
             raise RuntimeError("Cannot find fermi level in vasprun.xml.")
 
+    def _read_atom_list(self) -> List[str]:
+        """
+        Reads and returns a list of element names in the <array name="atoms"> section
+        of the vasprun.xml file.
+
+        Returns:
+        list: A list containing element names.
+        """
+        atom_info_path = ".//modeling/atominfo/array[@name='atoms']/set/rc"
+        element_names = []
+
+        for rc in self.root.findall(atom_info_path):
+            for element in rc.findall("c[@type='string']"):
+                element_name = element.text.strip()
+                element_names.append(element_name)
+
+        return element_names
+
     def _parse_curve_info(self, curve_info: str) -> list:
         """
         Parses the curve information string and standardizes the orbital selections to binary values.
@@ -111,10 +129,10 @@ class VasprunXmlReader:
         Returns:
             list: A list containing the standardized curve information with binary orbital selections.
         """
-        # Convert curve info string to list
+        # Convert curve info string to list and remove unnecessary spaces
+        if not isinstance(curve_info, str):
+            raise TypeError(f"Please check curve info line: {curve_info}.")
         curve_info = curve_info.split()
-        if len(curve_info) != 5 or not isinstance(curve_info, str):
-            raise ValueError(f"Please check curve info line: {curve_info}.")
 
         # Standardize curve selection entry to binary
         standardized_curve_info = [curve_info[0], ]
@@ -161,20 +179,55 @@ class VasprunXmlReader:
                 else:
                     raise ValueError(f"Illegal f orbital selection {orbitals}.")
 
-        # Check output curve info list
-        assert len(standardized_curve_info) == 17
         return standardized_curve_info
 
-    def _parse_atom_selection(self, atom_selection: str) -> list:
-        # Assert no duplicates
-        # Make sure consistent indexing
-        pass
+    def _parse_atom_selection(self, atom_selections: str) -> list:
+        """
+        Parse atom selections.
+        # NOTE: Indexing starts from 1 for single selections and element matches.
+
+        Allowed atom selections:
+        1. By index, for example: "1" (starting from 1)
+        2. By index range, for example: "1-5"
+        3. By element type, for example: "Fe"
+        4. Mix of 1-3 separated by "_"
+        5. "all" for all atoms
+
+        Parameters:
+            atom_selections (str): String representing atom selections.
+
+        Returns:
+            list: List of selected atom indices (starting from 1).
+        """
+        # Get element list
+        elements = self._read_atom_list()
+
+        # Parse atom selections
+        if atom_selections == "all":
+            atom_selections_by_index = list(range(len(elements)))
+
+        atom_selections_by_index = []
+        for selection in atom_selections.split("_"):
+            # Single atom selection: "1"
+            if selection.isdigit():
+                atom_selections_by_index.append(int(selection))
+
+            # Range selection: "1-3"
+            elif "-" in selection:
+                start, end = map(int, selection.split('-'))
+                atom_selections_by_index.extend(list(range(start, end + 1)))
+
+            # Element selection: "Fe"
+            else:
+                atom_selections_by_index.extend([(index + 1) for index, value in enumerate(elements) if value == selection])
+
+        assert len(atom_selections_by_index) == len(set(atom_selections_by_index)), "Duplicate atom selections detected."
+        return atom_selections_by_index
 
     def _fetch_pdos(self, ion_index: int, spin_index: int) -> np.ndarray:
         # Check args
         assert ion_index >= 1
         assert spin_index in {1, 2}
-
 
     def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
         pass
