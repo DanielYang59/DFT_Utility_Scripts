@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import xml.etree.ElementTree as ET
 import warnings
+from typing import List, Tuple
 
 class VasprunXmlReader:
     def __init__(self, vasprunXmlFile: Path) -> None:
@@ -16,22 +17,24 @@ class VasprunXmlReader:
         vasprun_tree = ET.parse(vasprunXmlFile)
         self.vasprun_root = vasprun_tree.getroot()
 
+        # Read ISPIN tag in INCAR file
+        self.ispin = self._read_incar_tag("ISPIN")
+
         # Validate INCAR tags before proceeding
         self._validate_incar_tags_for_pdos_calc()
 
     def _validate_incar_tags_for_pdos_calc(self) -> None:
         """
-        Validate INCAR tags for spin-polarized PDOS calculation.
+        Validate INCAR tags for PDOS calculation.
 
         Raises:
-            RuntimeError: If the IBRION, NSW, or ISPIN tags are not set to the expected values.
+            RuntimeError: If the IBRION, or NSW tags are not set to the expected values.
             UserWarning: If the LORBITAL tag has a value other than 11, as the script is intended for LORBITAL=11.
 
         This function fetches relevant INCAR tags for a PDOS calculation and checks if they are set to the expected values.
         The validation criteria are as follows:
         - IBRION should be set to -1 for "no ion updating."
         - NSW should be set to 0 for "0 ionic steps."
-        - ISPIN should be set to 2 for "spin-polarized calculation."
         - LORBITAL should be set to 11.
 
         """
@@ -39,7 +42,6 @@ class VasprunXmlReader:
         ibrion = self._read_incar_tag("IBRION")
         nsw = self._read_incar_tag("NSW")
         lorbital = self._read_incar_tag("LORBITAL")
-        ispin = self._read_incar_tag("ISPIN")
 
         # IBRION tag should be -1 for "no ion updating"
         if ibrion != "-1":
@@ -48,10 +50,6 @@ class VasprunXmlReader:
         # NSW tag should be 0 for "0 ionic steps"
         if nsw != "0":
             raise RuntimeError("NSW tag should be 0.")
-
-        # ISPIN should be 2 for "spin-polarized calculation"
-        if ispin != "2":
-            raise RuntimeError("ISPIN != 2 is currently not supported.")
 
         # LORBIT should be 11 for
         if lorbital != "11":
@@ -113,15 +111,23 @@ class VasprunXmlReader:
             assert v in {0, 1}
 
     def _parse_atom_selection(self, atom_selection: str) -> list:
-
         # Assert no duplicates
-
-
         # Make sure consistent indexing
         pass
 
-    def read_pdos(self, curve_info: str) -> np.ndarray:
+    def _fetch_pdos(self, ion_index: int, spin_index: int) -> np.ndarray:
+        # Check args
+        assert ion_index >= 1
+        assert spin_index in {1, 2}
+
+
+    def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
+        pass
+
+
+    def read_pdos(self, curve_info: str) -> Tuple(dict, dict):
         """
+        DEBUG: check return type hint
         Reads the PDOS for selected atoms.
 
         Parameters:
@@ -137,17 +143,24 @@ class VasprunXmlReader:
         atom_selections = self._parse_atom_selection(curve_info[0])
 
         # Read PDOS of selected atoms
-        pdos_dict = {}
+        pdos_dict_spin_up = {}
+        pdos_dict_spin_down = {}
+
         for index in atom_selections:
-            pdos_dict[index] = self.read_pdos(index)
+            # Fetch PDOS (spin up)
+            pdos_data_spin_up = self._fetch_pdos(index, spin_index=1)
 
-        return pdos_dict
+            # Calculate summed DOS (spin up)
+            pdos_dict_spin_up[index] = self._calculate_summed_dos(pdos_data_spin_up, curve_info[1:])
 
-    def read_energies(self) -> np.ndarray:
-        # Read energy array from vasprun.xml
+            if self.ispin == "2":
+                # Fetch PDOS (spin down)
+                pdos_data_spin_down = self._fetch_pdos(index, spin_index=2)
 
-        # Remember to handle fermi level
-        pass
+                # Calculate summed DOS (spin down)
+                pdos_dict_spin_down[index] = self._calculate_summed_dos(pdos_data_spin_down, curve_info[1:])
+
+        return pdos_dict_spin_up, pdos_dict_spin_down
 
 # Test area
 if __name__ == "__main__":
