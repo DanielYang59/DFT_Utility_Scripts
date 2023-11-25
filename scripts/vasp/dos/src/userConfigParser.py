@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 from pathlib import Path
-
+from typing import List
 
 class UserConfigParser:
     def __init__(self, configfile: Path) -> None:
         # Check config file
-        if configfile.is_fife():
+        if configfile.is_file():
             self.configfile = configfile
 
         else:
             raise FileNotFoundError(f"PDOS extractor config file {configfile} not found.")
 
-    def generate_config_template(self):
+    def generate_config_template(self) -> None:
         pass
 
-    def _parse_curve_info(self, curve_info: str) -> list:
+    def _check_and_parse_curve_info(self, curve_info: str) -> list:
         """
         Parses the curve information string and confirm the orbital selections to binary values.
 
@@ -43,7 +42,7 @@ class UserConfigParser:
 
         return standardized_curve_info
 
-    def _parse_atom_selection(self, atom_selections: str) -> list:
+    def _parse_atom_selection(self, atom_selections: str) -> List[int]:
         """
         Parse atom selections.
         # NOTE: Indexing starts from 1 for single selections and element matches.
@@ -83,9 +82,44 @@ class UserConfigParser:
         assert len(atom_selections_by_index) == len(set(atom_selections_by_index)), "Duplicate atom selections detected."
         return atom_selections_by_index
 
-    def read_config(self):
-        pass
+    def read_config(self, atom_list: List[int]) -> list:
+        """
+        Reads and processes a configuration file, updating the atom list and parsing curve information.
+
+        Parameters:
+            atom_list (List[int]): A list of atom indices.
+
+        Returns:
+            List[list]: A list of processed lines from the configuration file, where each line is a list representing the parsed information. The first element of each line is updated using the _parse_atom_selection method.
+        """
+        # Take atom list
+        self.atom_list = atom_list
+
+        # Fetch each line in config file
+        with self.configfile.open(mode="r") as file:
+            lines = file.readlines()
+
+        # Filter out comments and empty lines
+        lines = [line.strip() for line in lines if not line.startswith('#') and line.strip()]
+
+        # Post-process each curve
+        processed_lines = []
+        for line in lines:
+            line = self._check_and_parse_curve_info(line)
+
+            # Parse atom selection
+            line[0] = self._parse_atom_selection(line[0])
+
+            processed_lines.append(line)
+
+        return processed_lines
 
 # Test area
 if __name__ == "__main__":
-    pass
+    # Test reading config file
+    pdos_test_file = Path("../PDOSIN.template")
+    parser = UserConfigParser(pdos_test_file)
+
+    test_lines = parser.read_config(atom_list=['C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'Zn', 'Zn'])
+
+    print(test_lines)
