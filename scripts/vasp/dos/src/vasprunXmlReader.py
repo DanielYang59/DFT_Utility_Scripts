@@ -258,10 +258,10 @@ class VasprunXmlReader:
         # Calculate summed DOS
         assert all(i in {0, 1} for i in orbital_selections) and len(orbital_selections) == 16
 
-        if pdos_data.shape[2] == 9:
+        if pdos_data.shape[1] == 9:
             return np.dot(pdos_data, np.array(orbital_selections[:9]))
 
-        elif pdos_data.shape[2] == 16:
+        elif pdos_data.shape[1] == 16:
             return np.dot(pdos_data, np.array(orbital_selections))
 
         else:
@@ -337,3 +337,6 @@ if __name__ == "__main__":
     # print(reader._fetch_energy_and_pdos(ion_index=202, spin_index=2).shape)
 
     # Test summing pDOS
+    pdos_data = reader._fetch_energy_and_pdos(ion_index=1, spin_index=1)[:, :9]
+    orbital_selections = [0] * 16
+    print(reader._calculate_summed_dos(pdos_data, orbital_selections).shape)
