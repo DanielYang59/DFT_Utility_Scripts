@@ -252,12 +252,20 @@ class VasprunXmlReader:
         """
         # Check pDOS array shape
         nedos = int(self._read_incar_tag("NEDOS"))
-        if pdos_data.ndim != 2 or pdos_data.shape != (nedos, 16):
-            raise ValueError(f"Illegal pDOS array shape, expect ({nedos}, 16), got {pdos_data.shape}.")
+        if pdos_data.ndim != 2 or pdos_data.shape not in {(nedos, 16), (nedos, 9)}:
+            raise ValueError(f"Illegal pDOS array shape, expect ({nedos}, 16) or ({nedos}, 9), got {pdos_data.shape}.")
 
         # Calculate summed DOS
         assert all(i in {0, 1} for i in orbital_selections) and len(orbital_selections) == 16
-        return np.dot(pdos_data, np.array(orbital_selections))
+
+        if pdos_data.shape[2] == 9:
+            return np.dot(pdos_data, np.array(orbital_selections[:9]))
+
+        elif pdos_data.shape[2] == 16:
+            return np.dot(pdos_data, np.array(orbital_selections))
+
+        else:
+            raise RuntimeError("Unknown pDOS data shape, please report to the author.")
 
     def read_pdos(self, curve_info: str) -> Tuple[dict, dict]:
         """
