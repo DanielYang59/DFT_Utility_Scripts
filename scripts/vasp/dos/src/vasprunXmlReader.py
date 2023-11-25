@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import warnings
 from pathlib import Path
 import numpy as np
 import xml.etree.ElementTree as ET
-import warnings
 from typing import List, Tuple
 
 class VasprunXmlReader:
@@ -109,14 +109,22 @@ class VasprunXmlReader:
         Returns:
         list: A list containing element names.
         """
-        atom_info_path = ".//modeling/atominfo/array[@name='atoms']/set/rc"
+        # Get the <atominfo> section in vasprun.xml
+        atom_info = self.vasprun_root.find(".//atominfo").find(".//set")
+
+        # Initialize a list to store element names
         element_names = []
 
-        for rc in self.root.findall(atom_info_path):
-            for element in rc.findall("c[@type='string']"):
-                element_name = element.text.strip()
-                element_names.append(element_name)
+        # Iterate through <rc> elements under <set>
+        for rc_element in atom_info.findall(".//rc"):
+            # Find the <c> element under <rc> and get its text
+            c_element = rc_element.find(".//c")
+            element_name = c_element.text.strip()
 
+            # Append the element name to the list
+            element_names.append(element_name)
+
+        assert element_names
         return element_names
 
     def _parse_curve_info(self, curve_info: str) -> list:
@@ -229,10 +237,16 @@ class VasprunXmlReader:
         assert ion_index >= 1
         assert spin_index in {1, 2}
 
+        #
+        xpath_str = f'.//partial/array/set/set[@comment="ion {ion_index}"]/r'
+        ion_data_elements = self.vasprun_root.findall(xpath_str)
+        ion_data = [list(map(float, element.text.split())) for element in ion_data_elements]
+        return np.array(ion_data)
+
     def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
         pass
 
-    def read_pdos(self, curve_info: str) -> Tuple(dict, dict):
+    def read_pdos(self, curve_info: str) -> Tuple[dict, dict]:
         """
         Reads the PDOS for selected atoms.
 
@@ -281,4 +295,13 @@ if __name__ == "__main__":
     fermi_level = reader._read_fermi_level()
     print(fermi_level)
 
-    # DEBUG: check return type hint of read_dos method
+    # DEBUG: check return types
+
+    # Test read atom list
+    atom_list = reader._read_atom_list()
+    print(atom_list)
+
+    # Test parse curve info
+
+
+    # Test parse atom selection
