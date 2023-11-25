@@ -10,37 +10,6 @@ class PdosCurveFetcher:
         assert isinstance(vasprunreader, VasprunXmlReader)
         self.vasprunreader = vasprunreader
 
-    def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
-        """
-        Calculate the summed DOS based orbital selections.
-
-        Parameters:
-            pdos_data (np.ndarray): The partial DOS data in shape (NEDOS, numOrbitals).
-            orbital_selections (List[int]): A list of orbital selections (0 or 1) for each of the 16 orbitals.
-
-        Returns:
-            np.ndarray: The summed DOS calculated by dot product of pdos_data and orbital_selections.
-
-        Raises:
-            ValueError: If the shape of pdos_data is not (NEDOS, 16) or if orbital_selections does not have 16 elements.
-        """
-        # Check pDOS array shape
-        nedos = int(self._read_incar_tag("NEDOS"))
-        if pdos_data.ndim != 2 or pdos_data.shape not in {(nedos, 16), (nedos, 9)}:
-            raise ValueError(f"Illegal pDOS array shape, expect ({nedos}, 16) or ({nedos}, 9), got {pdos_data.shape}.")
-
-        # Calculate summed DOS
-        assert all(i in {0, 1} for i in orbital_selections) and len(orbital_selections) == 16
-
-        if pdos_data.shape[1] == 9:
-            return np.dot(pdos_data, np.array(orbital_selections[:9]))
-
-        elif pdos_data.shape[1] == 16:
-            return np.dot(pdos_data, np.array(orbital_selections))
-
-        else:
-            raise RuntimeError("Unknown pDOS data shape, please report to the author.")
-
     def _fetch_and_cat_atoms(self, atom_indexes: List[int], spin_index: int) -> np.ndarray:
         """
         Fetches and concatenates the pDOS for specified atoms and spin index.
