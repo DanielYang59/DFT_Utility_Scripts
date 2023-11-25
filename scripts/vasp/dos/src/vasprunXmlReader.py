@@ -31,13 +31,13 @@ class VasprunXmlReader:
 
     def _validate_incar_tags_for_pdos_calc(self) -> None:
         """
-        Validate INCAR tags for PDOS calculation.
+        Validate INCAR tags for pDOS calculation.
 
         Raises:
             RuntimeError: If the IBRION, or NSW tags are not set to the expected values.
             UserWarning: If the LORBITAL tag has a value other than 11, as the script is intended for LORBITAL=11.
 
-        This function fetches relevant INCAR tags for a PDOS calculation and checks if they are set to the expected values.
+        This function fetches relevant INCAR tags for a pDOS calculation and checks if they are set to the expected values.
         The validation criteria are as follows:
         - IBRION should be set to -1 for "no ion updating."
         - NSW should be set to 0 for "0 ionic steps."
@@ -211,17 +211,37 @@ class VasprunXmlReader:
         return np.array(ion_data)
 
     def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
-        pass
+        """
+        Calculate the summed DOS based orbital selections.
+
+        Parameters:
+            pdos_data (np.ndarray): The partial DOS data in shape (NEDOS, numOrbitals).
+            orbital_selections (List[int]): A list of orbital selections (0 or 1) for each of the 16 orbitals.
+
+        Returns:
+            np.ndarray: The summed DOS calculated by dot product of pdos_data and orbital_selections.
+
+        Raises:
+            ValueError: If the shape of pdos_data is not (NEDOS, 16) or if orbital_selections does not have 16 elements.
+        """
+        # Check pDOS array shape
+        nedos = int(self._read_incar_tag("NEDOS"))
+        if pdos_data.ndim != 2 or pdos_data.shape != (nedos, 16):
+            raise ValueError(f"Illegal pDOS array shape, expect ({nedos}, 16), got {pdos_data.shape}.")
+
+        # Calculate summed DOS
+        assert all(i in {0, 1} for i in orbital_selections) and len(orbital_selections) == 16
+        return np.dot(pdos_data, np.array(orbital_selections))
 
     def read_pdos(self, curve_info: str) -> Tuple[dict, dict]:
         """
-        Reads the PDOS for selected atoms.
+        Reads the pDOS for selected atoms.
 
         Parameters:
-            curve_info (str): A string containing information about the requested PDOS.
+            curve_info (str): A string containing information about the requested pDOS.
 
         Returns:
-            dict: A dictionary where keys are atom indices and values are arrays representing the PDOS for the corresponding atoms.
+            dict: A dictionary where keys are atom indices and values are arrays representing the pDOS for the corresponding atoms.
         """
         # Parse curve info str
         curve_info = self._parse_curve_info(curve_info)
@@ -229,19 +249,19 @@ class VasprunXmlReader:
         # Parse atom selection list
         atom_selections = self._parse_atom_selection(curve_info[0])
 
-        # Read PDOS of selected atoms
+        # Read pDOS of selected atoms
         pdos_dict_spin_up = {}
         pdos_dict_spin_down = {}
 
         for index in atom_selections:
-            # Fetch PDOS (spin up)
+            # Fetch pDOS (spin up)
             pdos_data_spin_up = self._fetch_pdos(index, spin_index=1)
 
             # Calculate summed DOS (spin up)
             pdos_dict_spin_up[index] = self._calculate_summed_dos(pdos_data_spin_up, curve_info[1:])
 
             if self.ispin == "2":
-                # Fetch PDOS (spin down)
+                # Fetch pDOS (spin down)
                 pdos_data_spin_down = self._fetch_pdos(index, spin_index=2)
 
                 # Calculate summed DOS (spin down)
@@ -274,8 +294,8 @@ if __name__ == "__main__":
     # print(reader._parse_atom_selection(atom_selections="1_3-8_Ti"))
     # print(reader._parse_atom_selection(atom_selections="all"))
 
-    # Test parse curve info
-    print(reader._parse_curve_info(curve_info="all              0    0   0   0     0    0    0    0    0         0     0    0    0   0    0    0"))
-    print(reader._parse_curve_info(curve_info="all              1    1   1   1     1    1    1    1    1       1     1    1    1   1    1    1"))
+    # # Test parse curve info
+    # print(reader._parse_curve_info(curve_info="all              0    0   0   0     0    0    0    0    0         0     0    0    0   0    0    0"))
+    # print(reader._parse_curve_info(curve_info="all              1    1   1   1     1    1    1    1    1       1     1    1    1   1    1    1"))
 
-    # Test fetch PDOS
+    # Test fetch pDOS
