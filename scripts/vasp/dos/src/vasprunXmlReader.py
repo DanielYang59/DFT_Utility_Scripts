@@ -17,11 +17,17 @@ class VasprunXmlReader:
         vasprun_tree = ET.parse(vasprunXmlFile)
         self.vasprun_root = vasprun_tree.getroot()
 
+        # Validate INCAR tags before proceeding
+        self._validate_incar_tags_for_pdos_calc()
+
         # Read ISPIN tag in INCAR file
         self.ispin = self._read_incar_tag("ISPIN")
 
-        # Validate INCAR tags before proceeding
-        self._validate_incar_tags_for_pdos_calc()
+        # Read atom list
+        self.atom_list = self._read_atom_list()
+
+        # Read fermi level
+        self.fermi_level = self._read_fermi_level()
 
     def _validate_incar_tags_for_pdos_calc(self) -> None:
         """
@@ -207,12 +213,9 @@ class VasprunXmlReader:
         Returns:
             list: List of selected atom indices (starting from 1).
         """
-        # Get element list
-        elements = self._read_atom_list()
-
         # Parse atom selections
         if atom_selections == "all":
-            atom_selections_by_index = list(range(len(elements)))
+            return list(range(1, len(self.atom_list) + 1))
 
         atom_selections_by_index = []
         for selection in atom_selections.split("_"):
@@ -227,7 +230,7 @@ class VasprunXmlReader:
 
             # Element selection: "Fe"
             else:
-                atom_selections_by_index.extend([(index + 1) for index, value in enumerate(elements) if value == selection])
+                atom_selections_by_index.extend([(index + 1) for index, value in enumerate(self.atom_list) if value == selection])
 
         assert len(atom_selections_by_index) == len(set(atom_selections_by_index)), "Duplicate atom selections detected."
         return atom_selections_by_index
@@ -287,21 +290,30 @@ if __name__ == "__main__":
     # Import vasprun.xml file
     reader = VasprunXmlReader(vasprunXmlFile=Path("../vasprun.xml"))
 
-    # Test read INCAR tags
-    nedos = reader._read_incar_tag(tag="NEDOS")
-    print(nedos)
+    # # Test read INCAR tags
+    # nedos = reader._read_incar_tag(tag="NEDOS")
+    # print(nedos)
 
-    # Test read fermi level
-    fermi_level = reader._read_fermi_level()
-    print(fermi_level)
+    # # Test read fermi level
+    # fermi_level = reader._read_fermi_level()
+    # print(fermi_level)
 
-    # DEBUG: check return types
-
-    # Test read atom list
-    atom_list = reader._read_atom_list()
-    print(atom_list)
-
-    # Test parse curve info
-
+    # # Test read atom list
+    # atom_list = reader._read_atom_list()
+    # print(atom_list)
 
     # Test parse atom selection
+    print(reader._parse_atom_selection(atom_selections="1"))
+    print(reader._parse_atom_selection(atom_selections="202"))
+    print(reader._parse_atom_selection(atom_selections="all"))
+
+    # Test parse curve info
+    #reader._parse_curve_info()
+
+
+    # Test fetch PDOS
+
+
+
+
+    # DEBUG: check return types
