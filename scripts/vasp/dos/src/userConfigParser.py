@@ -8,11 +8,7 @@ from shutil import copyfile
 class UserConfigParser:
     def __init__(self, configfile: Path) -> None:
         # Check config file
-        if configfile.is_file():
-            self.configfile = configfile
-
-        else:
-            raise FileNotFoundError(f"PDOS extractor config file {configfile} not found.")
+        self.configfile = configfile
 
     def generate_config_template(self, config_template_file: Path) -> None:
         """
