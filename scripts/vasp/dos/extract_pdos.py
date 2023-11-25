@@ -2,24 +2,24 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+import sys
 
 from src.userConfigParser import UserConfigParser
 from src.vasprunXmlReader import VasprunXmlReader
-from src.outputPdosGenerator import OutputPdosGenerator
+from src.pdosCurveFetcher import PdosCurveFetcher
+from src.write_output_pdos import write_output_pdos
 
 def main(configfile=Path("PDOSIN")) -> None:
     """
     Main function for extracting Partial Density of States (PDOS) data from vasprun.xml file.
 
     Parameters:
-        configfile (Path, optional): Path to the configuration file (PDOSIN). Defaults to "PDOSIN" in the current working directory.
-
-    Returns:
-        None
+        configfile (Union[str, Path], optional): Path to the configuration file (PDOSIN).
+            Defaults to "PDOSIN" in the current working directory.
 
     This function reads the configuration file, parses the requested curves, imports the vasprun.xml file,
     reads the Fermi level and ISPIN tag, and fetches PDOS data for each requested curve.
-    The fetched PDOS data, along with energy data, is then written to the output file "PDOS.dat" in the current working directory.
+    The fetched PDOS data, along with energy data, is then written to the output file "PDOS.csv" in the current working directory.
     If the specified configuration file does not exist, a config template is generated.
 
     Note: The PDOSIN configuration file specifies the curves for which PDOS data should be generated.
@@ -29,36 +29,36 @@ def main(configfile=Path("PDOSIN")) -> None:
     # Get current working directory
     cwd = Path.cwd()
 
-    # Read config file
-    config_parser = UserConfigParser(configfile=cwd / configfile)
-
-    if not configfile.is_file():  # or generate config template
-        config_parser.generate_config_template()
-
-    config_parser.read_config()
-
-    # Get requested curve list
-    requested_curves = config_parser.parse()
 
     # Import vasprun.xml file
     vasprunxml_reader = VasprunXmlReader(vasprunXmlFile=cwd / "vasprun.xml")
 
-    ## Read fermi level from vasprun.xml
     fermi_level = vasprunxml_reader.read_fermi_level()
+    atom_list = vasprunxml_reader.read_atom_list()
+    ispin = int(vasprunxml_reader.read_incar_tag("ISPIN"))
+
+
+    # Read config file
+    config_parser = UserConfigParser(configfile=cwd / configfile)
+
+    if configfile.is_file():
+        requested_curves = config_parser.read_config(atom_list)
+
+    # or generate config template if not existing
+    else:
+        config_parser.generate_config_template(Path(__file__).resolve().parent / "src" / "PDOSIN.template")
+        sys.exit("PDOSIN not found. Template generated.")
+
 
     # For each curve required, fetch PDOS data
-    fetched_pdos_data = [
-        vasprunxml_reader.read_curve(curve_info=requested_curve)
-        for requested_curve in requested_curves
-        ]
+    fetcher = PdosCurveFetcher(vasprunxml_reader)
+    energy_array, spin_up_pdos, spin_down_pdos = [fetcher.fetch_curve(curve, ispin) for curve in requested_curves]
 
-    # Fetch energy data
-    energies = vasprunxml_reader.read_energies()
-    energies -= fermi_level
+    # Subtract fermi level
+    energy_array -= fermi_level
 
-    # Output fetched PDOS data
-    output_generator = OutputPdosGenerator(fetched_pdos_data, energies)
-    output_generator.write(cwd / "PDOS.csv")
+    # Output PDOS data
+    write_output_pdos(energy_array, spin_up_pdos, spin_down_pdos, cwd / "PDOS.csv")
 
 if __name__ == "__main__":
     main()
