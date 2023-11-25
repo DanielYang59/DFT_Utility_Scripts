@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import xml.etree.ElementTree as ET
 from typing import List, Tuple
+import re
 
 class VasprunXmlReader:
     def __init__(self, vasprunXmlFile: Path) -> None:
@@ -199,16 +200,44 @@ class VasprunXmlReader:
         assert len(atom_selections_by_index) == len(set(atom_selections_by_index)), "Duplicate atom selections detected."
         return atom_selections_by_index
 
-    def _fetch_pdos(self, ion_index: int, spin_index: int) -> np.ndarray:
-        # Check args
-        assert ion_index >= 1
-        assert spin_index in {1, 2}
+    def _fetch_energy_and_pdos(self, ion_index: int, spin_index: int) -> np.ndarray:
+        """
+        Extracts energy and partial density of states (pDOS) data for a specific ion and spin from the vasprun.xml file.
 
-        #
-        xpath_str = f'.//partial/array/set/set[@comment="ion {ion_index}"]/r'
-        ion_data_elements = self.vasprun_root.findall(xpath_str)
-        ion_data = [list(map(float, element.text.split())) for element in ion_data_elements]
-        return np.array(ion_data)
+        Parameters:
+            ion_index (int): Index of the ion (1-indexed).
+            spin_index (int): Index of the spin (1 or 2).
+
+        Returns:
+            np.ndarray: Numpy array containing the extracted energy and pDOS data.
+
+        Raises:
+            ValueError: If ion_index is less than or equal to 0 (expecting 1-indexing) or if spin_index is not 1 or 2.
+            TypeError: If the specific <set> element based on ion and spin indices is not found in the XML structure.
+
+        Note:
+        The returned array includes the energy values and pDOS data for the specified ion and spin.
+        """
+        # Check args
+        if ion_index <= 0:
+            raise ValueError(f"Illegal ion index {ion_index} (expect 1-indexing).")
+        if spin_index not in {1, 2}:
+            raise ValueError(f"Illegal spin {spin_index}.")
+
+        # Find the <set> element under <modeling> - <dos> - <partial> - <array>
+        set_element = self.vasprun_root.find(".//dos").find(".//partial").find(".//array").find(".//set")
+
+        # Construct the XPath to get to the specific <set> element based on ion and spin indices
+        xpath_ion_spin = f".//set[@comment='ion {ion_index}']/set[@comment='spin {spin_index}']"
+
+        # Find the specific <set> element based on ion and spin indices
+        specific_set_element = set_element.find(xpath_ion_spin)
+
+        # Convert the <set> element to a string
+        set_content = ET.tostring(specific_set_element, encoding="ISO-8859-1").decode("ISO-8859-1")
+
+        # Convert pDOS data block to numpy array
+        return np.array(re.findall(r"-?\d+\.\d+", set_content), dtype=float)
 
     def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
         """
@@ -255,14 +284,14 @@ class VasprunXmlReader:
 
         for index in atom_selections:
             # Fetch pDOS (spin up)
-            pdos_data_spin_up = self._fetch_pdos(index, spin_index=1)
+            pdos_data_spin_up = self._fetch_energy_and_pdos(index, spin_index=1)
 
             # Calculate summed DOS (spin up)
             pdos_dict_spin_up[index] = self._calculate_summed_dos(pdos_data_spin_up, curve_info[1:])
 
             if self.ispin == "2":
                 # Fetch pDOS (spin down)
-                pdos_data_spin_down = self._fetch_pdos(index, spin_index=2)
+                pdos_data_spin_down = self._fetch_energy_and_pdos(index, spin_index=2)
 
                 # Calculate summed DOS (spin down)
                 pdos_dict_spin_down[index] = self._calculate_summed_dos(pdos_data_spin_down, curve_info[1:])
@@ -275,16 +304,13 @@ if __name__ == "__main__":
     reader = VasprunXmlReader(vasprunXmlFile=Path("../vasprun.xml"))
 
     # # Test read INCAR tags
-    # nedos = reader._read_incar_tag(tag="NEDOS")
-    # print(nedos)
+    # print(reader._read_incar_tag(tag="NEDOS"))
 
     # # Test read fermi level
-    # fermi_level = reader._read_fermi_level()
-    # print(fermi_level)
+    # print(reader._read_fermi_level())
 
     # # Test read atom list
-    # atom_list = reader._read_atom_list()
-    # print(atom_list)
+    # print(reader._read_atom_list())
 
     # # Test parse atom selection
     # print(reader._parse_atom_selection(atom_selections="1"))
@@ -299,3 +325,10 @@ if __name__ == "__main__":
     # print(reader._parse_curve_info(curve_info="all              1    1   1   1     1    1    1    1    1       1     1    1    1   1    1    1"))
 
     # Test fetch pDOS
+    print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=1))
+    print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=1).shape)
+    # print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=2))
+    # print(reader._fetch_energy_and_pdos(ion_index=202, spin_index=1))
+    # print(reader._fetch_energy_and_pdos(ion_index=202, spin_index=2))
+
+    # Test summing pDOS
