@@ -106,7 +106,7 @@ class PdosCurveFetcher:
             energy_array, spin_down_pdos_orbital_selected = self._select_pdos_by_orbital(spin_down_pdos, orbital_selections)
 
         else:
-            spin_down_pdos = np.nan
+            spin_down_pdos = None
 
         assert energy_array.shape == spin_up_pdos_orbital_selected.shape
         return energy_array, spin_up_pdos_orbital_selected, spin_down_pdos_orbital_selected
