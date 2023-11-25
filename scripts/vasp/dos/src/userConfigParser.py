@@ -80,6 +80,8 @@ class UserConfigParser:
                 atom_selections_by_index.extend([(index + 1) for index, value in enumerate(self.atom_list) if value == selection])
 
         assert len(atom_selections_by_index) == len(set(atom_selections_by_index)), "Duplicate atom selections detected."
+        if not atom_selections_by_index:
+            raise ValueError(f"No match found for atom request: {atom_selections}.")
         return atom_selections_by_index
 
     def read_config(self, atom_list: List[int]) -> list:
