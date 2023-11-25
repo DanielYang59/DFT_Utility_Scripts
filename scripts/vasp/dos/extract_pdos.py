@@ -52,13 +52,10 @@ def main(configfile=Path("PDOSIN")) -> None:
 
     # For each curve required, fetch PDOS data
     fetcher = PdosCurveFetcher(vasprunxml_reader)
-    energy_array, spin_up_pdos, spin_down_pdos = [fetcher.fetch_curve(curve, ispin) for curve in requested_curves]
-
-    # Subtract fermi level
-    energy_array -= fermi_level
+    pdos_data = [fetcher.fetch_curve(curve, ispin) for curve in requested_curves]
 
     # Output PDOS data
-    write_output_pdos(energy_array, spin_up_pdos, spin_down_pdos, cwd / "PDOS.csv")
+    write_output_pdos(pdos_data, fermi_level, cwd / "PDOS.csv")
 
 if __name__ == "__main__":
     main()
