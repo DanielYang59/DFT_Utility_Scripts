@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import xml.etree.ElementTree as ET
 from typing import List, Tuple
-import re
 
 class VasprunXmlReader:
     def __init__(self, vasprunXmlFile: Path) -> None:
@@ -233,11 +232,9 @@ class VasprunXmlReader:
         # Find the specific <set> element based on ion and spin indices
         specific_set_element = set_element.find(xpath_ion_spin)
 
-        # Convert the <set> element to a string
-        set_content = ET.tostring(specific_set_element, encoding="ISO-8859-1").decode("ISO-8859-1")
-
         # Convert pDOS data block to numpy array
-        return np.array(re.findall(r"-?\d+\.\d+", set_content), dtype=float)
+        r_elements = specific_set_element.findall(".//r")
+        return np.array([list(map(float, r.text.split())) for r in r_elements])
 
     def _calculate_summed_dos(self, pdos_data: np.ndarray, orbital_selections: List[int]) -> np.ndarray:
         """
@@ -255,12 +252,20 @@ class VasprunXmlReader:
         """
         # Check pDOS array shape
         nedos = int(self._read_incar_tag("NEDOS"))
-        if pdos_data.ndim != 2 or pdos_data.shape != (nedos, 16):
-            raise ValueError(f"Illegal pDOS array shape, expect ({nedos}, 16), got {pdos_data.shape}.")
+        if pdos_data.ndim != 2 or pdos_data.shape not in {(nedos, 16), (nedos, 9)}:
+            raise ValueError(f"Illegal pDOS array shape, expect ({nedos}, 16) or ({nedos}, 9), got {pdos_data.shape}.")
 
         # Calculate summed DOS
         assert all(i in {0, 1} for i in orbital_selections) and len(orbital_selections) == 16
-        return np.dot(pdos_data, np.array(orbital_selections))
+
+        if pdos_data.shape[1] == 9:
+            return np.dot(pdos_data, np.array(orbital_selections[:9]))
+
+        elif pdos_data.shape[1] == 16:
+            return np.dot(pdos_data, np.array(orbital_selections))
+
+        else:
+            raise RuntimeError("Unknown pDOS data shape, please report to the author.")
 
     def read_pdos(self, curve_info: str) -> Tuple[dict, dict]:
         """
@@ -324,11 +329,14 @@ if __name__ == "__main__":
     # print(reader._parse_curve_info(curve_info="all              0    0   0   0     0    0    0    0    0         0     0    0    0   0    0    0"))
     # print(reader._parse_curve_info(curve_info="all              1    1   1   1     1    1    1    1    1       1     1    1    1   1    1    1"))
 
-    # Test fetch pDOS
-    print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=1))
-    print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=1).shape)
-    # print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=2))
-    # print(reader._fetch_energy_and_pdos(ion_index=202, spin_index=1))
-    # print(reader._fetch_energy_and_pdos(ion_index=202, spin_index=2))
+    # # Test fetch pDOS
+    # print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=1))
+    # print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=1).shape)
+    # print(reader._fetch_energy_and_pdos(ion_index=1, spin_index=2).shape)
+    # print(reader._fetch_energy_and_pdos(ion_index=202, spin_index=1).shape)
+    # print(reader._fetch_energy_and_pdos(ion_index=202, spin_index=2).shape)
 
     # Test summing pDOS
+    pdos_data = reader._fetch_energy_and_pdos(ion_index=1, spin_index=1)[:, :9]
+    orbital_selections = [0] * 16
+    print(reader._calculate_summed_dos(pdos_data, orbital_selections).shape)
