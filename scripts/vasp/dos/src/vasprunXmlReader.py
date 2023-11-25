@@ -135,7 +135,7 @@ class VasprunXmlReader:
 
     def _parse_curve_info(self, curve_info: str) -> list:
         """
-        Parses the curve information string and standardizes the orbital selections to binary values.
+        Parses the curve information string and confirm the orbital selections to binary values.
 
         Parameters:
             curve_info (str): The curve information string containing orbital selections.
@@ -143,55 +143,19 @@ class VasprunXmlReader:
         Returns:
             list: A list containing the standardized curve information with binary orbital selections.
         """
-        # Convert curve info string to list and remove unnecessary spaces
-        if not isinstance(curve_info, str):
+        # Check curve info string
+        if not isinstance(curve_info, str) or len(curve_info.split()) != 17:
             raise TypeError(f"Please check curve info line: {curve_info}.")
+
         curve_info = curve_info.split()
 
-        # Standardize curve selection entry to binary
+        # Standardize curve selection entry to binary integers
         standardized_curve_info = [curve_info[0], ]
-        for i, orbitals in enumerate(curve_info[1:]):
-            # s orbital
-            if i == 0:
-                if orbitals in {"1", "s"}:
-                    standardized_curve_info.append(1)
-                elif orbitals in {"0", "nos"}:
-                    standardized_curve_info.append(0)
-                else:
-                    raise ValueError(f"Illegal s orbital selection {orbitals}.")
+        for selection in curve_info[1:]:
+            if selection not in {"0", "1"}:
+                raise ValueError(f"Illegal orbital selection {selection}.")
 
-            # p orbital
-            elif i == 1:
-                if orbitals == "p":
-                    standardized_curve_info.extend([1] * 3)
-                elif orbitals == "nop":
-                    standardized_curve_info.extend([0] * 3)
-                elif len(orbitals) == 3 and all(o in {"0", "1"} for o in orbitals):
-                    standardized_curve_info.extend([int(o) for o in orbitals])
-                else:
-                    raise ValueError(f"Illegal p orbital selection {orbitals}.")
-
-            # d orbital
-            elif i == 2:
-                if orbitals == "d":
-                    standardized_curve_info.extend([1] * 5)
-                elif orbitals == "nod":
-                    standardized_curve_info.extend([0] * 5)
-                elif len(orbitals) == 5 and all(o in {"0", "1"} for o in orbitals):
-                    standardized_curve_info.extend([int(o) for o in orbitals])
-                else:
-                    raise ValueError(f"Illegal d orbital selection {orbitals}.")
-
-            # f orbital
-            elif i == 3:
-                if orbitals == "f":
-                    standardized_curve_info.extend([1] * 7)
-                elif orbitals == "nof":
-                    standardized_curve_info.extend([0] * 7)
-                elif len(orbitals) == 7 and all(o in {"0", "1"} for o in orbitals):
-                    standardized_curve_info.extend([int(o) for o in orbitals])
-                else:
-                    raise ValueError(f"Illegal f orbital selection {orbitals}.")
+            standardized_curve_info.append(int(selection))
 
         return standardized_curve_info
 
@@ -302,18 +266,16 @@ if __name__ == "__main__":
     # atom_list = reader._read_atom_list()
     # print(atom_list)
 
-    # Test parse atom selection
-    print(reader._parse_atom_selection(atom_selections="1"))
-    print(reader._parse_atom_selection(atom_selections="202"))
-    print(reader._parse_atom_selection(atom_selections="all"))
+    # # Test parse atom selection
+    # print(reader._parse_atom_selection(atom_selections="1"))
+    # print(reader._parse_atom_selection(atom_selections="202"))
+    # print(reader._parse_atom_selection(atom_selections="2-8"))
+    # print(reader._parse_atom_selection(atom_selections="Ti"))
+    # print(reader._parse_atom_selection(atom_selections="1_3-8_Ti"))
+    # print(reader._parse_atom_selection(atom_selections="all"))
 
     # Test parse curve info
-    #reader._parse_curve_info()
-
+    print(reader._parse_curve_info(curve_info="all              0    0   0   0     0    0    0    0    0         0     0    0    0   0    0    0"))
+    print(reader._parse_curve_info(curve_info="all              1    1   1   1     1    1    1    1    1       1     1    1    1   1    1    1"))
 
     # Test fetch PDOS
-
-
-
-
-    # DEBUG: check return types
