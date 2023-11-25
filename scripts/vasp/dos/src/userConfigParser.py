@@ -3,6 +3,7 @@
 
 from pathlib import Path
 from typing import List
+from shutil import copyfile
 
 class UserConfigParser:
     def __init__(self, configfile: Path) -> None:
@@ -13,8 +14,32 @@ class UserConfigParser:
         else:
             raise FileNotFoundError(f"PDOS extractor config file {configfile} not found.")
 
-    def generate_config_template(self) -> None:
-        pass
+    def generate_config_template(self, config_template_file: Path) -> None:
+        """
+        Copy the provided configuration template file to the current working directory.
+
+        Parameters:
+            config_template_file (Path): The path to the configuration template file.
+
+        Raises:
+            FileNotFoundError: If the specified `config_template_file` does not exist.
+        """
+
+        # Check if the file exists before copying
+        if not config_template_file.exists():
+            raise FileNotFoundError(f"Error: Config template file '{config_template_file}' not found.")
+
+        else:
+            # Get the filename from the path
+            filename = config_template_file.name
+
+            # Set the destination path to the current working directory
+            destination_path = Path.cwd() / filename
+
+            # Copy the file to the destination path
+            copyfile(config_template_file, destination_path)
+
+            print(f"Config template file '{filename}' copied to '{destination_path}'")
 
     def _check_and_parse_curve_info(self, curve_info: str) -> list:
         """
