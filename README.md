@@ -18,6 +18,7 @@ If you find any issues or have suggestions, please [raise an issue](https://gith
 │       │           └── poscar
 │       │           └── kpoints
 │       │           └── general
+│       │           └── dos
 │       └── reaction_diagram_plotter
 │       └── adsorbate_depositor
 ```
@@ -42,6 +43,12 @@ The `vasp_cleanup.py` script is a Python utility designed to clean up unnecessar
 
 ## vasp/kpoints
 This Python script generates a regular KPOINTS file for VASP calculations. The user specifies the number of k-points along each of the three axes (`a`, `b`, `c`). They can also choose between a Gamma-centered or Monkhorst-Pack mesh type.
+
+## vasp/dos
+This tool simplifies the extraction of pDOS data from VASP's vasprun.xml files.
+
+
+# TODO:
 
 
 # Contributing to the Project
