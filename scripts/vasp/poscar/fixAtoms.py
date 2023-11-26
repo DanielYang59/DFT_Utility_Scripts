@@ -3,9 +3,10 @@
 
 from pathlib import Path
 from typing import List
-import ase
+from ase import io
 import periodictable
 import atexit
+import inspect
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
@@ -25,7 +26,7 @@ class PoscarAtomFixer:
 
         """
         if poscarfile.is_file():
-            self.poscar = ase.io.read(poscarfile)
+            self.poscar = io.read(poscarfile)
         else:
             raise FileNotFoundError(f"Cannot found POSCAR file {poscarfile}.")
 
@@ -81,9 +82,9 @@ class PoscarAtomFixer:
             raise FileExistsError(f"The file '{output_filename}' already exists. Set 'overwrite' to True to overwrite.")
 
         # Write the modified POSCAR file
-        ase.io.write(output_filename, self.poscar, format="vasp")
+        io.write(output_filename, self.poscar, format="vasp")
 
-    def fix_by_position(self, position_range: List[float, float], position_mode: str = "absolute", axis: str = "z") -> None:
+    def fix_by_position(self, position_range: List[float], position_mode: str = "absolute", axis: str = "z") -> None:
         """
         Fix atoms based on their coordinates within a specified range along a given axis.
 
@@ -196,7 +197,31 @@ class PoscarAtomFixer:
         self._fix_atoms([(i - 1) for i in indexings])
 
 def main():
-    pass
+    # TODO: need to rewrite this wrapper
+    # DEBUG
+
+
+    # # Initialize PoscarAtomFixer with the POSCAR file path
+    # poscar_path = Path('POSCAR')  # Adjust the path accordingly
+    # poscar_fixer = PoscarAtomFixer(poscarfile=poscar_path)
+
+    # # Display banner for function selection
+    # print("Available Functions:")
+
+    # # Dynamically generate a banner based on available methods in PoscarAtomFixer
+    # for method_name, method in inspect.getmembers(poscar_fixer, predicate=inspect.ismethod):
+    #     if not method_name.startswith('_'):  # Exclude private methods
+    #         print(f"{method_name}: {inspect.signature(method)}")
+
+    # # Take function selection from user input
+    # function_name = input("Enter the function name to run: ")
+
+    # # Run the selected function if it exists
+    # if hasattr(poscar_fixer, function_name) and callable(getattr(poscar_fixer, function_name)):
+    #     selected_function = getattr(poscar_fixer, function_name)
+    #     selected_function()
+    # else:
+    #     print(f"Function '{function_name}' not found or not callable.")
 
 if __name__ == "__main__":
     main()
