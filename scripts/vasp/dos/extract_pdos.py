@@ -7,7 +7,7 @@ import sys
 from src.userConfigParser import UserConfigParser
 from src.vasprunXmlReader import VasprunXmlReader
 from src.pdosCurveFetcher import PdosCurveFetcher
-from src.write_output_pdos import write_output_pdos
+from src.write_output_pdos import write_pdos_to_file
 
 def main(configfile=Path("PDOSIN")) -> None:
     """
@@ -54,8 +54,8 @@ def main(configfile=Path("PDOSIN")) -> None:
     fetcher = PdosCurveFetcher(vasprunxml_reader)
     pdos_data = [fetcher.fetch_curve(curve, ispin) for curve in requested_curves]
 
-    # Output PDOS data
-    write_output_pdos(pdos_data, fermi_level, cwd / "PDOS.csv")
+    # Output PDOS data (and reference energy to fermi level)
+    write_pdos_to_file(pdos_data, fermi_level, cwd / "PDOS.csv")
 
 if __name__ == "__main__":
     main()
