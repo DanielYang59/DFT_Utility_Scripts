@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 import ase
 import periodictable
+import atexit
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
@@ -12,6 +13,9 @@ class PoscarAtomFixer:
             self.poscar = ase.io.read(poscarfile)
         else:
             raise FileNotFoundError(f"Cannot found POSCAR file {poscarfile}.")
+
+        # Call _write_modifed_poscar method upon exiting
+        atexit.register(self._write_modified_poscar, output_filename='POSCAR_new', overwrite=True)
 
     def _fix_atoms(self, atom_indexes: List[int]) -> None:
         """
@@ -176,5 +180,8 @@ class PoscarAtomFixer:
         # Convert to 0-indexing and fix atoms
         self._fix_atoms([(i - 1) for i in indexings])
 
-if __name__ == "__main__":
+def main():
     pass
+
+if __name__ == "__main__":
+    main()
