@@ -4,6 +4,7 @@
 from pathlib import Path
 from typing import List
 import ase
+import periodictable
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
@@ -65,12 +66,36 @@ class PoscarAtomFixer:
         axis = axis.lower()
         assert axis in {"x", "y", "z"}
 
-
     def fix_by_element(self, elements: List[str]) -> None:
-        # Check if is legal element
-        pass
+        """
+        Fix specified atoms by their chemical symbols.
 
-        # Convert element to atom indexing
+        Parameters:
+            elements (List[str]): List of chemical symbols indicating atoms to be fixed.
+
+        Raises:
+            ValueError: If any value is not a legal chemical symbol, not a string, or if there are duplicates.
+        """
+        # Check for legal chemical symbols
+        valid_symbols = {element.symbol for element in periodictable.elements}
+
+        if any(element not in valid_symbols for element in elements):
+            raise ValueError("One or more values in the list are not legal chemical symbols.")
+
+        # Check if every value is a string
+        if any(not isinstance(element, str) for element in elements):
+            raise ValueError("One or more values in the list are not strings.")
+
+        # Check for duplicates
+        if len(elements) != len(set(elements)):
+            raise ValueError("Duplicate values are not allowed in the list.")
+
+        # Convert elements to indexings
+        atom_list = self.poscar.get_chemical_symbols()
+        indexings = [index for index, element in enumerate(atom_list) if element in elements]
+
+        # Fix atom by indexing
+        self._fix_atoms(indexings)
 
     def fix_by_indexing(self, indexings: List[int]) -> None:
         """
