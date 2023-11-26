@@ -30,6 +30,8 @@ class PoscarAtomFixer:
         if len(atom_indexes) != len(set(atom_indexes)):
             raise ValueError("Duplicate values in atom_indexes are not allowed.")
 
+        assert atom_indexes, "Empty index list detected."
+
         # Apply selective dynamics using set_constraint
         selective_dyn = [[True, True, True] for _ in range(len(self.poscar))]
         for idx in atom_indexes:
@@ -62,9 +64,53 @@ class PoscarAtomFixer:
         # Write the modified POSCAR file
         ase.io.write(output_filename, self.poscar, format="vasp")
 
-    def fix_by_position(self, axis: str, ) -> None:
+    def fix_by_position(self, position_range: List[float, float], position_mode: str = "absolute", axis: str = "z") -> None:
+        """
+        Fix atoms based on their coordinates within a specified range along a given axis.
+
+        Parameters:
+            position_range (List[float, float]): Range of coordinates to fix atoms.
+            position_mode (str, optional): Mode of the position range. Either "absolute" (default) or "fractional".
+            axis (str, optional): The axis along which to check coordinates. Should be one of {"x", "y", "z"} (default is "z").
+
+        Raises:
+            AssertionError: If the input parameters violate the specified conditions.
+            ValueError: If the axis is not one of {"x", "y", "z"}.
+
+        Note:
+            - The position_range should be a list of two floats representing the lower and upper bounds of the coordinate range.
+            - If position_mode is "absolute", the coordinate range is given in absolute coordinates.
+            - If position_mode is "fractional", the coordinate range is given in fractional coordinates, and it will be converted to absolute coordinates using the cell parameters.
+            - The atoms whose coordinates fall within the specified range along the specified axis will be fixed.
+
+        """
+        # Check position range selection
+        assert position_mode in {"absolute", "fractional"}
+        assert len(position_range) == 2
+        if position_mode == "absolute":
+            assert position_range[1] > position_range[0] >= 0
+        else:
+            assert 1 >= position_range[1] > position_range[0] >= 0
+
+        # Check axis selection
         axis = axis.lower()
         assert axis in {"x", "y", "z"}
+
+        # Convert fractional position range to absolute
+        if position_mode == "fractional":
+            cell_params = self.poscar.get_cell()
+            position_range = [
+                position_range[0] * cell_params[axis][axis],
+                position_range[1] * cell_params[axis][axis]
+                ]
+
+        # Convert position range to atom indices
+        atom_indices = [
+            idx for idx, pos in enumerate(self.poscar.positions[:, "xyz".index(axis)]) if position_range[0] <= pos <= position_range[1]
+            ]
+
+        # Fix atoms by indexing
+        self._fix_atoms(atom_indices)
 
     def fix_by_element(self, elements: List[str]) -> None:
         """
