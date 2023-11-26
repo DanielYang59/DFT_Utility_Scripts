@@ -9,6 +9,21 @@ import atexit
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
+        """
+        Initialize the PoscarAtomFixer instance.
+
+        Parameters:
+            poscarfile (Path): Path to the POSCAR file.
+
+        Raises:
+            FileNotFoundError: If the specified POSCAR file is not found.
+
+        Note:
+            The PoscarAtomFixer instance is initialized with a POSCAR file, and an `atexit` handler is registered
+            to call the `_write_modified_poscar` method with default output filename 'POSCAR_new' and overwrite set to True
+            upon program exit.
+
+        """
         if poscarfile.is_file():
             self.poscar = ase.io.read(poscarfile)
         else:
