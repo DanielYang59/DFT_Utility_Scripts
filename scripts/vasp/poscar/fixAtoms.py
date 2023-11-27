@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: need to optimize index selection in fix_by_indexing method
+
 from pathlib import Path
 from typing import List
 from ase import io
+from ase.constraints import FixAtoms
 import periodictable
 import atexit
-import inspect
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
@@ -31,7 +33,7 @@ class PoscarAtomFixer:
             raise FileNotFoundError(f"Cannot found POSCAR file {poscarfile}.")
 
         # Call _write_modifed_poscar method upon exiting
-        atexit.register(self._write_modified_poscar, output_filename='POSCAR_new', overwrite=True)
+        atexit.register(self._write_modified_poscar, output_filename=Path("POSCAR_new"), overwrite=True)
 
     def _fix_atoms(self, atom_indexes: List[int]) -> None:
         """
@@ -52,12 +54,9 @@ class PoscarAtomFixer:
 
         assert atom_indexes, "Empty index list detected."
 
-        # Apply selective dynamics using set_constraint
-        selective_dyn = [[True, True, True] for _ in range(len(self.poscar))]
-        for idx in atom_indexes:
-            selective_dyn[idx] = [False, False, False]
-
-        self.poscar.set_constraint(selective_dyn)
+        # Apply selective dynamics using FixAtoms constraint
+        fix_atoms_constraint = FixAtoms(indices=atom_indexes)  # ref: https://wiki.fysik.dtu.dk/ase/ase/constraints.html
+        self.poscar.set_constraint(fix_atoms_constraint)
 
     def _write_modified_poscar(self, output_filename: Path, overwrite: bool = True) -> None:
         """
@@ -197,31 +196,42 @@ class PoscarAtomFixer:
         self._fix_atoms([(i - 1) for i in indexings])
 
 def main():
-    # TODO: need to rewrite this wrapper
-    # DEBUG
+    # Select function from banner
+    banner =\
+    """
+    -------------- POSCAR Atom Fixer -----------------
+    Please selection a function by indexing:
+    1. Fix atom by position range.
+    2. Fix atom by elements.
+    3. Fix atom by indexings.
+    --------------------------------------------------
+    """
+    selection_function = int(input(banner))
+    assert selection_function in range(1, 4)
 
+    # Initialize POSCAR fixer
+    fixer = PoscarAtomFixer(poscarfile=Path.cwd() / "POSCAR")
 
-    # # Initialize PoscarAtomFixer with the POSCAR file path
-    # poscar_path = Path('POSCAR')  # Adjust the path accordingly
-    # poscar_fixer = PoscarAtomFixer(poscarfile=poscar_path)
+    # Selection function
+    if selection_function == 1:  # fix by position range
+        position_range = input("Please input position range as [start,end]:")
+        position_mode = input("Absolute or fractional position?").lower()
+        axis = input("Along which axis?").lower()
+        fixer.fix_by_position(position_range.split(","), position_mode, axis)
 
-    # # Display banner for function selection
-    # print("Available Functions:")
+    elif selection_function == 2:  # fix by element
+        elements = input("Please input elements, separate with \',\':")
+        fixer.fix_by_element(elements=elements.split(","))
 
-    # # Dynamically generate a banner based on available methods in PoscarAtomFixer
-    # for method_name, method in inspect.getmembers(poscar_fixer, predicate=inspect.ismethod):
-    #     if not method_name.startswith('_'):  # Exclude private methods
-    #         print(f"{method_name}: {inspect.signature(method)}")
+    elif selection_function == 3:  # fix by index
+        indexings = input("Please input indexings, separate with \'-\':")
+        fixer.fix_by_indexing(indexings=[int(i) for i in indexings.split("-")])
 
-    # # Take function selection from user input
-    # function_name = input("Enter the function name to run: ")
+    else:
+        raise RuntimeError("Illegal function selection.")
 
-    # # Run the selected function if it exists
-    # if hasattr(poscar_fixer, function_name) and callable(getattr(poscar_fixer, function_name)):
-    #     selected_function = getattr(poscar_fixer, function_name)
-    #     selected_function()
-    # else:
-    #     print(f"Function '{function_name}' not found or not callable.")
+    # Verbose
+    print("New POSCAR written to \'POSCAR_new\'.")
 
 if __name__ == "__main__":
     main()
