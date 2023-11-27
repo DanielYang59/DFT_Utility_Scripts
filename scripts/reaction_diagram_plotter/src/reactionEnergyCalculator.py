@@ -232,7 +232,7 @@ class ReactionEnergyCalculator:
             if self.temperature in kw_at_diff_temp:
                 pOH = -math.log(kw_at_diff_temp[self.temperature], 10) - self.pH
             else:
-                raise RuntimeError(f"Don't have pH correction data for temperature {self.temperature} K. Available data: {kw_at_diff_temp.keys()}")
+                raise RuntimeError(f"Don't have pH correction data for temperature {self.temperature} K. Available temperatures: {kw_at_diff_temp.keys()}")
 
             pH_correction = net_hydroxide_count * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * pOH)
 
