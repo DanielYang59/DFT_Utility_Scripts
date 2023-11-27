@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: need to optimize index selection in fix_by_indexing method
-
 from pathlib import Path
 from typing import List
 from ase import io
 from ase.constraints import FixAtoms
 import periodictable
 import atexit
+
+from lib.atomSelector import AtomSelector
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
@@ -224,8 +224,10 @@ def main():
         fixer.fix_by_element(elements=elements.split(","))
 
     elif selection_function == 3:  # fix by index
-        indexings = input("Please input indexings, separate with \'-\':")
-        fixer.fix_by_indexing(indexings=[int(i) for i in indexings.split("-")])
+        index_selection = input("Please input indexing selections:")
+        selector = AtomSelector(poscarfile=Path.cwd() / "POSCAR")
+
+        fixer.fix_by_indexing(indexings=selector.interpret(index_selection, indexing_mode="one"))
 
     else:
         raise RuntimeError("Illegal function selection.")
