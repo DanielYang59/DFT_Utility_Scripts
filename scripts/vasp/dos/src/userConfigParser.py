@@ -86,7 +86,7 @@ class UserConfigParser:
             return list(range(1, len(self.atom_list) + 1))
 
         atom_selections_by_index = []
-        for selection in atom_selections.split("_"):
+        for selection in atom_selections.split(","):
             # Single atom selection: "1"
             if selection.isdigit():
                 atom_selections_by_index.append(int(selection))
