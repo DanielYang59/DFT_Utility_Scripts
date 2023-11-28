@@ -58,6 +58,57 @@ class PoscarAtomFixer:
         fix_atoms_constraint = FixAtoms(indices=atom_indexes)  # ref: https://wiki.fysik.dtu.dk/ase/ase/constraints.html
         self.poscar.set_constraint(fix_atoms_constraint)
 
+    def _convert_position_range_to_absolute(self):
+        """
+        Convert the specified position range to absolute coordinates based on the given mode.
+
+        If the position mode starts with "f", the position range is interpreted as fractional coordinates
+        and is converted to absolute coordinates using the cell parameters of the POSCAR file.
+
+        If the position mode starts with "r", the position range is interpreted as relative coordinates
+        with respect to existing atoms. The minimum and maximum coordinates along the specified axis
+        are determined, and the relative position range is then converted to absolute coordinates
+        based on these minimum and maximum coordinates.
+
+        If the position mode is "absolute," the position range is returned without any processing.
+
+        Returns:
+            list: A list containing the converted absolute position range [min_absolute, max_absolute].
+
+        Raises:
+            RuntimeError: If an illegal position range mode is encountered.
+
+        """
+        # Define axis index
+        axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
+
+        # convert "fractional" position selection to "absolute"
+        if self.position_mode.startswith("f"):
+            cell_params = self.poscar.get_cell()  # [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)]
+
+            return [
+                self.position_range[0] * cell_params[axis_index],
+                self.position_range[1] * cell_params[axis_index]
+                ]
+
+        # Or convert "relative" position selection to "absolute"
+        elif self.position_mode.startswith("r"):
+            # Calculate the position of the atom with the smallest/largest coordinates
+            coordinates = [atom[axis_index] for atom in self.poscar.get_positions()]
+            min_coordinate, max_coordinate = min(coordinates), max(coordinates)
+
+            return [
+                min_coordinate + self.position_range[0] * (max_coordinate - min_coordinate),
+                min_coordinate + self.position_range[1] * (max_coordinate - min_coordinate)
+            ]
+
+        # Or return absolute position range without processing
+        elif self.position_mode == "absolute":
+            return self.position_range
+
+        else:
+            raise RuntimeError(f"Illegal position range mode {self.position_mode}.")
+
     def _select_atom_by_position(self, position_range: List[int]) -> List[int]:
         # DEBUG
         atom_indices = [
@@ -86,42 +137,25 @@ class PoscarAtomFixer:
             - The atoms whose coordinates fall within the specified range along the specified axis will be fixed.
 
         """
-        # Check position range selection
-        assert len(position_range) == 2
-        position_range = [float(i) for i in position_range]
-
-        position_mode = position_mode.lower()
-        if position_mode.startswith("a"):
-            assert position_range[1] > position_range[0] >= 0
-        elif position_mode.startswith("f") or position_mode.startswith("r"):
-            assert 1 >= position_range[1] > position_range[0] >= 0
-        else:
-            raise ValueError(f"Illegal position mode {position_mode}.")
-
         # Check and convert axis selection
         self.axis = axis.lower()
         assert axis in {"x", "y", "z"}
-        self.axis_index = {"x": 0, "y": 1, "z": 2}[axis]
 
-        # Convert "fractional" position range to "absolute"
-        if position_mode.startswith("f"):
-            cell_params = self.poscar.get_cell()
-            position_range = [
-                position_range[0] * cell_params[axis_index],
-                position_range[1] * cell_params[axis_index]
-                ] # TODO:
+        # Check position range selection
+        assert len(position_range) == 2
+        self.position_range = [float(i) for i in position_range]
 
-        # Or convert "relative" position selection to "absolute"
-        elif position_mode.startswith("r"):
-            # TODO: relative selection
+        self.position_mode = position_mode.lower()
+        if position_mode.startswith("a"):  # absolute
+            assert position_range[1] > position_range[0] >= 0
+        else:  # fractional or relative
+            assert 1 >= position_range[1] > position_range[0] >= 0
 
-            position_range = [
-                position_range[0] * cell_params[axis_index],
-                position_range[1] * cell_params[axis_index]
-                ]
+        # Convert "fractional" and "relative" position ranges to "absolute"
+        abs_position_range = self._convert_position_range_to_absolute()
 
         # Fix atoms by indexing
-        self._fix_atoms(self._select_atom_by_position(position_range))
+        self._fix_atoms(self._select_atom_by_position(abs_position_range))
 
 def main():
     # Select function from banner
