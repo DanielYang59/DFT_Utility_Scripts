@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List
 from ase import io
 from ase.constraints import FixAtoms
-import periodictable
 import atexit
 
 from lib.interpret_atom_selection import interpret_atom_selection
@@ -131,70 +130,6 @@ class PoscarAtomFixer:
         # Fix atoms by indexing
         self._fix_atoms(atom_indices)
 
-    def fix_by_element(self, elements: List[str]) -> None:
-        """
-        Fix specified atoms by their chemical symbols.
-
-        Parameters:
-            elements (List[str]): List of chemical symbols indicating atoms to be fixed.
-
-        Raises:
-            ValueError: If any value is not a legal chemical symbol, not a string, or if there are duplicates.
-        """
-        # Check for legal chemical symbols
-        valid_symbols = {element.symbol for element in periodictable.elements}
-
-        if any(element not in valid_symbols for element in elements):
-            raise ValueError("One or more values in the list are not legal chemical symbols.")
-
-        # Check if every value is a string
-        if any(not isinstance(element, str) for element in elements):
-            raise ValueError("One or more values in the list are not strings.")
-
-        # Check for duplicates
-        if len(elements) != len(set(elements)):
-            raise ValueError("Duplicate values are not allowed in the list.")
-
-        # Convert elements to indexings
-        atom_list = self.poscar.get_chemical_symbols()
-        indexings = [index for index, element in enumerate(atom_list) if element in elements]
-
-        # Fix atom by indexing
-        self._fix_atoms(indexings)
-
-    def fix_by_indexing(self, indexings: List[int]) -> None:
-        """
-        Update atomic positions based on specified indices.
-
-        Parameters:
-            indexings (List[int]): List of integers representing one-indexed indices
-        indicating atoms to be modified.
-
-        Raises:
-            ValueError: If indices are not integers, not one-indexed (start from 1), or if there are duplicate indices.
-
-        Note:
-            This method checks that all elements in the `indexings` list are integers and that
-            the indices are one-indexed (start from 1). It also ensures that there are no duplicate indices.
-
-            After the checks, the method converts the indices to 0-indexing (compatible with Python
-            list indexing) and calls the private method `_fix_atoms` to apply modifications based on the specified indices.
-        """
-         # Check for integer indices
-        if any(not isinstance(idx, int) for idx in indexings):
-            raise ValueError("Indices must be integers.")
-
-        # Check for one-indexing
-        if any(idx < 1 for idx in indexings):
-            raise ValueError("Indices must be one-indexed (start from 1).")
-
-        # Check for duplicates
-        if len(indexings) != len(set(indexings)):
-            raise ValueError("Duplicate indices are not allowed.")
-
-        # Convert to 0-indexing and fix atoms
-        self._fix_atoms([(i - 1) for i in indexings])
-
 def main():
     # Select function from banner
     banner =\
@@ -209,7 +144,7 @@ def main():
 
     # Initialize POSCAR fixer
     poscarfile = Path.cwd() / "POSCAR"
-    atom_list = io.read(poscarfile, format="vasp")
+    atom_list = io.read(poscarfile, format="vasp").get_chemical_symbols()
     fixer = PoscarAtomFixer(poscarfile=poscarfile)
 
     # Selection function
@@ -222,16 +157,16 @@ def main():
     elif selected_function == "2":  # fix by elements or indexes
         selection_banner = \
         """Please input element/index selection. Rules:
+            - one-indexing: "5"
             - indexing range:"1-3"
-            - indexing: "5"
             - element: "Fe"
             - Combine above by ","
         """
 
         user_selection = input(selection_banner).split(",")
 
-        indexings = interpret_atom_selection(atom_list=atom_list, index_selections=user_selection, indexing_mode="one")
-        fixer.fix_by_indexing(indexings)
+        indexings = interpret_atom_selection(atom_list=atom_list, index_selections=user_selection, indexing_mode="zero")
+        fixer._fix_atoms(indexings)
 
     else:
         raise RuntimeError("Illegal function selection.")
