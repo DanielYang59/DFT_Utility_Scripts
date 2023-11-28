@@ -221,11 +221,11 @@ def main():
 
     elif selected_function == "2":  # fix by elements or indexes
         selection_banner = \
-        """Please input element/index selection, rules:
-            indexing range:"1-3",
-            indexing: "5",
-            element: "Fe",
-            or combine above by ","
+        """Please input element/index selection. Rules:
+            - indexing range:"1-3"
+            - indexing: "5"
+            - element: "Fe"
+            - Combine above by ","
         """
 
         user_selection = input(selection_banner).split(",")
