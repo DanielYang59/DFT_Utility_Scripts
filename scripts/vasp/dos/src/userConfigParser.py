@@ -123,7 +123,7 @@ class UserConfigParser:
             lines = file.readlines()
 
         # Filter out comments and empty lines
-        lines = [line.strip() for line in lines if not line.startswith('#') and line.strip()]
+        lines = [line.strip() for line in lines if not line.strip().startswith('#') and line.strip()]
 
         # Post-process each curve
         processed_lines = []
