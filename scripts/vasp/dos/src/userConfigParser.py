@@ -86,7 +86,7 @@ class UserConfigParser:
             return list(range(1, len(self.atom_list) + 1))
 
         atom_selections_by_index = []
-        for selection in atom_selections.split("_"):
+        for selection in atom_selections.split(","):
             # Single atom selection: "1"
             if selection.isdigit():
                 atom_selections_by_index.append(int(selection))
@@ -123,7 +123,7 @@ class UserConfigParser:
             lines = file.readlines()
 
         # Filter out comments and empty lines
-        lines = [line.strip() for line in lines if not line.startswith('#') and line.strip()]
+        lines = [line.strip() for line in lines if not line.strip().startswith('#') and line.strip()]
 
         # Post-process each curve
         processed_lines = []
@@ -136,13 +136,3 @@ class UserConfigParser:
             processed_lines.append(line)
 
         return processed_lines
-
-# Test area
-if __name__ == "__main__":
-    # Test reading config file
-    pdos_test_file = Path("../PDOSIN.template")
-    parser = UserConfigParser(pdos_test_file)
-
-    test_lines = parser.read_config(atom_list=['C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'Ti', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'Zn', 'Zn'])
-
-    print(test_lines)
