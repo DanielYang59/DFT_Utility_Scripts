@@ -8,7 +8,7 @@ from ase.constraints import FixAtoms
 import periodictable
 import atexit
 
-from lib.atomSelector import AtomSelector
+from lib.interpret_atom_selection import interpret_atom_selection
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
@@ -206,25 +206,25 @@ def main():
     3. Fix atom by indexings.
     --------------------------------------------------
     """
-    selection_function = int(input(banner))
-    assert selection_function in range(1, 4)
+    selection_function = input(banner)
 
     # Initialize POSCAR fixer
     fixer = PoscarAtomFixer(poscarfile=Path.cwd() / "POSCAR")
 
     # Selection function
-    if selection_function == 1:  # fix by position range
+    if selection_function == "1":  # fix by position range
         position_range = input("Please input position range as [start,end]:")
         position_mode = input("Absolute or fractional position?").lower()
         axis = input("Along which axis?").lower()
         fixer.fix_by_position(position_range.split(","), position_mode, axis)
 
-    elif selection_function == 2:  # fix by element
+    elif selection_function == "2":  # fix by element
         elements = input("Please input elements, separate with \',\':")
         fixer.fix_by_element(elements=elements.split(","))
 
-    elif selection_function == 3:  # fix by index
+    elif selection_function == "3":  # fix by index
         index_selection = input("Please input indexing selections:")
+        # DEBUG
         selector = AtomSelector(poscarfile=Path.cwd() / "POSCAR")
 
         fixer.fix_by_indexing(indexings=selector.interpret(index_selection, indexing_mode="one"))
