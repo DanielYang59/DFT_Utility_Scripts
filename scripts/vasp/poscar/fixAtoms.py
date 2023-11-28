@@ -58,6 +58,14 @@ class PoscarAtomFixer:
         fix_atoms_constraint = FixAtoms(indices=atom_indexes)  # ref: https://wiki.fysik.dtu.dk/ase/ase/constraints.html
         self.poscar.set_constraint(fix_atoms_constraint)
 
+    def _select_atom_by_position(self, position_range: List[int]) -> List[int]:
+        # DEBUG
+        atom_indices = [
+            idx for idx, pos in enumerate(self.poscar.positions[:, "xyz".index(axis)]) if position_range[0] <= pos <= position_range[1]
+            ]
+
+        return atom_indices
+
     def fix_by_position(self, position_range: List[float], position_mode: str = "absolute", axis: str = "z") -> None:
         """
         Fix atoms based on their coordinates within a specified range along a given axis.
@@ -85,30 +93,35 @@ class PoscarAtomFixer:
         position_mode = position_mode.lower()
         if position_mode.startswith("a"):
             assert position_range[1] > position_range[0] >= 0
-        elif position_mode.startswith("f"):
+        elif position_mode.startswith("f") or position_mode.startswith("r"):
             assert 1 >= position_range[1] > position_range[0] >= 0
         else:
             raise ValueError(f"Illegal position mode {position_mode}.")
 
-        # Check axis selection
-        axis = axis.lower()
+        # Check and convert axis selection
+        self.axis = axis.lower()
         assert axis in {"x", "y", "z"}
+        self.axis_index = {"x": 0, "y": 1, "z": 2}[axis]
 
-        # Convert fractional position range to absolute
+        # Convert "fractional" position range to "absolute"
         if position_mode.startswith("f"):
             cell_params = self.poscar.get_cell()
             position_range = [
-                position_range[0] * cell_params[axis][axis],
-                position_range[1] * cell_params[axis][axis]
+                position_range[0] * cell_params[axis_index],
+                position_range[1] * cell_params[axis_index]
+                ] # TODO:
+
+        # Or convert "relative" position selection to "absolute"
+        elif position_mode.startswith("r"):
+            # TODO: relative selection
+
+            position_range = [
+                position_range[0] * cell_params[axis_index],
+                position_range[1] * cell_params[axis_index]
                 ]
 
-        # Convert position range to atom indices
-        atom_indices = [
-            idx for idx, pos in enumerate(self.poscar.positions[:, "xyz".index(axis)]) if position_range[0] <= pos <= position_range[1]
-            ]
-
         # Fix atoms by indexing
-        self._fix_atoms(atom_indices)
+        self._fix_atoms(self._select_atom_by_position(position_range))
 
 def main():
     # Select function from banner
@@ -129,10 +142,10 @@ def main():
 
     # Selection function
     if selected_function == "1":  # fix by position range
-        position_range = input("Please input position range as [start,end]:")
-        position_mode = input("Absolute or fractional position?").lower()
+        position_range = input("Please input position range as [start-end]:")
+        position_mode = input("Absolute, fractional or relative position?").lower()
         axis = input("Along which axis?").lower()
-        fixer.fix_by_position(position_range.split(","), position_mode, axis)
+        fixer.fix_by_position(position_range.split("-"), position_mode, axis)
 
     elif selected_function == "2":  # fix by elements or indexes
         selection_banner = \
