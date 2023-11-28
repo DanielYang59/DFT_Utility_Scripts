@@ -4,6 +4,7 @@
 from pathlib import Path
 from typing import List
 from shutil import copyfile
+import periodictable
 
 class UserConfigParser:
     def __init__(self, configfile: Path) -> None:
@@ -97,8 +98,11 @@ class UserConfigParser:
                 atom_selections_by_index.extend(list(range(start, end + 1)))
 
             # Element selection: "Fe"
-            else:
+            elif selection in [element.symbol for element in periodictable.elements]:
                 atom_selections_by_index.extend([(index + 1) for index, value in enumerate(self.atom_list) if value == selection])
+
+            else:
+                raise ValueError(f"{selection} might not be a valid selection.")
 
         assert len(atom_selections_by_index) == len(set(atom_selections_by_index)), "Duplicate atom selections detected."
         if not atom_selections_by_index:
