@@ -52,10 +52,10 @@ def interpret_atom_selection(atom_list: List[str], index_selections: List[str], 
 
     # Return indexings
     if indexing_mode == "zero":
-        return indexings
+        return [(i - 1) for i in indexings]
 
     elif indexing_mode == "one":
-        return [(i + 1) for i in indexings]
+        return indexings
 
     else:
         raise RuntimeError("Illegal indexing mode (either zero or one).")
