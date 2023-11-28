@@ -7,6 +7,7 @@ from ase import io
 from ase.constraints import FixAtoms
 import atexit
 
+from lib.write_poscar import write_poscar
 from lib.interpret_atom_selection import interpret_atom_selection
 
 class PoscarAtomFixer:
@@ -31,8 +32,8 @@ class PoscarAtomFixer:
         else:
             raise FileNotFoundError(f"Cannot found POSCAR file {poscarfile}.")
 
-        # Call _write_modifed_poscar method upon exiting
-        atexit.register(self._write_modified_poscar, output_filename=Path("POSCAR_new"), overwrite=True)
+        # Write new POSCAR upon exiting
+        atexit.register(write_poscar, self.poscar, file_path=Path("POSCAR_new"), overwrite=True)
 
     def _fix_atoms(self, atom_indexes: List[int]) -> None:
         """
@@ -57,31 +58,6 @@ class PoscarAtomFixer:
         fix_atoms_constraint = FixAtoms(indices=atom_indexes)  # ref: https://wiki.fysik.dtu.dk/ase/ase/constraints.html
         self.poscar.set_constraint(fix_atoms_constraint)
 
-    def _write_modified_poscar(self, output_filename: Path, overwrite: bool = True) -> None:
-        """
-        Write the modified atomic structure to a VASP POSCAR file.
-
-        Parameters:
-            output_filename (Path): The path to the output POSCAR file.
-            overwrite (bool, optional): If False and the file already exists, a FileExistsError is raised.
-        Set to True to overwrite the existing file. Default is True.
-
-        Raises:
-            FileExistsError: If the specified file already exists and 'overwrite' is set to False.
-
-        Note:
-        This method writes the modified atomic structure to a VASP POSCAR file. It checks whether the
-        specified output file already exists. If it does and 'overwrite' is set to False, a FileExistsError
-        is raised. If 'overwrite' is True or the file does not exist, the method proceeds to write the file.
-
-        """
-        # Check if the file already exists
-        if output_filename.exists() and not overwrite:
-            raise FileExistsError(f"The file '{output_filename}' already exists. Set 'overwrite' to True to overwrite.")
-
-        # Write the modified POSCAR file
-        io.write(output_filename, self.poscar, format="vasp")
-
     def fix_by_position(self, position_range: List[float], position_mode: str = "absolute", axis: str = "z") -> None:
         """
         Fix atoms based on their coordinates within a specified range along a given axis.
@@ -103,19 +79,23 @@ class PoscarAtomFixer:
 
         """
         # Check position range selection
-        assert position_mode in {"absolute", "fractional"}
         assert len(position_range) == 2
-        if position_mode == "absolute":
+        position_range = [float(i) for i in position_range]
+
+        position_mode = position_mode.lower()
+        if position_mode.startswith("a"):
             assert position_range[1] > position_range[0] >= 0
-        else:
+        elif position_mode.startswith("f"):
             assert 1 >= position_range[1] > position_range[0] >= 0
+        else:
+            raise ValueError(f"Illegal position mode {position_mode}.")
 
         # Check axis selection
         axis = axis.lower()
         assert axis in {"x", "y", "z"}
 
         # Convert fractional position range to absolute
-        if position_mode == "fractional":
+        if position_mode.startswith("f"):
             cell_params = self.poscar.get_cell()
             position_range = [
                 position_range[0] * cell_params[axis][axis],
@@ -157,12 +137,11 @@ def main():
     elif selected_function == "2":  # fix by elements or indexes
         selection_banner = \
         """Please input element/index selection. Rules:
-            - one-indexing: "5"
+            - single indexing (one-indexed): "5"
             - indexing range:"1-3"
             - element: "Fe"
             - Combine above by ","
         """
-
         user_selection = input(selection_banner).split(",")
 
         indexings = interpret_atom_selection(atom_list=atom_list, index_selections=user_selection, indexing_mode="zero")
