@@ -202,32 +202,36 @@ def main():
     -------------- POSCAR Atom Fixer -----------------
     Please selection a function by indexing:
     1. Fix atom by position range.
-    2. Fix atom by elements.
-    3. Fix atom by indexings.
+    2. Fix atom by elements/indexings.
     --------------------------------------------------
     """
-    selection_function = input(banner)
+    selected_function = input(banner)
 
     # Initialize POSCAR fixer
-    fixer = PoscarAtomFixer(poscarfile=Path.cwd() / "POSCAR")
+    poscarfile = Path.cwd() / "POSCAR"
+    atom_list = io.read(poscarfile, format="vasp")
+    fixer = PoscarAtomFixer(poscarfile=poscarfile)
 
     # Selection function
-    if selection_function == "1":  # fix by position range
+    if selected_function == "1":  # fix by position range
         position_range = input("Please input position range as [start,end]:")
         position_mode = input("Absolute or fractional position?").lower()
         axis = input("Along which axis?").lower()
         fixer.fix_by_position(position_range.split(","), position_mode, axis)
 
-    elif selection_function == "2":  # fix by element
-        elements = input("Please input elements, separate with \',\':")
-        fixer.fix_by_element(elements=elements.split(","))
+    elif selected_function == "2":  # fix by elements or indexes
+        selection_banner = \
+        """Please input element/index selection, rules:
+            indexing range:"1-3",
+            indexing: "5",
+            element: "Fe",
+            or combine above by ","
+        """
 
-    elif selection_function == "3":  # fix by index
-        index_selection = input("Please input indexing selections:")
-        # DEBUG
-        selector = AtomSelector(poscarfile=Path.cwd() / "POSCAR")
+        user_selection = input(selection_banner).split(",")
 
-        fixer.fix_by_indexing(indexings=selector.interpret(index_selection, indexing_mode="one"))
+        indexings = interpret_atom_selection(atom_list=atom_list, index_selections=user_selection, indexing_mode="one")
+        fixer.fix_by_indexing(indexings)
 
     else:
         raise RuntimeError("Illegal function selection.")
