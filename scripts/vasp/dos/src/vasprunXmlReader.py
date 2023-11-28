@@ -44,7 +44,7 @@ class VasprunXmlReader:
         lorbital = self.read_incar_tag("LORBITAL")
 
         # IBRION tag should be -1 for "no ion updating"
-        if ibrion != "-1":
+        if ibrion not in  {"-1", None}:
             raise RuntimeError("IBRION tag should be -1.")
 
         # NSW tag should be 0 for "0 ionic steps"
