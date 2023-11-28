@@ -58,7 +58,7 @@ class PoscarAtomFixer:
         fix_atoms_constraint = FixAtoms(indices=atom_indexes)  # ref: https://wiki.fysik.dtu.dk/ase/ase/constraints.html
         self.poscar.set_constraint(fix_atoms_constraint)
 
-    def _convert_position_range_to_absolute(self):
+    def _convert_position_range_to_absolute(self) -> List[float]:
         """
         Convert the specified position range to absolute coordinates based on the given mode.
 
@@ -79,43 +79,55 @@ class PoscarAtomFixer:
             RuntimeError: If an illegal position range mode is encountered.
 
         """
-        # Define axis index
-        axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
-
         # convert "fractional" position selection to "absolute"
         if self.position_mode.startswith("f"):
             cell_params = self.poscar.get_cell()  # [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)]
 
-            return [
-                self.position_range[0] * cell_params[axis_index],
-                self.position_range[1] * cell_params[axis_index]
+            absolute_position_range = [
+                self.position_range[0] * cell_params[self.axis_index],
+                self.position_range[1] * cell_params[self.axis_index]
                 ]
 
         # Or convert "relative" position selection to "absolute"
         elif self.position_mode.startswith("r"):
             # Calculate the position of the atom with the smallest/largest coordinates
-            coordinates = [atom[axis_index] for atom in self.poscar.get_positions()]
+            coordinates = [atom[self.axis_index] for atom in self.poscar.get_positions()]
             min_coordinate, max_coordinate = min(coordinates), max(coordinates)
 
-            return [
+            absolute_position_range = [
                 min_coordinate + self.position_range[0] * (max_coordinate - min_coordinate),
                 min_coordinate + self.position_range[1] * (max_coordinate - min_coordinate)
             ]
 
         # Or return absolute position range without processing
         elif self.position_mode == "absolute":
-            return self.position_range
+            absolute_position_range = self.position_range
 
         else:
             raise RuntimeError(f"Illegal position range mode {self.position_mode}.")
 
-    def _select_atom_by_position(self, position_range: List[int]) -> List[int]:
-        # DEBUG
-        atom_indices = [
-            idx for idx, pos in enumerate(self.poscar.positions[:, "xyz".index(axis)]) if position_range[0] <= pos <= position_range[1]
-            ]
+        assert len(absolute_position_range) == 2 and (absolute_position_range[1] > absolute_position_range[0])
+        return absolute_position_range
 
-        return atom_indices
+    def _select_atom_by_position(self, abs_position_range: List[float]) -> List[int]:
+        """
+        Select atoms whose coordinates along the specified axis fall within the given absolute position range.
+
+        Parameters:
+            abs_position_range (List[float]): The absolute position range [min_absolute, max_absolute].
+
+        Returns:
+            List[int]: A list of atom indices that satisfy the condition (0-indexed).
+
+        Example:
+            If abs_position_range is [1.0, 15.0] and the axis is "x", the method will return a list of
+            indices for atoms whose x-coordinate falls within the range [1.0, 15.0].
+        """
+        # Select atoms within the specified absolute position range
+        return [
+            idx for idx, pos in enumerate(self.poscar.positions[:, self.axis_index])
+            if abs_position_range[0] <= pos <= abs_position_range[1]
+        ]
 
     def fix_by_position(self, position_range: List[float], position_mode: str = "absolute", axis: str = "z") -> None:
         """
@@ -140,6 +152,9 @@ class PoscarAtomFixer:
         # Check and convert axis selection
         self.axis = axis.lower()
         assert axis in {"x", "y", "z"}
+
+        # Define axis index
+        self.axis_index = {"x": 0, "y": 1, "z": 2}[self.axis]
 
         # Check position range selection
         assert len(position_range) == 2
