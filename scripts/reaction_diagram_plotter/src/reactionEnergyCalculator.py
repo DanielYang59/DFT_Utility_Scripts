@@ -206,6 +206,9 @@ class ReactionEnergyCalculator:
         The pH correction is calculated based on the difference between the net counts of protons and hydroxide ions.
         If both protons and hydroxide ions are present, a RuntimeError is raised since they should not coexist in a reaction.
 
+        Notes:
+            The calculation of pH correction is discussed in https://github.com/DanielYang59/DFT_Utility_Scripts/issues/15.
+
         """
         # Calculate external potential correction
         net_electron_count = self._calculate_net_species_count(reaction_pathway, "e-")
@@ -219,8 +222,19 @@ class ReactionEnergyCalculator:
         if net_proton_count == 0 and net_hydroxide_count == 0:
             pH_correction = 0
 
-        elif net_proton_count == 0 or net_hydroxide_count == 0:
-            pH_correction = (net_proton_count - net_hydroxide_count) * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * self.pH)
+        elif net_proton_count != 0:
+            pH_correction = net_proton_count * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * self.pH)
+
+        elif net_hydroxide_count != 0:
+            # Ionic Product for H2O at different T: https://www.chemguide.co.uk/physical/acidbaseeqia/kw.html
+            kw_at_diff_temp = {273.15: 0.114 * (10 ** -14), 283.15: 0.293 * (10 ** -14), 293.15: 0.681 * (10 ** -14), 298.15: 1.008 * (10 ** -14), 303.15: 1.471 * (10 ** -14), 313.15: 2.916 * (10 ** -14), 323.15: 5.476 * (10 ** -14), 373.15: 51.3 * (10 ** -14)}
+
+            if self.temperature in kw_at_diff_temp:
+                pOH = -math.log(kw_at_diff_temp[self.temperature], 10) - self.pH
+            else:
+                raise RuntimeError(f"Don't have pH correction data for temperature {self.temperature} K. Available temperatures: {kw_at_diff_temp.keys()}")
+
+            pH_correction = net_hydroxide_count * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * pOH)
 
         else:
             raise RuntimeError("Reaction equation should not have H+ and OH- simultaneously.")

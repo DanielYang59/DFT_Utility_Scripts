@@ -3,7 +3,6 @@
 
 # TODO: test transformation along x/y axis
 # TODO: test non-parallel x/y cell vector warnings
-# TODO: need best fixing for "negative vacuum layer thickness" in calculate_vacuum_thickness method
 
 from pathlib import Path
 import numpy as np
@@ -187,7 +186,6 @@ class VacuumLayerManager:
         vacuum_layer_thickness = cell_dim - (max_position - min_position)
         if vacuum_layer_thickness < 0:
             warnings.warn("Negative vacuum layer thickness found (there might be atoms outside the cell). Proceed with caution")
-            # TODO: need a better fix
             return 0  # return 0 so that following adjustment could proceed (otherwise would stop running)
 
         # Warn if vacuum layer thickness is suspicious

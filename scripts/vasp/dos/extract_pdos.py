@@ -31,6 +31,7 @@ def main(configfile=Path("PDOSIN")) -> None:
 
 
     # Import vasprun.xml file
+    print("Importing vasprun.xml file......")
     vasprunxml_reader = VasprunXmlReader(vasprunXmlFile=cwd / "vasprun.xml")
 
     fermi_level = vasprunxml_reader.read_fermi_level()
@@ -56,6 +57,7 @@ def main(configfile=Path("PDOSIN")) -> None:
 
     # Output PDOS data (and reference energy to fermi level)
     write_pdos_to_file(pdos_data, fermi_level, cwd / "PDOS.csv")
+    print("Done! pDOS written to PDOS.csv file.")
 
 if __name__ == "__main__":
     main()
