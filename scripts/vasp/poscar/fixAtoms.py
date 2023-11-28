@@ -81,11 +81,11 @@ class PoscarAtomFixer:
         """
         # convert "fractional" position selection to "absolute"
         if self.position_mode.startswith("f"):
-            cell_params = self.poscar.get_cell()  # [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)]
+            cell_params = self.poscar.get_cell()[self.axis_index][self.axis_index]
 
             absolute_position_range = [
-                self.position_range[0] * cell_params[self.axis_index],
-                self.position_range[1] * cell_params[self.axis_index]
+                self.position_range[0] * cell_params,
+                self.position_range[1] * cell_params
                 ]
 
         # Or convert "relative" position selection to "absolute"
@@ -161,10 +161,12 @@ class PoscarAtomFixer:
         self.position_range = [float(i) for i in position_range]
 
         self.position_mode = position_mode.lower()
-        if position_mode.startswith("a"):  # absolute
-            assert position_range[1] > position_range[0] >= 0
-        else:  # fractional or relative
-            assert 1 >= position_range[1] > position_range[0] >= 0
+        if position_mode == "absolute":
+            assert self.position_range[1] > self.position_range[0] >= 0
+        elif position_mode in {"fractional", "relative"}:  # fractional or relative
+            assert 1 >= self.position_range[1] > self.position_range[0] >= 0
+        else:
+            raise ValueError(f"Illegal position mode {position_mode}.")
 
         # Convert "fractional" and "relative" position ranges to "absolute"
         abs_position_range = self._convert_position_range_to_absolute()
@@ -213,7 +215,7 @@ def main():
         raise RuntimeError("Illegal function selection.")
 
     # Verbose
-    print("New POSCAR written to \'POSCAR_new\'.")
+    print("Done! New POSCAR written to \'POSCAR_new\'.")
 
 if __name__ == "__main__":
     main()
