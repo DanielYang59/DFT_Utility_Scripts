@@ -165,24 +165,3 @@ class VasprunXmlReader:
         # Convert pDOS data block to numpy array
         r_elements = specific_set_element.findall(".//r")
         return np.array([list(map(float, r.text.split())) for r in r_elements])
-
-# Test area
-if __name__ == "__main__":
-    # Import vasprun.xml file
-    reader = VasprunXmlReader(vasprunXmlFile=Path("../vasprun.xml"))
-
-    # # Test reading INCAR tags
-    # print(reader.read_incar_tag(tag="NEDOS"))
-
-    # # Test reading fermi level
-    # print(reader.read_fermi_level())
-
-    # # Test reading atom list
-    # print(reader.read_atom_list())
-
-    # # Test fetching pDOS
-    # print(reader.read_energy_and_pdos(ion_index=1, spin_index=1))
-    # print(reader.read_energy_and_pdos(ion_index=1, spin_index=1).shape)
-    # print(reader.read_energy_and_pdos(ion_index=1, spin_index=2).shape)
-    # print(reader.read_energy_and_pdos(ion_index=202, spin_index=1).shape)
-    # print(reader.read_energy_and_pdos(ion_index=202, spin_index=2).shape)
