@@ -48,9 +48,6 @@ This Python script generates a regular KPOINTS file for VASP calculations. The u
 This tool simplifies the extraction of pDOS data from VASP's vasprun.xml files.
 
 
-# TODO:
-
-
 # Contributing to the Project
 
 We welcome contributions from everyone, whether you are an experienced developer or just getting started.
