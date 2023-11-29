@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# DEBUG: unreliable energy check
+# TODO:
+
 from pathlib import Path
 from ase.io import read
-from pymatgen.io.vasp.outputs import Outcar
+
+from .is_vasp_dir import is_vasp_dir
 
 class VaspDirChecker:
     """
@@ -16,7 +20,7 @@ class VaspDirChecker:
         3. Extracts the final energy of a converged VASP job from the OUTCAR file.
     """
 
-    def __init__(self, dir_path: Path):
+    def __init__(self, dir_path: Path) -> None:
         """
         Initializes the VaspDirChecker object and checks if the directory
         contains all the essential VASP input files.
@@ -27,22 +31,14 @@ class VaspDirChecker:
         Raises:
             FileNotFoundError: If the directory is not a valid VASP directory.
         """
-        self.dir_path = dir_path
-        if not self.is_valid_vasp_dir():
+        # Check directory
+        if not is_vasp_dir():
             raise FileNotFoundError("Essential VASP input files are missing.")
 
-    def is_valid_vasp_dir(self) -> bool:
-        """
-        Checks if all four essential VASP input files exist in the directory.
-
-        Returns:
-            bool: True if all files exist, False otherwise.
-        """
-        required_files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR"]
-        for file in required_files:
-            if not (self.dir_path / file).exists():
-                return False
-        return True
+        # Import OUTCAR file
+        self.outcar_path = self.dir_path / "OUTCAR"
+        if not self.outcar_path.exists():
+            raise FileNotFoundError("OUTCAR file not found.")
 
     def check_convergence(self) -> bool:
         """
@@ -51,11 +47,8 @@ class VaspDirChecker:
         Returns:
             bool: True if converged, False otherwise.
         """
-        outcar_path = self.dir_path / "OUTCAR"
-        if not outcar_path.exists():
-            return False  # OUTCAR not found
-
-        with outcar_path.open('r', encoding="utf-8") as f:
+        # Check if converged
+        with self.outcar_path.open('r', encoding="utf-8") as f:
             for line in f:
                 if "reached required accuracy" in line:
                     return True
@@ -72,14 +65,9 @@ class VaspDirChecker:
         Raises:
             FileNotFoundError: If the OUTCAR file is not found.
         """
-        outcar_path = self.dir_path / "OUTCAR"
-        if not outcar_path.exists():
-            raise FileNotFoundError("OUTCAR file not found.")
-
-        atoms = read(outcar_path, format="vasp-out")
-        final_energy = atoms.get_potential_energy()
-
-        return final_energy
+        # Read
+        atoms = read(self.outcar_path, format="vasp-out")
+        return atoms.get_potential_energy()
 
 def main() -> list:
     """
