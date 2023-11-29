@@ -88,6 +88,9 @@ class UserConfigParser:
 
         atom_selections_by_index = []
         for selection in atom_selections.split(","):
+            # Remove spaces
+            selection = selection.strip()
+
             # Single atom selection: "1"
             if selection.isdigit():
                 atom_selections_by_index.append(int(selection))
