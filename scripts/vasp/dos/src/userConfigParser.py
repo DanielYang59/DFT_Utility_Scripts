@@ -140,6 +140,9 @@ class UserConfigParser:
             # Parse atom selection
             line[0] = self._parse_atom_selection(line[0])
 
+            # Check line length
+            if len(line) != 17:
+                raise ValueError(f"Please check line: {line}.")
             processed_lines.append(line)
 
         return processed_lines
