@@ -4,7 +4,7 @@
 from pathlib import Path
 from typing import List
 
-from .is_vasp_dir import is_valid_vasp_dir
+from .is_vasp_dir import is_vasp_dir
 
 def list_vasp_dirs(parent_dir: Path) ->List[Path]:
     """
@@ -26,7 +26,7 @@ def list_vasp_dirs(parent_dir: Path) ->List[Path]:
         raise ValueError("The specified parent directory is not a valid directory.")
 
     for dir_path in parent_dir.iterdir():
-        if dir_path.is_dir() and is_valid_vasp_dir(dir_path):
+        if dir_path.is_dir() and is_vasp_dir(dir_path):
             valid_vasp_dirs.append(dir_path)
 
     return valid_vasp_dirs

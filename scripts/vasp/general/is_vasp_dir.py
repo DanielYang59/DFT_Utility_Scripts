@@ -4,7 +4,7 @@
 from pathlib import Path
 import warnings
 
-def is_valid_vasp_dir(path: Path) -> bool:
+def is_vasp_dir(path: Path) -> bool:
     """
     Check if a directory contains essential VASP files.
 
