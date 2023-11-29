@@ -105,6 +105,9 @@ class PdosCurveFetcher:
             spin_down_pdos = self._fetch_and_cat_atoms(atom_indexes, spin_index=2)
             energy_array, spin_down_pdos_orbital_selected = self._select_pdos_by_orbital(spin_down_pdos, orbital_selections)
 
+            # Reverse spin down pDOS
+            spin_down_pdos_orbital_selected = -spin_down_pdos_orbital_selected
+
         else:
             spin_down_pdos = None
 
