@@ -28,14 +28,13 @@ class VasprunXmlReader:
         Validate INCAR tags for pDOS calculation.
 
         Raises:
-            RuntimeError: If the IBRION, or NSW tags are not set to the expected values.
-            UserWarning: If the LORBITAL tag has a value other than 11, as the script is intended for LORBITAL=11.
+            UserWarning: If the IBRION, NSW or LORBIT tags are not expected values.
 
         This function fetches relevant INCAR tags for a pDOS calculation and checks if they are set to the expected values.
         The validation criteria are as follows:
         - IBRION should be set to -1 for "no ion updating."
         - NSW should be set to 0 for "0 ionic steps."
-        - LORBITAL should be set to 11.
+        - LORBIT should be set to 11.
 
         """
         # Fetch related INCAR tags
@@ -45,13 +44,13 @@ class VasprunXmlReader:
 
         # IBRION tag should be -1 for "no ion updating"
         if ibrion not in  {"-1", None}:
-            raise RuntimeError("IBRION tag should be -1.")
+            warnings.warn(f"Expect IBRION == -1, got {ibrion}.")
 
         # NSW tag should be 0 for "0 ionic steps"
         if nsw != "0":
-            raise RuntimeError("NSW tag should be 0.")
+            warnings.warn(f"Expect NSW == 0, got {nsw}.")
 
-        # LORBIT should be 11 for
+        # LORBIT should be 11 for projected DOS
         if lorbit != "11":
             warnings.warn("Script intended for LORBITAL=11, other values are not tested.")
 
