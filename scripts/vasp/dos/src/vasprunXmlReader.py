@@ -41,7 +41,7 @@ class VasprunXmlReader:
         # Fetch related INCAR tags
         ibrion = self.read_incar_tag("IBRION")
         nsw = self.read_incar_tag("NSW")
-        lorbital = self.read_incar_tag("LORBITAL")
+        lorbit = self.read_incar_tag("LORBIT")
 
         # IBRION tag should be -1 for "no ion updating"
         if ibrion not in  {"-1", None}:
@@ -52,7 +52,7 @@ class VasprunXmlReader:
             raise RuntimeError("NSW tag should be 0.")
 
         # LORBIT should be 11 for
-        if lorbital != "11":
+        if lorbit != "11":
             warnings.warn("Script intended for LORBITAL=11, other values are not tested.")
 
     def read_incar_tag(self, tag: str) -> str:
