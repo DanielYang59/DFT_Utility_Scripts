@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Dict
+from typing import Dict, Union
 
 def validate_species_dict(func):
     """
@@ -41,32 +41,93 @@ def validate_species_dict(func):
     return wrapper
 
 class ReactionStep:
+    """
+    Class representing a step in a chemical reaction.
+
+    Attributes:
+        deltaG0 (float): Standard Gibbs free energy change for the reaction.
+        temperature (float): Temperature of the reaction.
+        pH (float): pH of the reaction.
+        external_potential (float): External potential applied to the reaction.
+
+        reactants (Dict[str, int]): Dictionary representing the reactants and their stoichiometric coefficients.
+        reactant_energies (Dict[str, float]): Dictionary representing the energies of the reactants.
+
+        products (Dict[str, int]): Dictionary representing the products and their stoichiometric coefficients.
+        product_energies (Dict[str, float]): Dictionary representing the energies of the products.
+    """
+
     def __init__(self, deltaG0: float, temperature: float, pH: float, external_potential: float) -> None:
-        # Check external conditions
-        assert temperature >= 0
-        assert 0 <= pH <= 14
+        """
+        Initialize a ReactionStep instance.
+
+        Args:
+            deltaG0 (float): Standard Gibbs free energy change for the reaction.
+            temperature (float): Temperature of the reaction.
+            pH (float): pH of the reaction.
+            external_potential (float): External potential applied to the reaction.
+        """
+        # Check parameters conditions
+        assert temperature >= 0 and isinstance(temperature, Union(float, int))
+        assert 0 <= pH <= 14 and isinstance(pH, Union(float, int))
+        assert isinstance(deltaG0, Union(float, int))
+        assert isinstance(external_potential, Union(float, int))
 
         self.deltaG0 = deltaG0
         self.temperature = temperature
         self.pH = pH
         self.external_potential = external_potential
 
-        self.reactants = {}
-        self.products = {}
-
     @validate_species_dict
     def set_reactants(self, reactants: Dict[str, int], reactant_energies: Dict[str, float]) -> None:
-        assert reactants
+        """
+        Set the reactants and their energies.
+
+        Args:
+            reactants (Dict[str, int]): Dictionary representing the reactants and their stoichiometric coefficients.
+            reactant_energies (Dict[str, float]): Dictionary representing the energies of the reactants.
+        """
+        assert isinstance(reactants, Dict[str, int]) and isinstance(reactant_energies, Dict[str, float]) and reactants and reactant_energies
         self.reactants = reactants
         self.reactant_energies = reactant_energies
 
     @validate_species_dict
     def set_products(self, products: Dict[str, int], product_energies: Dict[str, float]) -> None:
-        assert products
+        """
+        Set the products and their energies.
+
+        Args:
+            products (Dict[str, int]): Dictionary representing the products and their stoichiometric coefficients.
+            product_energies (Dict[str, float]): Dictionary representing the energies of the products.
+        """
+        assert isinstance(products, Dict[str, int]) and isinstance(product_energies, Dict[str, float]) and products and product_energies
         self.products = products
         self.product_energies = product_energies
 
+    def _calculate_total_energy(self, side: str) -> float:
+        """
+        Calculate the total energy for a given side (reactants or products).
+
+        Args:
+            side (str): The side for which to calculate the total energy ("reactants" or "products").
+
+        Returns:
+            float: The total energy for the specified side.
+        """
+        assert side in {"reactants", "products"}
+
+
     def calculate_free_energy_change(self) -> float:
+        """
+        Calculate the free energy change for the reaction.
 
+        Returns:
+            float: The calculated free energy change.
+        """
+        # Calculate reactants total energy
+        reactants_total_energy = self._calculate_total_energy(side="reactants")
 
-        return self.deltaG0
+        # Calculate products total energy
+        products_total_energy = self._calculate_total_energy(side="products")
+
+        return products_total_energy - reactants_total_energy
