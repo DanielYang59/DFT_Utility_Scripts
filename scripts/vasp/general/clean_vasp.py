@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: this script would need double check (why essential_files is unused)
+
 import os
 from pathlib import Path
 
