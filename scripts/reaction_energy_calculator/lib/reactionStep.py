@@ -3,6 +3,8 @@
 
 from typing import Dict, Union
 from functools import reduce
+from scipy.constants import Boltzmann, elementary_charge
+import math
 
 def validate_species_dict(func):
     """
@@ -56,6 +58,8 @@ class ReactionStep:
 
         products (Dict[str, int]): Dictionary representing the products and their stoichiometric coefficients.
         product_energies (Dict[str, float]): Dictionary representing the energies of the products.
+
+        free_energy_change (float): free energy change of reaction step.
     """
 
     def __init__(self, deltaG0: float, temperature: float, pH: float, external_potential: float) -> None:
@@ -118,7 +122,7 @@ class ReactionStep:
         """
         return reduce(lambda accumulator, species_name: accumulator + species[species_name] * energy_dict[species_name], species, 0)
 
-    def calculate_free_energy_change(self) -> float:
+    def calculate_free_energy_change(self) -> None:
         """
         Calculate the free energy change for the reaction.
 
@@ -131,4 +135,36 @@ class ReactionStep:
         # Calculate products total energy
         products_total_energy = self._calculate_total_energy(self.products, self.product_energies)
 
-        return products_total_energy - reactants_total_energy
+        self.free_energy_change = products_total_energy - reactants_total_energy
+
+    def calculate_pH_correction(self) -> float:
+        # Calculate total number of proton(H+) and hydroxide(OH-)
+        proton_count = self.products["H+"] - self.reactants["H+"]
+        hydroxide_count = self.products["OH-"] - self.reactants["OH-"]
+
+        # Reaction should not have H+ and OH- simultaneously (except for H2O dissociation)
+        if proton_count != 0 and hydroxide_count != 0:
+            raise RuntimeError("H+ and OH- should not coexist in reaction step.")
+
+        # Proton(H+) exists
+        elif proton_count != 0:
+            return proton_count * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * self.pH)
+
+        # Hydroxide(OH-) exists
+        elif hydroxide_count != 0:
+            # Ionic product for H2O at different temperature: https://www.chemguide.co.uk/physical/acidbaseeqia/kw.html
+            kw_at_diff_temp = {273.15: 0.114 * (10 ** -14), 283.15: 0.293 * (10 ** -14), 293.15: 0.681 * (10 ** -14), 298.15: 1.008 * (10 ** -14), 303.15: 1.471 * (10 ** -14), 313.15: 2.916 * (10 ** -14), 323.15: 5.476 * (10 ** -14), 373.15: 51.3 * (10 ** -14)}
+
+            if self.temperature in kw_at_diff_temp:
+                pOH = -math.log(kw_at_diff_temp[self.temperature], 10) - self.pH
+            else:
+                raise RuntimeError(f"Don't have pH correction data for temperature {self.temperature} K. Available temperatures: {kw_at_diff_temp.keys()}")
+
+            return hydroxide_count * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * pOH)
+
+        # If no H+ and OH- at all, not pH dependent
+        else:
+            return 0
+
+    def calculate_external_potential_correction(self) -> float:
+        pass
