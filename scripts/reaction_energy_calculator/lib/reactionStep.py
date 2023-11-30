@@ -36,6 +36,10 @@ def validate_species_dict(func):
             if "h+" in dictionary.keys() or "oh-" in dictionary.keys():
                 raise RuntimeError(f"Proton (H+) or hydroxide (OH-) names in {name} should be in all capital letters.")
 
+            # Check electron name
+            if "E+" in dictionary.keys():
+                raise RuntimeError(f"Electron (e-) name in {name} should be in lower case.")
+
             # Check keys match between species and energies
             if set(dictionary.keys()) != set(energy_dict.keys()):
                 raise ValueError(f"Keys of {name} and {name} energies must match.")
@@ -138,6 +142,19 @@ class ReactionStep:
         self.free_energy_change = products_total_energy - reactants_total_energy
 
     def calculate_pH_correction(self) -> float:
+        """
+        Calculate the pH correction for the reaction step.
+
+        The pH correction accounts for changes in the concentration of protons (H+) and hydroxide ions (OH-)
+        between the reactants and products in a chemical reaction.
+
+        Returns:
+            float: The calculated pH correction.
+
+        Raises:
+            RuntimeError: If both protons (H+) and hydroxide ions (OH-) coexist in the reaction step,
+                or if pH correction data is not available for the specified temperature.
+        """
         # Calculate total number of proton(H+) and hydroxide(OH-)
         proton_count = self.products["H+"] - self.reactants["H+"]
         hydroxide_count = self.products["OH-"] - self.reactants["OH-"]
@@ -152,7 +169,7 @@ class ReactionStep:
 
         # Hydroxide(OH-) exists
         elif hydroxide_count != 0:
-            # Ionic product for H2O at different temperature: https://www.chemguide.co.uk/physical/acidbaseeqia/kw.html
+            # Ionic product for H2O at different temperatures: https://www.chemguide.co.uk/physical/acidbaseeqia/kw.html
             kw_at_diff_temp = {273.15: 0.114 * (10 ** -14), 283.15: 0.293 * (10 ** -14), 293.15: 0.681 * (10 ** -14), 298.15: 1.008 * (10 ** -14), 303.15: 1.471 * (10 ** -14), 313.15: 2.916 * (10 ** -14), 323.15: 5.476 * (10 ** -14), 373.15: 51.3 * (10 ** -14)}
 
             if self.temperature in kw_at_diff_temp:
@@ -167,4 +184,24 @@ class ReactionStep:
             return 0
 
     def calculate_external_potential_correction(self) -> float:
-        pass
+        """
+        Calculate the external potential correction for the reaction step.
+
+        The external potential correction accounts for changes in the number of electrons (e-) between
+        the reactants and products in a chemical reaction, multiplied by the external potential applied.
+
+        Returns:
+            float: The calculated external potential correction.
+
+        Notes:
+            The external potential correction is calculated as -neU, where 'n' is the change in the number
+            of electrons (e-), 'e' is the elementary charge, and 'U' is the external potential applied.
+
+        Returns:
+            float: The calculated external potential correction.
+
+        """
+        # Calculate total number of electrons
+        electron_count = self.products["e-"] - self.reactants["e-"]
+
+        return -electron_count * self.external_potential  # -neU
