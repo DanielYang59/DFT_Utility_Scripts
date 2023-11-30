@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import Dict, Union
+from functools import reduce
 
 def validate_species_dict(func):
     """
@@ -104,18 +105,18 @@ class ReactionStep:
         self.products = products
         self.product_energies = product_energies
 
-    def _calculate_total_energy(self, side: str) -> float:
+    def _calculate_total_energy(self, species: Dict[str, int], energy_dict: Dict[str, float]) -> float:
         """
-        Calculate the total energy for a given side (reactants or products).
+        Calculate the total energy for a given set of species.
 
         Args:
-            side (str): The side for which to calculate the total energy ("reactants" or "products").
+            species (Dict[str, int]): Dictionary representing the species and their stoichiometric coefficients.
+            energy_dict (Dict[str, float]): Dictionary representing the energies of the species.
 
         Returns:
-            float: The total energy for the specified side.
+            float: The total energy for the specified species.
         """
-        assert side in {"reactants", "products"}
-
+        return reduce(lambda accumulator, species_name: accumulator + species[species_name] * energy_dict[species_name], species, 0)
 
     def calculate_free_energy_change(self) -> float:
         """
@@ -125,9 +126,9 @@ class ReactionStep:
             float: The calculated free energy change.
         """
         # Calculate reactants total energy
-        reactants_total_energy = self._calculate_total_energy(side="reactants")
+        reactants_total_energy = self._calculate_total_energy(self.reactants, self.reactant_energies)
 
         # Calculate products total energy
-        products_total_energy = self._calculate_total_energy(side="products")
+        products_total_energy = self._calculate_total_energy(self.products, self.product_energies)
 
         return products_total_energy - reactants_total_energy
