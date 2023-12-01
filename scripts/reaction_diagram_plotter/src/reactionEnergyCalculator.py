@@ -6,6 +6,8 @@ from scipy.constants import Boltzmann, elementary_charge
 import math
 
 from .energyReader import EnergyReader
+from .reactionStep import ReactionStep
+from .computationalHydrogenElectrode import ComputationalHydrogenElectrode
 
 class ReactionEnergyCalculator:
     """

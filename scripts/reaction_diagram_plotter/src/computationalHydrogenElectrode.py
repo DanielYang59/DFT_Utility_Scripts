@@ -3,7 +3,7 @@
 
 # TODO: need cleaning up
 
-from lib.reactionStep import ReactionStep
+from .reactionStep import ReactionStep
 
 class ComputationalHydrogenElectrode(ReactionStep):
     """
@@ -106,5 +106,5 @@ class ComputationalHydrogenElectrode(ReactionStep):
 if __name__ == "__main__":
     che = ComputationalHydrogenElectrode(pH=14, external_potential=0)
     che.load_recommended_molecule_energies()
-    print("H+ energy:", che.calculate_proton_free_energy())
-    print("OH- energy:", che.calculate_hydroxide_free_energy())
+    print("(H+ + e-) energy:", che.calculate_proton_free_energy())
+    print("(OH- - e-) energy:", che.calculate_hydroxide_free_energy())
