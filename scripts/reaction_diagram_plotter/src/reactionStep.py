@@ -83,7 +83,7 @@ class ReactionStep:
         self.pH = pH
         self.external_potential = external_potential
 
-    @validate_species_dict
+    # @validate_species_dict
     def set_reactants(self, reactants: Dict[str, Union[float, int]], reactant_energies: Dict[str, float]) -> None:
         """
         Set the reactants and their energies.
@@ -96,7 +96,7 @@ class ReactionStep:
         self.reactants = reactants
         self.reactant_energies = reactant_energies
 
-    @validate_species_dict
+    # @validate_species_dict
     def set_products(self, products: Dict[str, Union[float, int]], product_energies: Dict[str, float]) -> None:
         """
         Set the products and their energies.
@@ -122,7 +122,6 @@ class ReactionStep:
         """
         total_energy = 0
         for s in species.keys():
-            print(s, species[s], energy_dict[s])
             total_energy += species[s] * energy_dict[s]
 
         return total_energy

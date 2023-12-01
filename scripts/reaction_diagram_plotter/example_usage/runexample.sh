@@ -7,4 +7,4 @@ PH=0
 
 # Call the plotter
 
-python3 ../main.py -U $EXTERNAL_POTENTIAL -ph $PH
+python ../main.py -U $EXTERNAL_POTENTIAL -ph $PH

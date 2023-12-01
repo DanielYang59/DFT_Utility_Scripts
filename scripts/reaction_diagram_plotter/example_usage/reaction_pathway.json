@@ -6,41 +6,40 @@
 
     "1":{
         "reactants":{"*":1, "H++NO3-":1},
-        "products":{"*NO3":1, "H+":1, "e-":1}
+        "products":{"*NO3":1, "e-":1, "H+":1}
     },
 
     "2":{
-        "reactants":{"*NO3":1, "H2O_l":1, "H+":2, "e-":2},
+        "reactants":{"*NO3":1, "H2O_l":1, "e-":2},
         "products":{"*NO2":1, "OH-":2}
     },
 
     "3":{
-        "reactants":{"*NO2":1, "H2O_l":1, "H+":2, "e-":2},
+        "reactants":{"*NO2":1, "H2O_l":1, "e-":2},
         "products":{"*NO":1, "OH-":2}
     },
 
     "4":{
-        "reactants":{"*NO":1, "H2O_l":1, "H+":1, "e-":1},
+        "reactants":{"*NO":1, "H2O_l":1, "e-":1},
         "products":{"*NHO":1, "OH-":1}
     },
 
     "5":{
-        "reactants":{"*NHO":1, "H2O_l":1, "H+":1, "e-":1},
+        "reactants":{"*NHO":1, "H2O_l":1, "e-":1},
         "products":{"*NH2O":1, "OH-":1}
     },
 
     "6":{
-        "reactants":{"*NH2O":1, "H2O_l":1, "H+":1, "e-":1},
+        "reactants":{"*NH2O":1, "H2O_l":1, "e-":1},
         "products":{"*NH2OH":1, "OH-":1}
     },
 
     "7":{
-        "reactants":{"*NH2OH":1, "H+":1, "e-":1},
+        "reactants":{"*NH2OH":1, "e-":1},
         "products":{"*NH2":1, "OH-":1}
     },
-
     "8":{
-        "reactants":{"*NH2":1, "H2O_l":1, "H+":1, "e-":1},
+        "reactants":{"*NH2":1, "H2O_l":1, "e-":1},
         "products":{"*NH3":1, "OH-":1}
     }
 }
