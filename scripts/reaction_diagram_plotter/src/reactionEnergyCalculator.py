@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
 from typing import Union, Dict
 
 from .energyReader import EnergyReader
@@ -80,8 +81,62 @@ class ReactionEnergyCalculator:
             raise TypeError("Illegal data type for verbose.")
         self.verbose = verbose
 
-    def _fetch_species_energies(self, species_dict: Dict[str, Union[float, int]]) -> Dict[str, float]:
-        pass
+    def _fetch_species_energies(self, species: Dict[str, Union[float, int]]) -> Dict[str, float]:
+        """
+        Calculate and retrieve free energies for a given set of chemical species.
+
+        This method takes a dictionary of chemical species and returns a dictionary
+        containing their corresponding free energies. The supported species include
+        electrons ("e-"), protons ("H+"), hydroxide ions ("OH-"), and molecular or
+        ionic species represented by their identifiers.
+
+        Parameters:
+            species (Dict[str, Union[float, int]]): A dictionary where keys are chemical
+            species identifiers, and values are either floats or integers representing
+            the quantity of each species.
+
+        Returns:
+            Dict[str, float]: A dictionary containing the calculated free energies for
+            each specified chemical species.
+
+        Note:
+        - For electrons ("e-"), the free energy is set to 0.
+        - For protons ("H+"), the free energy is calculated using the computational
+        hydrogen electrode (CHE) at the specified pH and external potential.
+        - For hydroxide ions ("OH-"), the free energy is calculated using the CHE.
+        - For other species, the free energy is determined by reading either
+        intermediate energy (for species starting with "*") or molecule/ion energy
+        from an energy reader.
+        """
+        # Initiate computational hydrogen electrode (CHE)
+        che = ComputationalHydrogenElectrode(self.pH, self.external_potential)
+
+        # Get energy reader ready
+        energy_reader = EnergyReader(
+            intermediate_energy_file=Path.cwd / "intermediate_energies.csv",
+            species_energy_file=Path.cwd / "species_energies.csv",
+            energy_type="free_energy"
+            )
+
+        species_energies = {}
+        for s in species:
+            if s == "e-":
+                species_energies["e-"] = 0
+
+            elif s == "H+":
+                species_energies["H+"] = che.calculate_proton_free_energy()
+
+            elif s == "OH-":
+                species_energies["OH-"] = che.calculate_hydroxide_free_energy()
+
+            elif s.startswith("*"):
+                species_energies[s] = energy_reader.read_intermediate_energy(s)
+
+            else:
+                species_energies[s] = energy_reader.read_molecule_or_ion_energy(s)
+
+        assert species_energies
+        return species_energies
 
     def calculate_energy_changes(self, reaction_pathways: Dict[int, dict], energy_reader: EnergyReader) -> Dict[int, float]:
         """
@@ -114,7 +169,7 @@ class ReactionEnergyCalculator:
 
             # Set species and energies
             reaction_step.set_reactants(pathway["reactants"], self._fetch_species_energies(pathway["reactants"]))
-            reaction_step.set_products(pathway["products"], self._fetch_species_energies(["products"]))
+            reaction_step.set_products(pathway["products"], self._fetch_species_energies(pathway["products"]))
 
             # Add corrections
             pH_correction = reaction_step.calculate_pH_correction()
