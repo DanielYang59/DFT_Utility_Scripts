@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: need cleaning up
+
 from lib.reactionStep import ReactionStep
 
 class ComputationalHydrogenElectrode(ReactionStep):
@@ -29,11 +31,15 @@ class ComputationalHydrogenElectrode(ReactionStep):
         super().__init__(0, 298.15, pH, external_potential)
 
         # Set species and species energies
-        assert gaseous_hydrogen_free_energy < 0, "Illegal gaseous hydrogen free energy."
         self.gaseous_hydrogen_free_energy = gaseous_hydrogen_free_energy
         self.liquid_water_free_energy = liquid_water_free_energy
+
+        if gaseous_hydrogen_free_energy is None:
+            # Load recommended molecular energies
+            self.load_recommended_molecule_energies()
+
         self.set_reactants(reactants={"H+":1, "e-":1}, reactant_energies={"H+":0, "e-":0})
-        self.set_products(products={"H2_g":0.5}, product_energies={"H2_g":gaseous_hydrogen_free_energy})
+        self.set_products(products={"H2_g":0.5}, product_energies={"H2_g":self.gaseous_hydrogen_free_energy})
 
         # Calculate free energy change
         self.calculate_free_energy_change()
@@ -66,7 +72,6 @@ class ComputationalHydrogenElectrode(ReactionStep):
         # self.liquid_water_free_energy = -14.218641 + 0.016010  # correction calculated at pressure of 3534 Pa
         self.liquid_water_free_energy = -14.218641 + 0.102229  # correction calculated at pressure of 101325 Pa
 
-
     def calculate_proton_free_energy(self) -> float:
         """
         Calculate the free energy of proton-electron pair
@@ -78,6 +83,7 @@ class ComputationalHydrogenElectrode(ReactionStep):
         Returns:
             float: The calculated proton-electron pair free energy with pH and external potential corrections.
         """
+        assert self.gaseous_hydrogen_free_energy < 0, "Illegal gaseous hydrogen free energy."
         return 0.5 * self.gaseous_hydrogen_free_energy - self.free_energy_change
 
     def calculate_hydroxide_free_energy(self, water_association_free_energy: float = -0.828) -> float:
@@ -92,6 +98,12 @@ class ComputationalHydrogenElectrode(ReactionStep):
             float: The calculated hydroxide-electron pair free energy with pH and external potential corrections.
         """
         assert water_association_free_energy < 0, "Please input water \"association\" energy, not dissociation."
-        assert self.liquid_water_free_energy is not None and self.liquid_water_free_energy < 0, "Liquid water free energy is illegal."
+        assert self.liquid_water_free_energy < 0, "Liquid water free energy is illegal."
 
         return self.liquid_water_free_energy - self.calculate_proton_free_energy - water_association_free_energy
+
+# Test area
+if __name__ == "__main__":
+    che = ComputationalHydrogenElectrode(pH=14, external_potential=0)
+    che.load_recommended_molecule_energies()
+    print(che.calculate_proton_free_energy())

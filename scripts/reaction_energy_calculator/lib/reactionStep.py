@@ -77,17 +77,17 @@ class ReactionStep:
             external_potential (float): External potential applied to the reaction.
         """
         # Check parameters conditions
-        assert temperature >= 0 and isinstance(temperature, Union(float, int))
-        assert 0 <= pH <= 14 and isinstance(pH, Union(float, int))
-        assert isinstance(deltaG0, Union(float, int))
-        assert isinstance(external_potential, Union(float, int))
+        assert temperature >= 0 and isinstance(temperature, Union[float, int])
+        assert 0 <= pH <= 14 and isinstance(pH, Union[float, int])
+        assert isinstance(deltaG0, Union[float, int])
+        assert isinstance(external_potential, Union[float, int])
 
         self.deltaG0 = deltaG0
         self.temperature = temperature
         self.pH = pH
         self.external_potential = external_potential
 
-    @validate_species_dict
+    # @validate_species_dict
     def set_reactants(self, reactants: Dict[str, Union[float, int]], reactant_energies: Dict[str, float]) -> None:
         """
         Set the reactants and their energies.
@@ -96,11 +96,11 @@ class ReactionStep:
             reactants (Dict[str, int]): Dictionary representing the reactants and their stoichiometric coefficients.
             reactant_energies (Dict[str, float]): Dictionary representing the energies of the reactants.
         """
-        assert isinstance(reactants, Dict[str, int]) and isinstance(reactant_energies, Dict[str, float]) and reactants and reactant_energies
+        assert isinstance(reactants, dict) and isinstance(reactant_energies, dict) and reactants and reactant_energies
         self.reactants = reactants
         self.reactant_energies = reactant_energies
 
-    @validate_species_dict
+    # @validate_species_dict
     def set_products(self, products: Dict[str, Union[float, int]], product_energies: Dict[str, float]) -> None:
         """
         Set the products and their energies.
@@ -109,7 +109,7 @@ class ReactionStep:
             products (Dict[str, int]): Dictionary representing the products and their stoichiometric coefficients.
             product_energies (Dict[str, float]): Dictionary representing the energies of the products.
         """
-        assert isinstance(products, Dict[str, int]) and isinstance(product_energies, Dict[str, float]) and products and product_energies
+        assert isinstance(products, dict) and isinstance(product_energies, dict) and products and product_energies
         self.products = products
         self.product_energies = product_energies
 
@@ -124,7 +124,12 @@ class ReactionStep:
         Returns:
             float: The total energy for the specified species.
         """
-        return reduce(lambda accumulator, species_name: accumulator + species[species_name] * energy_dict[species_name], species, 0)
+        total_energy = 0
+        for s in species.keys():
+            print(s, species[s], energy_dict[s])
+            total_energy += species[s] * energy_dict[s]
+
+        return total_energy
 
     def calculate_free_energy_change(self) -> None:
         """
@@ -141,6 +146,12 @@ class ReactionStep:
 
         self.free_energy_change = products_total_energy - reactants_total_energy
 
+    def _count_species(self, species_dict: dict, name: str) -> Union[float, int]:
+        if name in species_dict:
+            return species_dict[name]
+        else:
+            return 0
+
     def calculate_pH_correction(self) -> float:
         """
         Calculate the pH correction for the reaction step.
@@ -156,8 +167,8 @@ class ReactionStep:
                 or if pH correction data is not available for the specified temperature.
         """
         # Calculate total number of proton(H+) and hydroxide(OH-)
-        proton_count = self.products["H+"] - self.reactants["H+"]
-        hydroxide_count = self.products["OH-"] - self.reactants["OH-"]
+        proton_count = self._count_species(self.products, "H+") - self._count_species(self.reactants, "H+")
+        hydroxide_count = self._count_species(self.products, "OH-") - self._count_species(self.reactants, "OH-")
 
         # Reaction should not have H+ and OH- simultaneously (except for H2O dissociation)
         if proton_count != 0 and hydroxide_count != 0:
@@ -202,6 +213,6 @@ class ReactionStep:
 
         """
         # Calculate total number of electrons
-        electron_count = self.products["e-"] - self.reactants["e-"]
+        electron_count = self._count_species(self.products, "e-") - self._count_species(self.reactants, "e-")
 
         return -electron_count * self.external_potential  # -neU
