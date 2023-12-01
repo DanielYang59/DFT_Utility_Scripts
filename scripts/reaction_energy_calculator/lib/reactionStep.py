@@ -29,8 +29,8 @@ def validate_species_dict(func):
         for dictionary, energy_dict, name in [(reactants, reactant_energies, 'Reactants'), (products, product_energies, 'Products')]:
             # Check stoichiometric numbers
             for value in dictionary.values():
-                if not isinstance(value, int) or value <= 0:
-                    raise ValueError(f"All values in {name} must be integers greater than 0.")
+                if not isinstance(value, Union[int, float]) or value <= 0:
+                    raise ValueError(f"All values in {name} must be numbers greater than 0.")
 
             # Check proton and hydroxide names
             if "h+" in dictionary.keys() or "oh-" in dictionary.keys():
@@ -88,7 +88,7 @@ class ReactionStep:
         self.external_potential = external_potential
 
     @validate_species_dict
-    def set_reactants(self, reactants: Dict[str, int], reactant_energies: Dict[str, float]) -> None:
+    def set_reactants(self, reactants: Dict[str, Union[float, int]], reactant_energies: Dict[str, float]) -> None:
         """
         Set the reactants and their energies.
 
@@ -101,7 +101,7 @@ class ReactionStep:
         self.reactant_energies = reactant_energies
 
     @validate_species_dict
-    def set_products(self, products: Dict[str, int], product_energies: Dict[str, float]) -> None:
+    def set_products(self, products: Dict[str, Union[float, int]], product_energies: Dict[str, float]) -> None:
         """
         Set the products and their energies.
 
