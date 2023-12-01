@@ -147,6 +147,12 @@ class ReactionStep:
         self.free_energy_change = products_total_energy - reactants_total_energy
 
     def _count_species(self, species_dict: dict, name: str) -> Union[float, int]:
+        """
+        Count the number of species in given dict.
+
+        Returns:
+            float: The number of species
+        """
         if name in species_dict:
             return species_dict[name]
         else:
