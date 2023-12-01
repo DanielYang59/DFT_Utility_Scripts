@@ -100,10 +100,11 @@ class ComputationalHydrogenElectrode(ReactionStep):
         assert water_association_free_energy < 0, "Please input water \"association\" energy, not dissociation."
         assert self.liquid_water_free_energy < 0, "Liquid water free energy is illegal."
 
-        return self.liquid_water_free_energy - self.calculate_proton_free_energy - water_association_free_energy
+        return self.liquid_water_free_energy - self.calculate_proton_free_energy() - water_association_free_energy
 
 # Test area
 if __name__ == "__main__":
     che = ComputationalHydrogenElectrode(pH=14, external_potential=0)
     che.load_recommended_molecule_energies()
-    print(che.calculate_proton_free_energy())
+    print("H+ energy:", che.calculate_proton_free_energy())
+    print("OH- energy:", che.calculate_hydroxide_free_energy())
