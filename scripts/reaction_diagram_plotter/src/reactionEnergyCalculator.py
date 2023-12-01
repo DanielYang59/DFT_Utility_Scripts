@@ -113,8 +113,8 @@ class ReactionEnergyCalculator:
 
         # Get energy reader ready
         energy_reader = EnergyReader(
-            intermediate_energy_file=Path.cwd / "intermediate_energies.csv",
-            species_energy_file=Path.cwd / "species_energies.csv",
+            intermediate_energy_file=Path.cwd() / "intermediate_energies.csv",
+            species_energy_file=Path.cwd() / "species_energies.csv",
             energy_type="free_energy"
             )
 
