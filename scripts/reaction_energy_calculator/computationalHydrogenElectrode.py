@@ -14,7 +14,7 @@ class ComputationalHydrogenElectrode(ReactionStep):
         additional_method(): An additional method for the computational hydrogen electrode.
     """
 
-    def __init__(self, pH: float, external_potential: float, gaseous_hydrogen_free_energy: float, liquid_water_free_energy: float = None) -> None:
+    def __init__(self, pH: float, external_potential: float, gaseous_hydrogen_free_energy: float = None, liquid_water_free_energy: float = None) -> None:
         """
         Initialize a ComputationalHydrogenElectrode instance.
 
@@ -44,6 +44,26 @@ class ComputationalHydrogenElectrode(ReactionStep):
 
         # Add corrections to free energy change
         self.free_energy_change = self.free_energy_change + pH_correction + external_potential_correction
+
+    def load_recommended_molecule_energies(self) -> None:
+        """Load precalculated H2_g and H2O_l free energies.
+
+        DFT calculation conditions:
+            VASP 5.4.4 with PBE functional.
+            Cutoff energy of 450 eV.
+            Gaussian smearing with smearing width of 0.01 eV.
+            Electronic SC-loop breaking at 1E-8 eV.
+            NOT spin-polarized.
+
+        Correction details at 298.15 K:
+            Reference from paper DOI: 10.1039/C0EE00071J table S5.
+            Fugacities of H2 and H2O are 30296 Pa and 3534 Pa, respectively.
+        """
+        # Set gaseous hydrogen (H2_g) free energy with corrections
+        self.gaseous_hydrogen_free_energy = -6.7665366 - 0.066645
+
+        # Set liquid water (H2O_l) free energy with corrections
+        self.liquid_water_free_energy = -14.218641 + 0.016010
 
     def calculate_proton_free_energy(self) -> float:
         """
