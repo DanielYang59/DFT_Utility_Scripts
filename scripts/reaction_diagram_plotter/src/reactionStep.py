@@ -65,12 +65,11 @@ class ReactionStep:
         free_energy_change (float): free energy change of reaction step.
     """
 
-    def __init__(self, deltaG0: float, temperature: float, pH: float, external_potential: float) -> None:
+    def __init__(self, temperature: float, pH: float, external_potential: float) -> None:
         """
         Initialize a ReactionStep instance.
 
         Args:
-            deltaG0 (float): Standard Gibbs free energy change for the reaction.
             temperature (float): Temperature of the reaction.
             pH (float): pH of the reaction.
             external_potential (float): External potential applied to the reaction.
@@ -78,10 +77,8 @@ class ReactionStep:
         # Check parameters conditions
         assert temperature >= 0 and isinstance(temperature, Union[float, int])
         assert 0 <= pH <= 14 and isinstance(pH, Union[float, int])
-        assert isinstance(deltaG0, Union[float, int])
         assert isinstance(external_potential, Union[float, int])
 
-        self.deltaG0 = deltaG0
         self.temperature = temperature
         self.pH = pH
         self.external_potential = external_potential

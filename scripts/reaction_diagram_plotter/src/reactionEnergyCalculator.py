@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from typing import Union, Dict
-from scipy.constants import Boltzmann, elementary_charge
-import math
 
 from .energyReader import EnergyReader
 from .reactionStep import ReactionStep
@@ -82,166 +80,8 @@ class ReactionEnergyCalculator:
             raise TypeError("Illegal data type for verbose.")
         self.verbose = verbose
 
-    def _calculate_half_reaction_energy(self, species: Dict[str, int]) -> float:
-        """
-        Calculate the half reaction energy based on the given species and their stoichiometric numbers.
-
-        Args:
-            species (Dict[str, int]): A dictionary where keys are species names and values are stoichiometric numbers.
-
-        Returns:
-            float: The calculated half reaction energy in the specified energy units.
-
-        Raises:
-            TypeError: If the species name is not a string.
-            ValueError: If the stoichiometric number is not a positive integer or if the species type is unrecognizable.
-
-        Calculates the half reaction energy by summing the contributions from each species in the reaction. The species
-        names are used to identify the type of species (electron, ion, molecule, or reaction intermediate). The stoichiometric
-        numbers determine the quantity of each species in the reaction. The resulting energy is returned in the specified
-        energy units.
-        """
-        # Calculate half reaction energy
-        energy = 0
-
-        # Check half reaction dict
-        for name, num in species.items():
-            # Validate species name and number
-            if not isinstance(name, str):
-                raise TypeError(f"Name for species {name} is not in expected type str, got {type(name)}.")
-            if not isinstance(num, int) or num <= 0:
-                raise ValueError(f"Get illegal stoichiometric number '{num}' for species {name}.")
-
-            # Calculate species energy based on its type
-            ## Electron energy (ignore)
-            if name == "e-":
-                pass
-
-            ## Proton energy (with Computational Hydrogen Electrode method)
-            elif name == "H+":
-                proton_energy = 0.5 * self.energy_reader.read_molecule_or_ion_energy("H2_g")
-                energy += num * proton_energy
-
-            ## Species is "ion" or "molecule"
-            elif name.endswith("-") or name.endswith("+") or name.endswith("_g") or name.endswith("_l"):
-                species_energy = self.energy_reader.read_molecule_or_ion_energy(name)
-                energy += num * species_energy
-
-            ## Species is "reaction intermediate"
-            elif name.startswith("*"):
-                species_energy = self.energy_reader.read_intermediate_energy(name)
-                energy += num * species_energy
-
-            ## Unrecognizable species type
-            else:
-                raise ValueError(f"Unrecognizable species type for '{name}'.")
-
-        return energy
-
-    def _calculate_energy_change_for_step(self, pathway: dict) -> tuple:
-        """
-        Calculate the energy change for a given reaction step based on the provided pathway details.
-
-        Args:
-            pathway (dict): A dictionary containing 'reactants' and 'products' keys, each with their respective components.
-
-        Returns:
-            (float, float): The total energies of (products, reactants).
-
-        """
-        # Calculate energy for products
-        products_energy = self._calculate_half_reaction_energy(pathway["products"])
-
-        # Calculate energy for reactants
-        reactants_energy = self._calculate_half_reaction_energy(pathway["reactants"])
-
-        return products_energy, reactants_energy
-
-    def _calculate_net_species_count(self, reaction_pathway: dict, species_name: str) -> int:
-        """
-        Calculate the net count of a specific chemical species in a reaction pathway.
-
-        Parameters:
-        - reaction_pathway (dict): A dictionary representing the reaction pathway with "products" and "reactants".
-        - species_name (str): The name of the chemical species for which the net count is calculated.
-
-        Returns:
-        - int: The net count of the specified species in the reaction pathway.
-
-        The function extracts the counts of the specified species from both products and reactants
-        in the given reaction pathway and calculates the net count by subtracting the reactant count
-        from the product count.
-
-        """
-        # Extract species
-        products = reaction_pathway["products"]
-        reactants = reaction_pathway["reactants"]
-
-        net_count = 0
-
-        # Calculate species count in products
-        if species_name in products:
-            net_count += products[species_name]
-
-        # Calculate species count in reactants
-        if species_name in reactants:
-            net_count -= reactants[species_name]
-
-        return net_count
-
-    def _add_energy_corrections(self, reaction_pathway: dict, energy_change: float) -> float:
-        """
-        Add energy corrections to the total energy change based on external potential and pH.
-
-        Parameters:
-        - reaction_pathway (dict): A dictionary representing the reaction pathway with "products" and "reactants".
-        - energy_change (float): The original energy change associated with the reaction.
-
-        Returns:
-        - float: The total energy change with external potential and pH corrections.
-
-        This function calculates two types of energy corrections:
-        1. External potential correction: Accounts for the contribution of electrons to an external potential.
-        2. pH correction: Adjusts the energy change based on the imbalance of protons (H+) and hydroxide ions (OH-).
-
-        The external potential correction is calculated by multiplying the net electron count by the external potential.
-        The pH correction is calculated based on the difference between the net counts of protons and hydroxide ions.
-        If both protons and hydroxide ions are present, a RuntimeError is raised since they should not coexist in a reaction.
-
-        Notes:
-            The calculation of pH correction is discussed in https://github.com/DanielYang59/DFT_Utility_Scripts/issues/15.
-
-        """
-        # Calculate external potential correction
-        net_electron_count = self._calculate_net_species_count(reaction_pathway, "e-")
-        potential_correction = -net_electron_count * self.external_potential  # -neU
-
-        # Calculate pH correction (based on H+ and OH- numbers)
-        net_proton_count = self._calculate_net_species_count(reaction_pathway, "H+")
-        net_hydroxide_count = self._calculate_net_species_count(reaction_pathway, "OH-")
-
-        ## Check H+ and OH- count
-        if net_proton_count == 0 and net_hydroxide_count == 0:
-            pH_correction = 0
-
-        elif net_proton_count != 0:
-            pH_correction = net_proton_count * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * self.pH)
-
-        elif net_hydroxide_count != 0:
-            # Ionic Product for H2O at different T: https://www.chemguide.co.uk/physical/acidbaseeqia/kw.html
-            kw_at_diff_temp = {273.15: 0.114 * (10 ** -14), 283.15: 0.293 * (10 ** -14), 293.15: 0.681 * (10 ** -14), 298.15: 1.008 * (10 ** -14), 303.15: 1.471 * (10 ** -14), 313.15: 2.916 * (10 ** -14), 323.15: 5.476 * (10 ** -14), 373.15: 51.3 * (10 ** -14)}
-
-            if self.temperature in kw_at_diff_temp:
-                pOH = -math.log(kw_at_diff_temp[self.temperature], 10) - self.pH
-            else:
-                raise RuntimeError(f"Don't have pH correction data for temperature {self.temperature} K. Available temperatures: {kw_at_diff_temp.keys()}")
-
-            pH_correction = net_hydroxide_count * ((Boltzmann / elementary_charge) * self.temperature * math.log(10, math.e) * pOH)
-
-        else:
-            raise RuntimeError("Reaction equation should not have H+ and OH- simultaneously.")
-
-        return energy_change + potential_correction + pH_correction
+    def _fetch_species_energies(self, species_dict: Dict[str, Union[float, int]]) -> Dict[str, float]:
+        pass
 
     def calculate_energy_changes(self, reaction_pathways: Dict[int, dict], energy_reader: EnergyReader) -> Dict[int, float]:
         """
@@ -269,18 +109,19 @@ class ReactionEnergyCalculator:
         # Calculate energy change for each reaction step
         energy_changes = {}
         for index, pathway in self.reaction_pathways.items():
-            # Calculate products and reactants energies
-            products_energy, reactants_energy = self._calculate_energy_change_for_step(pathway)
+            # Initiate each reaction step
+            reaction_step = ReactionStep(self.temperature, self.pH, self.external_potential)
 
-            # Calculate energy change
-            energy_change = products_energy - reactants_energy
+            # Set species and energies
+            reaction_step.set_reactants(pathway["reactants"], self._fetch_species_energies(pathway["reactants"]))
+            reaction_step.set_products(pathway["products"], self._fetch_species_energies(["products"]))
 
-            # Add external potential and pH corrections
-            energy_changes[index] = self._add_energy_corrections(pathway, energy_change)
+            # Add corrections
+            pH_correction = reaction_step.calculate_pH_correction()
+            external_potential_correction = reaction_step.calculate_external_potential_correction()
 
-            # Verbose
-            if self.verbose:
-                print(f"Step {index}: product_energy {products_energy:.4f} eV, reactant_energy {reactants_energy:.4f} eV.")
+            # Calculate free energy change with corrections
+            energy_changes[index] = reaction_step.calculate_free_energy_change() + pH_correction + external_potential_correction
 
         return energy_changes
 

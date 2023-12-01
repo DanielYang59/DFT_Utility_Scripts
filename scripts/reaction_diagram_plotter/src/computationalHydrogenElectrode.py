@@ -27,8 +27,8 @@ class ComputationalHydrogenElectrode(ReactionStep):
             external_potential (float): External potential applied to the reaction.
             additional_attribute (str): An additional attribute for the computational hydrogen electrode.
         """
-        # Initialize CHE at standard free energy change zero and 298.15 K
-        super().__init__(0, 298.15, pH, external_potential)
+        # Initialize CHE at 298.15 K
+        super().__init__(298.15, pH, external_potential)
 
         # Set species and species energies
         self.gaseous_hydrogen_free_energy = gaseous_hydrogen_free_energy
