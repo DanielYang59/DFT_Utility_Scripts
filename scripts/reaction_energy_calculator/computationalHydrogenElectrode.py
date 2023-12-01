@@ -14,7 +14,7 @@ class ComputationalHydrogenElectrode(ReactionStep):
         additional_method(): An additional method for the computational hydrogen electrode.
     """
 
-    def __init__(self, pH: float, external_potential: float) -> float:
+    def __init__(self, pH: float, external_potential: float) -> None:
         """
         Initialize a ComputationalHydrogenElectrode instance.
 
@@ -32,6 +32,14 @@ class ComputationalHydrogenElectrode(ReactionStep):
         self.set_reactants({"H+":1, "e-":1})
         self.set_products({"H2_g":0.5})
 
+    def calculate_proton_free_energy(self) -> float:
+        """
+        Calculate the free energy change for the computational hydrogen electrode
+        including pH and external potential corrections.
+
+        Returns:
+            float: The calculated proton free energy with pH and external potential corrections.
+        """
         # Calculate free energy change
         self.calculate_free_energy_change()
 
@@ -40,3 +48,6 @@ class ComputationalHydrogenElectrode(ReactionStep):
         external_potential_correction = self.calculate_external_potential_correction()
 
         return self.free_energy_change + pH_correction + external_potential_correction
+
+    def calculate_hydroxide_free_energy(self) -> float:
+        pass
