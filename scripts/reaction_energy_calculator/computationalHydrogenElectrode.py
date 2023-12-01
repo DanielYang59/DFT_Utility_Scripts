@@ -63,7 +63,9 @@ class ComputationalHydrogenElectrode(ReactionStep):
         self.gaseous_hydrogen_free_energy = -6.7665366 - 0.066645
 
         # Set liquid water (H2O_l) free energy with corrections
-        self.liquid_water_free_energy = -14.218641 + 0.016010
+        # self.liquid_water_free_energy = -14.218641 + 0.016010  # correction calculated at pressure of 3534 Pa
+        self.liquid_water_free_energy = -14.218641 + 0.102229  # correction calculated at pressure of 101325 Pa
+
 
     def calculate_proton_free_energy(self) -> float:
         """
