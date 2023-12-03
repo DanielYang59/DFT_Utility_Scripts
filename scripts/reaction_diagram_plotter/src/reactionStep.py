@@ -144,18 +144,6 @@ class ReactionStep:
 
         return products_total_energy - reactants_total_energy
 
-    def _count_species(self, species_dict: dict, name: str) -> Union[float, int]:
-        """
-        Count the number of species in given dict.
-
-        Returns:
-            float: The number of species
-        """
-        if name in species_dict:
-            return species_dict[name]
-        else:
-            return 0
-
     def calculate_pH_correction(self) -> float:
         """
         Calculate the pH correction for the reaction step.
@@ -171,8 +159,8 @@ class ReactionStep:
                 or if pH correction data is not available for the specified temperature.
         """
         # Calculate total number of proton(H+) and hydroxide(OH-)
-        proton_count = self._count_species(self.products, "H+") - self._count_species(self.reactants, "H+")
-        hydroxide_count = self._count_species(self.products, "OH-") - self._count_species(self.reactants, "OH-")
+        proton_count = self.products.get("H+", 0) - self.reactants.get("H+", 0)
+        hydroxide_count = self.products.get("OH-", 0) - self.reactants.get("OH-", 0)
 
         # Reaction should not have H+ and OH- simultaneously (except for H2O dissociation)
         if proton_count != 0 and hydroxide_count != 0:
@@ -217,6 +205,6 @@ class ReactionStep:
 
         """
         # Calculate total number of electrons
-        electron_count = self._count_species(self.products, "e-") - self._count_species(self.reactants, "e-")
+        electron_count = self.products.get("e-", 0) - self.reactants.get("e-", 0)
 
         return -electron_count * self.external_potential  # -neU
