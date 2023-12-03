@@ -126,7 +126,7 @@ class ReactionStep:
 
         return total_energy
 
-    def calculate_free_energy_change(self) -> None:
+    def calculate_free_energy_change(self, verbose: bool = False) -> float:
         """
         Calculate the free energy change for the reaction.
 
@@ -139,7 +139,10 @@ class ReactionStep:
         # Calculate products total energy
         products_total_energy = self._calculate_total_energy(self.products, self.product_energies)
 
-        self.free_energy_change = products_total_energy - reactants_total_energy
+        if verbose:
+            print(f"Reactants energy {reactants_total_energy} eV, products energy {products_total_energy} eV.")
+
+        return products_total_energy - reactants_total_energy
 
     def _count_species(self, species_dict: dict, name: str) -> Union[float, int]:
         """

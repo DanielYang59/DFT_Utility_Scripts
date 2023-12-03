@@ -176,8 +176,8 @@ class ReactionEnergyCalculator:
             external_potential_correction = reaction_step.calculate_external_potential_correction()
 
             # Calculate free energy change with corrections
-            reaction_step.calculate_free_energy_change()
-            energy_changes[index] = reaction_step.free_energy_change + pH_correction + external_potential_correction
+            free_energy_change = reaction_step.calculate_free_energy_change()
+            energy_changes[index] = free_energy_change + pH_correction + external_potential_correction
 
         return energy_changes
 

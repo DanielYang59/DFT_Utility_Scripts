@@ -48,7 +48,7 @@ class ComputationalHydrogenElectrode(ReactionStep):
         self.set_products(products={"H2_g":0.5}, product_energies={"H2_g":self.gaseous_hydrogen_free_energy})
 
         # Calculate free energy change
-        self.calculate_free_energy_change()
+        self.free_energy_change = self.calculate_free_energy_change()
 
         # Calculate pH and external potential corrections
         pH_correction = self.calculate_pH_correction()
