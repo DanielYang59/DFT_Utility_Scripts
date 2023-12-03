@@ -140,7 +140,7 @@ class ReactionStep:
         products_total_energy = self._calculate_total_energy(self.products, self.product_energies)
 
         if verbose:
-            print(f"Reactants energy {reactants_total_energy} eV, products energy {products_total_energy} eV.")
+            print(f"Reactants energy {reactants_total_energy:.4f} eV, products energy {products_total_energy:.4f} eV.")
 
         return products_total_energy - reactants_total_energy
 
