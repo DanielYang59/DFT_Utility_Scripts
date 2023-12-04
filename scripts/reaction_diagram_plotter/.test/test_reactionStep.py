@@ -4,14 +4,14 @@
 """
 Test objectives: Test the results of reactionSteps and compare them to manual calculations.
 
-Target Reaction One: H+ + e- --> 0.5 * H2_g for the following ΔGs:
+Target Reaction One: (H+ + e-) --> 0.5 * H2_g for the following ΔGs:
     a. pH = 0, U = 0 (expect 0)
     b. pH = 7, U = 0 (expect -0.4144)
     d. pH = 0, U = 1 (expect 1)
     e. pH = 0, U = -1 (expect -1)
     f. pH = 7, U = 1 (expect 1-0.4144=0.5856)
 
-Target Reaction Two: 0.5 * H2_g --> H+ + e- for the following ΔGs:
+Target Reaction Two: 0.5 * H2_g --> (H+ + e-) for the following ΔGs:
     (Expect reverses of Target One)
     a'. pH = 0, U = 0
     b'. pH = 7, U = 0
@@ -19,10 +19,10 @@ Target Reaction Two: 0.5 * H2_g --> H+ + e- for the following ΔGs:
     e'. pH = 0, U = -1
     f'. pH = 7, U = 1
 
-Target Reaction Three: H2O_l --> 0.5 * H2_g + OH- - e- for the following ΔGs:
+Target Reaction Three: H2O_l --> 0.5 * H2_g + (OH- - e-) for the following ΔGs:
     a. pH = 14, U = 0 (expect ΔGw=0.822 eV)
-    b. pH = 7, U = 0 (expect X)
-    c. pH = 14, U = 1 (expect X)
+    b. pH = 7, U = 0 (expect ΔGw + 0.4144=1.2364)
+    c. pH = 14, U = 1 (expect ΔGw + 1=1.822)
 """
 
 import sys
@@ -113,10 +113,10 @@ def test_reaction_two():
 
 def test_reaction_three():
     # Define reactions and products
-    reactants = {"H2O_l": 1, "e-":1}
-    reactant_energies = {"H2O_l": -14.22, "e-": 0}
-    products = {"H2_g": 0.5, "OH-": 1}
-    product_energies = {"H2_g": -6.7672, "OH-": -10.0082}  # NOTE: manual energy setup of hydroxide-electron pair
+    reactants = {"H2O_l": 1}
+    reactant_energies = {"H2O_l": -14.22}
+    products = {"H2_g": 0.5, "OH-": 1, "e-": -1}
+    product_energies = {"H2_g": -6.7672, "OH-": -10.0082, "e-": 0}  # NOTE: manual energy setup of hydroxide-electron pair
 
     # Set up condition a
     step_a = ReactionStep(temperature=temperature, pH=14, external_potential=0)
