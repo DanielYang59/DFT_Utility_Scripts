@@ -14,7 +14,7 @@ gasesous_hydrogen_free_energy = -6.8331816
 liquid_water_free_energy = -14.116412
 water_association_free_energy = -0.828  # TODO: temperature dependency
 
-from .reactionStep import ReactionStep
+from reactionStep import ReactionStep
 
 class ComputationalHydrogenElectrode:
     """
@@ -75,3 +75,10 @@ class ComputationalHydrogenElectrode:
         assert self.liquid_water_free_energy < 0, "Liquid water free energy is illegal, should be negative."
 
         return self.liquid_water_free_energy - self.calculate_proton_free_energy() - water_association_free_energy
+
+
+# Test area
+if __name__ == "__main__":
+    che = ComputationalHydrogenElectrode(pH=14, external_potential=0, temperature=298.15)
+    print(che.calculate_proton_free_energy())
+    print(che.calculate_hydroxide_free_energy())

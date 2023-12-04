@@ -6,7 +6,6 @@ from typing import Union, Dict
 
 from .energyReader import EnergyReader
 from .reactionStep import ReactionStep
-from .computationalHydrogenElectrode import ComputationalHydrogenElectrode
 
 class ReactionEnergyCalculator:
     """
@@ -108,9 +107,6 @@ class ReactionEnergyCalculator:
         intermediate energy (for species starting with "*") or molecule/ion energy
         from an energy reader.
         """
-        # NOTE: pH and external potential corrections would be added in class "ReactionStep"
-        che = ComputationalHydrogenElectrode(temperature=self.temperature, pH=0, external_potential=0)
-
         # Get energy reader ready
         energy_reader = EnergyReader(
             intermediate_energy_file=Path.cwd() / "intermediate_energies.csv",
@@ -122,12 +118,6 @@ class ReactionEnergyCalculator:
         for s in species:
             if s == "e-":
                 species_energies["e-"] = 0  # Attribute all energy to "H+" or "OH-"
-
-            elif s == "H+":
-                species_energies["H+"] = che.calculate_proton_free_energy()
-
-            elif s == "OH-":
-                species_energies["OH-"] = che.calculate_hydroxide_free_energy()
 
             elif s.startswith("*"):
                 species_energies[s] = energy_reader.read_intermediate_energy(s)
