@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from .reactionStep import ReactionStep
+from reactionStep import ReactionStep
 
 class ComputationalHydrogenElectrode(ReactionStep):
     """
