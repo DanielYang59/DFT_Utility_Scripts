@@ -108,8 +108,9 @@ class ReactionEnergyCalculator:
         intermediate energy (for species starting with "*") or molecule/ion energy
         from an energy reader.
         """
-        # Initiate computational hydrogen electrode (CHE)
-        che = ComputationalHydrogenElectrode(self.pH, self.external_potential)
+        # Initiate computational hydrogen electrode (CHE) WITHOUT pH and external potential
+        # NOTE: pH and external potential corrections would be added in class "ReactionStep"
+        che = ComputationalHydrogenElectrode(temperature=self.temperature,pH=0, external_potential=0)
 
         # Get energy reader ready
         energy_reader = EnergyReader(
@@ -121,7 +122,7 @@ class ReactionEnergyCalculator:
         species_energies = {}
         for s in species:
             if s == "e-":
-                species_energies["e-"] = 0
+                species_energies["e-"] = 0  # Attribute all energy to "H+" or "OH-"
 
             elif s == "H+":
                 species_energies["H+"] = che.calculate_proton_free_energy()
@@ -164,15 +165,15 @@ class ReactionEnergyCalculator:
         # Calculate energy change for each reaction step
         energy_changes = {}
         for index, pathway in self.reaction_pathways.items():
-            # Initiate each reaction step
+            # Initiate reaction steps
             reaction_step = ReactionStep(self.temperature, self.pH, self.external_potential)
 
             # Set species and energies
             reaction_step.set_reactants(pathway["reactants"], self._fetch_species_energies(pathway["reactants"]))
             reaction_step.set_products(pathway["products"], self._fetch_species_energies(pathway["products"]))
 
-            # Calculate free energy change with corrections
-            energy_changes[index] = reaction_step.calculate_free_energy_change(verbose=True)
+            # Calculate free energy changes with pH and external potential corrections
+            energy_changes[index] = reaction_step.calculate_free_energy_change(verbose=True) # DEBUG
 
         return energy_changes
 
