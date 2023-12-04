@@ -50,13 +50,6 @@ class ComputationalHydrogenElectrode(ReactionStep):
         # Calculate free energy change
         self.free_energy_change = self.calculate_free_energy_change()
 
-        # Calculate pH and external potential corrections
-        pH_correction = self.calculate_pH_correction()
-        external_potential_correction = self.calculate_external_potential_correction()
-
-        # Add corrections to free energy change
-        self.free_energy_change = self.free_energy_change + pH_correction + external_potential_correction
-
     def calculate_proton_free_energy(self) -> float:
         """
         Calculate the free energy of proton-electron pair
@@ -86,10 +79,3 @@ class ComputationalHydrogenElectrode(ReactionStep):
         assert self.liquid_water_free_energy < 0, "Liquid water free energy is illegal."
 
         return self.liquid_water_free_energy - self.calculate_proton_free_energy() - water_association_free_energy
-
-# Test area
-if __name__ == "__main__":
-    che = ComputationalHydrogenElectrode(pH=14, external_potential=0)
-    che.load_recommended_molecule_energies()
-    print("(H+ + e-) energy:", che.calculate_proton_free_energy())
-    print("(OH- - e-) energy:", che.calculate_hydroxide_free_energy())
