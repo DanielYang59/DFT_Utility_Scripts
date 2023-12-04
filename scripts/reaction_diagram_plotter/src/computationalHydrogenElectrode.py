@@ -12,13 +12,11 @@ Notes:
 """
 gasesous_hydrogen_free_energy = -6.8331816
 liquid_water_free_energy = -14.116412
-water_association_free_energy = -0.828
-
-proton_electron_pair_free_energy = -3.3836  # TODO: any better solution?
+water_association_free_energy = -0.828  # TODO: temperature dependency
 
 from .reactionStep import ReactionStep
 
-class ComputationalHydrogenElectrode(ReactionStep):
+class ComputationalHydrogenElectrode:
     """
     Class representing a computational hydrogen electrode (CHE).
     """
@@ -35,18 +33,18 @@ class ComputationalHydrogenElectrode(ReactionStep):
             liquid_water_free_energy (float): free energy of H2O_l
         """
         # Initialize CHE at 298.15 K
-        super().__init__(temperature, pH, external_potential)
+        che = ReactionStep(temperature, pH, external_potential)
 
         # Set species and species energies
         self.gaseous_hydrogen_free_energy = gaseous_hydrogen_free_energy
         self.liquid_water_free_energy = liquid_water_free_energy
 
         # Set up reaction: H+ + e- --> 0.5 * H2_g
-        self.set_reactants(reactants={"H++e-":1}, reactant_energies={"H++e-":proton_electron_pair_free_energy})
-        self.set_products(products={"H2_g":0.5}, product_energies={"H2_g":self.gaseous_hydrogen_free_energy})
+        che.set_reactants(reactants={"H+":1, "e-": 1}, reactant_energies={"H+":0, "e-": 0})
+        che.set_products(products={"H2_g":0.5}, product_energies={"H2_g":0})
 
         # Calculate free energy change
-        self.free_energy_change = self.calculate_free_energy_change()
+        self.free_energy_change = che.calculate_free_energy_change()
 
     def calculate_proton_free_energy(self) -> float:
         """
