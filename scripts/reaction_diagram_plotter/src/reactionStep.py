@@ -144,9 +144,13 @@ class ReactionStep:
         if verbose:
             print(f"Reactants energy {reactants_total_energy:.4f} eV, products energy {products_total_energy:.4f} eV.")
 
-        return products_total_energy - reactants_total_energy
+        # Calculate free energy change
+        free_energy_change = products_total_energy - reactants_total_energy
 
-    def calculate_pH_correction(self) -> float:
+        # Calculate free energy change with pH and external potential corrections
+        return free_energy_change + self._calculate_pH_correction() + self._calculate_external_potential_correction()
+
+    def _calculate_pH_correction(self) -> float:
         """
         Calculate the pH correction for the reaction step.
 
@@ -188,7 +192,7 @@ class ReactionStep:
         else:
             return 0
 
-    def calculate_external_potential_correction(self) -> float:
+    def _calculate_external_potential_correction(self) -> float:
         """
         Calculate the external potential correction for the reaction step.
 
