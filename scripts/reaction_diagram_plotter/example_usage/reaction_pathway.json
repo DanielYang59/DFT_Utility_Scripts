@@ -5,8 +5,8 @@
     "comment":"Example NITRR pathway for reaction diagram plotter",
 
     "1":{
-        "reactants":{"*":1, "H++NO3-":1},
-        "products":{"*NO3":1, "e-":1, "H+":1}
+        "reactants":{"*":1, "HNO3":1, "OH-":1},
+        "products":{"*NO3":1, "e-":1, "H2O_l":1}
     },
 
     "2":{
@@ -21,16 +21,16 @@
 
     "4":{
         "reactants":{"*NO":1, "H2O_l":1, "e-":1},
-        "products":{"*NHO":1, "OH-":1}
+        "products":{"*NOH":1, "OH-":1}
     },
 
     "5":{
-        "reactants":{"*NHO":1, "H2O_l":1, "e-":1},
-        "products":{"*NH2O":1, "OH-":1}
+        "reactants":{"*NOH":1, "H2O_l":1, "e-":1},
+        "products":{"*NHOH":1, "OH-":1}
     },
 
     "6":{
-        "reactants":{"*NH2O":1, "H2O_l":1, "e-":1},
+        "reactants":{"*NHOH":1, "H2O_l":1, "e-":1},
         "products":{"*NH2OH":1, "OH-":1}
     },
 
@@ -38,8 +38,13 @@
         "reactants":{"*NH2OH":1, "e-":1},
         "products":{"*NH2":1, "OH-":1}
     },
+
     "8":{
         "reactants":{"*NH2":1, "H2O_l":1, "e-":1},
         "products":{"*NH3":1, "OH-":1}
+    },
+    "9":{
+        "reactants":{"*NH3":1},
+        "products":{"*":1, "NH3_g":1}
     }
 }
