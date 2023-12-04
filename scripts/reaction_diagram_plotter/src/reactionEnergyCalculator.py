@@ -108,9 +108,8 @@ class ReactionEnergyCalculator:
         intermediate energy (for species starting with "*") or molecule/ion energy
         from an energy reader.
         """
-        # Initiate computational hydrogen electrode (CHE) WITHOUT pH and external potential
         # NOTE: pH and external potential corrections would be added in class "ReactionStep"
-        che = ComputationalHydrogenElectrode(temperature=self.temperature,pH=0, external_potential=0)
+        che = ComputationalHydrogenElectrode(temperature=self.temperature, pH=0, external_potential=0)
 
         # Get energy reader ready
         energy_reader = EnergyReader(
@@ -172,8 +171,13 @@ class ReactionEnergyCalculator:
             reaction_step.set_reactants(pathway["reactants"], self._fetch_species_energies(pathway["reactants"]))
             reaction_step.set_products(pathway["products"], self._fetch_species_energies(pathway["products"]))
 
+            # Verbose if required
+            if self.verbose:
+                print(f"Reaction step {index}:")
+                print(f"Reactants: {pathway['reactants']}, products: {pathway['products']}.")
+
             # Calculate free energy changes with pH and external potential corrections
-            energy_changes[index] = reaction_step.calculate_free_energy_change(verbose=True) # DEBUG
+            energy_changes[index] = reaction_step.calculate_free_energy_change(verbose=self.verbose)
 
         return energy_changes
 
