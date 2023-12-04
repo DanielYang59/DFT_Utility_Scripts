@@ -171,13 +171,8 @@ class ReactionEnergyCalculator:
             reaction_step.set_reactants(pathway["reactants"], self._fetch_species_energies(pathway["reactants"]))
             reaction_step.set_products(pathway["products"], self._fetch_species_energies(pathway["products"]))
 
-            # Add corrections
-            pH_correction = reaction_step.calculate_pH_correction()
-            external_potential_correction = reaction_step.calculate_external_potential_correction()
-
             # Calculate free energy change with corrections
-            free_energy_change = reaction_step.calculate_free_energy_change(verbose=True)
-            energy_changes[index] = free_energy_change + pH_correction + external_potential_correction
+            energy_changes[index] = reaction_step.calculate_free_energy_change(verbose=True)
 
         return energy_changes
 
