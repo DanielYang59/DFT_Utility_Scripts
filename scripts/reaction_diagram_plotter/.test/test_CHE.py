@@ -17,19 +17,25 @@ Test objectives: Test the free energy calculations of
 
 """
 
-import sys
-import os
+import unittest
+from src.computationalHydrogenElectrode import ComputationalHydrogenElectrode
 
-# Append the 'src' directory to the Python path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+class TestComputationalHydrogenElectrode(unittest.TestCase):
+    def setUp(self):
+        # Set up any common configuration or resources needed for the tests
+        self.temperature = 298.15
 
-# Now you can import modules from 'src'
-from computationalHydrogenElectrode import ComputationalHydrogenElectrode
+    def test_calculate_proton_free_energy(self):
+        che = ComputationalHydrogenElectrode(temperature=self.temperature, pH=0, external_potential=0)
+        proton_free_energy = che.calculate_proton_free_energy()
+        # Add assertions to verify the correctness of the result
+        self.assertEqual(proton_free_energy, -3.3836)
 
-# Set up global temperature
-temperature = 298.15
+    def test_calculate_hydroxide_free_energy(self):
+        che = ComputationalHydrogenElectrode(temperature=self.temperature, pH=0, external_potential=0)
+        hydroxide_free_energy = che.calculate_hydroxide_free_energy()
+        # Add assertions to verify the correctness of the result
+        self.assertEqual(hydroxide_free_energy, -10.0082)
 
 if __name__ == "__main__":
-    che = ComputationalHydrogenElectrode(temperature=temperature, pH=0, external_potential=0)
-    print(che.calculate_proton_free_energy())
-    print(che.calculate_hydroxide_free_energy())
+    unittest.main()
