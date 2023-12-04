@@ -7,23 +7,18 @@ class ComputationalHydrogenElectrode(ReactionStep):
     """
     Class representing a computational hydrogen electrode in a chemical reaction.
 
-    Additional Attributes:
-        additional_attribute (str): An additional attribute for the computational hydrogen electrode.
-
-    Additional Methods:
-        additional_method(): An additional method for the computational hydrogen electrode.
     """
 
-    def __init__(self, pH: float, external_potential: float, gaseous_hydrogen_free_energy: float = -6.8331816, liquid_water_free_energy: float = -14.116412) -> None:
+    def __init__(self, pH: float, external_potential: float, temperature: float = 298.15, gaseous_hydrogen_free_energy: float = -6.8331816, liquid_water_free_energy: float = -14.116412) -> None:
         """
         Initialize a ComputationalHydrogenElectrode instance.
 
         Args:
-            deltaG0 (float): Standard Gibbs free energy change for the reaction.
-            temperature (float): Temperature of the reaction.
             pH (float): pH of the reaction.
             external_potential (float): External potential applied to the reaction.
-            additional_attribute (str): An additional attribute for the computational hydrogen electrode.
+            temperature (float): Temperature in Kevin of the reaction.
+            gaseous_hydrogen_free_energy (float): free energy of H2_g
+            liquid_water_free_energy (float): free energy of H2O_l
 
         Notes:
             Gaseous hydrogen (H2_g) free energy with corrections
@@ -34,7 +29,7 @@ class ComputationalHydrogenElectrode(ReactionStep):
             liquid_water_free_energy = -14.218641 + 0.102229  # calculated at pressure of 101325 Pa
         """
         # Initialize CHE at 298.15 K
-        super().__init__(298.15, pH, external_potential)
+        super().__init__(temperature, pH, external_potential)
 
         # Set species and species energies
         self.gaseous_hydrogen_free_energy = gaseous_hydrogen_free_energy
