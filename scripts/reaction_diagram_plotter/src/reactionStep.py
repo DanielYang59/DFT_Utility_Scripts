@@ -7,47 +7,6 @@ from typing import Dict, Union
 from scipy.constants import Boltzmann, elementary_charge
 import math
 
-def validate_species_dict(func):
-    """
-    Decorator to validate species dictionaries and their corresponding energy dictionaries.
-
-    This decorator checks that the values in species dictionaries (reactants and products)
-    are integers greater than 0, proton (H+) or hydroxide (OH-) names are in all capital letters,
-    and keys in species dictionaries match keys in energy dictionaries (reactant_energies and product_energies).
-
-    Args:
-        func (callable): The function to be decorated.
-
-    Returns:
-        callable: The decorated function.
-    """
-    def wrapper(self, *args, **kwargs):
-        # Parse dicts
-        reactants, reactant_energies = args[0].get('reactants', {}), args[0].get('reactant_energies', {})
-        products, product_energies = args[0].get('products', {}), args[0].get('product_energies', {})
-
-        # Check reactants and products dictionaries
-        for dictionary, energy_dict, name in [(reactants, reactant_energies, 'Reactants'), (products, product_energies, 'Products')]:
-            # Check stoichiometric numbers
-            for value in dictionary.values():
-                if not isinstance(value, Union[int, float]) or value <= 0:
-                    raise ValueError(f"All values in {name} must be numbers greater than 0.")
-
-            # Check proton and hydroxide names
-            if "h+" in dictionary.keys() or "oh-" in dictionary.keys():
-                raise RuntimeError(f"Proton (H+) or hydroxide (OH-) names in {name} should be in all capital letters.")
-
-            # Check electron name
-            if "E+" in dictionary.keys():
-                raise RuntimeError(f"Electron (e-) name in {name} should be in lower case.")
-
-            # Check keys match between species and energies
-            if set(dictionary.keys()) != set(energy_dict.keys()):
-                raise ValueError(f"Keys of {name} and {name} energies must match.")
-
-        return func(self, *args, **kwargs)
-    return wrapper
-
 class ReactionStep:
     """
     Class representing a step in a chemical reaction.
@@ -85,7 +44,6 @@ class ReactionStep:
         self.pH = pH
         self.external_potential = external_potential
 
-    # @validate_species_dict
     def set_reactants(self, reactants: Dict[str, Union[float, int]], reactant_energies: Dict[str, float]) -> None:
         """
         Set the reactants and their energies.
@@ -98,7 +56,6 @@ class ReactionStep:
         self.reactants = reactants
         self.reactant_energies = reactant_energies
 
-    # @validate_species_dict
     def set_products(self, products: Dict[str, Union[float, int]], product_energies: Dict[str, float]) -> None:
         """
         Set the products and their energies.
@@ -127,28 +84,6 @@ class ReactionStep:
             total_energy += species[s] * energy_dict[s]
 
         return total_energy
-
-    def calculate_free_energy_change(self, verbose: bool = False) -> float:
-        """
-        Calculate the free energy change for the reaction.
-
-        Returns:
-            float: The calculated free energy change.
-        """
-        # Calculate reactants total energy
-        reactants_total_energy = self._calculate_total_energy(self.reactants, self.reactant_energies)
-
-        # Calculate products total energy
-        products_total_energy = self._calculate_total_energy(self.products, self.product_energies)
-
-        if verbose:
-            print(f"Reactants energy {reactants_total_energy:.4f} eV, products energy {products_total_energy:.4f} eV.")
-
-        # Calculate free energy change
-        free_energy_change = products_total_energy - reactants_total_energy
-
-        # Calculate free energy change with pH and external potential corrections
-        return free_energy_change + self._calculate_pH_correction() + self._calculate_external_potential_correction()
 
     def _calculate_pH_correction(self) -> float:
         """
@@ -214,3 +149,25 @@ class ReactionStep:
         electron_count = self.products.get("e-", 0) - self.reactants.get("e-", 0)
 
         return -electron_count * self.external_potential  # -neU
+
+    def calculate_free_energy_change(self, verbose: bool = False) -> float:
+        """
+        Calculate the free energy change for the reaction.
+
+        Returns:
+            float: The calculated free energy change.
+        """
+        # Calculate reactants total energy
+        reactants_total_energy = self._calculate_total_energy(self.reactants, self.reactant_energies)
+
+        # Calculate products total energy
+        products_total_energy = self._calculate_total_energy(self.products, self.product_energies)
+
+        if verbose:
+            print(f"Reactants energy {reactants_total_energy:.4f} eV, products energy {products_total_energy:.4f} eV.")
+
+        # Calculate free energy change
+        free_energy_change = products_total_energy - reactants_total_energy
+
+        # Calculate free energy change with pH and external potential corrections
+        return free_energy_change + self._calculate_pH_correction() + self._calculate_external_potential_correction()
