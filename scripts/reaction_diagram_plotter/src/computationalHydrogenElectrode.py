@@ -16,7 +16,7 @@ water_association_free_energy = -0.828
 
 proton_electron_pair_free_energy = -3.3836  # TODO: any better solution?
 
-from reactionStep import ReactionStep
+from .reactionStep import ReactionStep
 
 class ComputationalHydrogenElectrode(ReactionStep):
     """
