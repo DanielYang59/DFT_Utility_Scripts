@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: clean up pH/external_potential corrections (add directly to side of reactants)
+
 from typing import Dict, Union
 from scipy.constants import Boltzmann, elementary_charge
 import math
