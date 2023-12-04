@@ -5,7 +5,7 @@
     "comment":"Example NITRR pathway for reaction diagram plotter",
 
     "1":{
-        "reactants":{"*":1, "HNO3":1, "OH-":1},
+        "reactants":{"*":1, "HNO3_aq":1, "OH-":1},
         "products":{"*NO3":1, "e-":1, "H2O_l":1}
     },
 
