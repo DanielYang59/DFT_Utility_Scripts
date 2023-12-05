@@ -13,6 +13,12 @@ Notes:
 gasesous_hydrogen_free_energy = -6.8331816
 liquid_water_free_energy = -14.116412
 
+# Add the project root to the Python path
+import sys
+import os
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
+
 from src.reactionStep import ReactionStep
 
 class ComputationalHydrogenElectrode:
