@@ -3,6 +3,7 @@
 
 from pathlib import Path
 from typing import Union, Dict
+import warnings
 
 from .energyReader import EnergyReader
 from .reactionStep import ReactionStep
@@ -65,7 +66,7 @@ class ReactionEnergyCalculator:
         if not isinstance(pH, (float, int)):
             raise TypeError("pH must be a float or an integer.")
         if not 0 <= pH <= 14:
-            raise ValueError("pH must be within the range of 0 to 14.")
+            warnings.warn(f"pH of {pH} out of the 0 to 14 range.")
         self.pH = pH
 
         # Check and set temperature
