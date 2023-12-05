@@ -12,9 +12,8 @@ Notes:
 """
 gasesous_hydrogen_free_energy = -6.8331816
 liquid_water_free_energy = -14.116412
-water_association_free_energy = -0.828  # TODO: temperature dependency
 
-from reactionStep import ReactionStep
+from src.reactionStep import ReactionStep
 
 class ComputationalHydrogenElectrode:
     """
@@ -46,6 +45,9 @@ class ComputationalHydrogenElectrode:
         # Calculate free energy change
         self.free_energy_change = che.calculate_free_energy_change()
 
+        # Take temperature
+        self.temperature = temperature
+
     def calculate_proton_free_energy(self) -> float:
         """
         Calculate the free energy of proton-electron pair
@@ -74,8 +76,14 @@ class ComputationalHydrogenElectrode:
         assert water_association_free_energy < 0, "Please input water \"association\" energy, not dissociation, should be positive."
         assert self.liquid_water_free_energy < 0, "Liquid water free energy is illegal, should be negative."
 
-        return self.liquid_water_free_energy - self.calculate_proton_free_energy() - water_association_free_energy
+        # Get water dissociation/association energy at given temperature
+        water_association_free_energies = {298.15: -0.828}  # TODO: add data for other temperatures
 
+        if self.temperature in water_association_free_energies.keys():
+            return self.liquid_water_free_energy - self.calculate_proton_free_energy() - water_association_free_energies[self.temperature]
+
+        else:
+            raise RuntimeError(f"Currently don't have water dissociation energy for temperature {self.temperature} K.")
 
 # Test area
 if __name__ == "__main__":
