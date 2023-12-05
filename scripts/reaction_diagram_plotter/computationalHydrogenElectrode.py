@@ -62,7 +62,7 @@ class ComputationalHydrogenElectrode:
         assert self.gaseous_hydrogen_free_energy < 0, "Illegal gaseous hydrogen free energy, should be negative."
         return 0.5 * self.gaseous_hydrogen_free_energy - self.free_energy_change
 
-    def calculate_hydroxide_free_energy(self, water_association_free_energy: float = water_association_free_energy) -> float:
+    def calculate_hydroxide_free_energy(self) -> float:
         """
         Calculate the free energy of hydroxide-electron pair
         including pH and external potential corrections.
@@ -73,20 +73,28 @@ class ComputationalHydrogenElectrode:
         Returns:
             float: The calculated hydroxide-electron pair free energy with pH and external potential corrections.
         """
-        assert water_association_free_energy < 0, "Please input water \"association\" energy, not dissociation, should be positive."
-        assert self.liquid_water_free_energy < 0, "Liquid water free energy is illegal, should be negative."
-
         # Get water dissociation/association energy at given temperature
         water_association_free_energies = {298.15: -0.828}  # TODO: add data for other temperatures
 
         if self.temperature in water_association_free_energies.keys():
+            assert self.liquid_water_free_energy < 0, "Liquid water free energy is illegal, should be negative."
             return self.liquid_water_free_energy - self.calculate_proton_free_energy() - water_association_free_energies[self.temperature]
 
         else:
             raise RuntimeError(f"Currently don't have water dissociation energy for temperature {self.temperature} K.")
 
-# Test area
+def main():
+    # Get user input for pH, external potential, and temperature
+    pH = float(input("Enter the pH: "))
+    external_potential = float(input("Enter the external potential: "))
+    temperature = float(input("Enter the temperature in Kelvin: "))
+
+    # Create ComputationalHydrogenElectrode object with user-input values
+    che = ComputationalHydrogenElectrode(pH=pH, external_potential=external_potential, temperature=temperature)
+
+    # Print the results of the calculations
+    print(f"Proton-electron pair Free Energy: {che.calculate_proton_free_energy():.4f} eV.", )
+    print(f"Hydroxide-electron pair Free Energy: {che.calculate_hydroxide_free_energy():.4f} eV.")
+
 if __name__ == "__main__":
-    che = ComputationalHydrogenElectrode(pH=14, external_potential=0, temperature=298.15)
-    print(che.calculate_proton_free_energy())
-    print(che.calculate_hydroxide_free_energy())
+    main()
