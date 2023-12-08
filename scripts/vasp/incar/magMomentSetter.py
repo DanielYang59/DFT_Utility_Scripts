@@ -2,66 +2,44 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
-from typing import Dict
 from ase.io import read
 from ase.io.vasp import write_incar
+from typing import Dict
 
-def read_element_from_poscar(poscarfile: Path) -> Dict[str, float]:
-    """
-    Read chemical elements and their counts from a VASP POSCAR file.
+class MagneticMomentUpdater:
+    def __init__(self, poscarfile: Path = Path.cwd() / "POSCAR", incarfile: Path = Path.cwd() / "INCAR"):
+        self.poscarfile = poscarfile
+        self.incarfile = incarfile
 
-    Parameters:
-        - poscarfile (Path): The path to the POSCAR file.
+    def reset_magnetic_moment(self, magmom_dict: Dict[str, float]) -> None:
+        """
+        Reset magnetic moments in the INCAR file based on a predefined magmom dictionary.
 
-    Returns:
-        - element_counts (Dict[str, float]): A dictionary containing the counts of each chemical element.
-        The keys are element symbols, and the values are the corresponding counts.
+        Parameters:
+            - magmom_dict (Dict[str, float]): A dictionary containing the magnetic moments for each element.
+              Keys are element symbols, and values are the corresponding magnetic moments.
+        """
+        # Write magnetic moment into INCAR
+        self._write_magmom_to_incar(magmom_dict)
 
-    Example:
-        >>> poscar_path = Path("fe3pd-ordered(100).POSCAR")
-        >>> element_counts = read_element_from_poscar(poscar_path)
-        >>> print(element_counts)
-        {'Fe': 81, 'Pd': 27}
-    """
-    atoms = read(poscarfile)
+    def _write_magmom_to_incar(self, magmom_dict: Dict[str, float]) -> None:
+        """
+        Write magnetic moments to a VASP INCAR file using ASE.
 
-    # Extract the chemical symbols and counts
-    symbols = atoms.get_chemical_symbols()
+        Parameters:
+            - magmom_dict (Dict[str, float]): A dictionary containing the magnetic moments for each element.
+              Keys are element symbols, and values are the corresponding magnetic moments.
+        """
+        atoms = read(self.incarfile)
 
-    return {symbol: symbols.count(symbol) for symbol in set(symbols)}
+        # Set initial magnetic moments
+        for symbol, magmom in magmom_dict.items():
+            atoms.set_initial_magnetic_moments(symbols=symbol, magmoms=magmom)
 
-def write_magmom_to_incar(incarfile: Path, magmom_dict: Dict[str, int]) -> None:
-    """
-    Write magnetic moments to a VASP INCAR file.
-
-    Parameters:
-        - incarfile (Path): The path to the INCAR file.
-        - magmom_dict (Dict[str, float]): A dictionary containing the magnetic moments for each element.
-        Keys are element symbols, and values are the corresponding magnetic moments.
-
-    Example:
-        >>> incar_path = Path("INCAR")
-        >>> magmom_data = {'Fe': 2.0, 'Pd': -1.5}
-        >>> write_magmom_to_incar(incar_path, magmom_data)
-    """
-    atoms = read(incarfile)
-
-    # Set initial magnetic moments
-    for symbol, magmom in magmom_dict.items():
-        atoms.set_initial_magnetic_moments(symbols=symbol, magmoms=magmom)
-
-    # Write INCAR file
-    write_incar(str(incarfile), atoms)
-
-def magnetic_moment_setter(incarfile: Path) -> None:
-    # Read elements from POSCAR
-    elements = read_element_from_poscar()
-
-    # Parse magnetic moment based on elements
-    element_magmoms = None
-
-    # Write magnetic moment into INCAR
-    write_magmom_to_incar(incarfile, element_magmoms)
+        # Write INCAR file
+        write_incar(self.incarfile / "_new", atoms)
 
 if __name__ == "__main__":
-    magnetic_moment_setter()
+    updater = MagneticMomentUpdater()
+    magmom_data = {'Fe': 2.0, 'Pd': -1.5}  # TODO:
+    updater.reset_magnetic_moment(magmom_data)
