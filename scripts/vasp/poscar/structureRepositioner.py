@@ -11,7 +11,8 @@ from ase.io import write
 from pathlib import Path
 import warnings
 
-from .lib import find_or_request_poscar, read_poscar
+from .lib.find_or_request_poscar import find_or_request_poscar
+from .lib.read_poscar import read_poscar
 
 class StructureRepositioner:
     """
