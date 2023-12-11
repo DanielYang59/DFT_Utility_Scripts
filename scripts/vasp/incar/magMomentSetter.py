@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
-from ase.io import read
-from ase.io.vasp import write_incar
+from ase.io import read, write
 from typing import Dict
 
 class MagneticMomentUpdater:
@@ -30,16 +29,16 @@ class MagneticMomentUpdater:
             - magmom_dict (Dict[str, float]): A dictionary containing the magnetic moments for each element.
               Keys are element symbols, and values are the corresponding magnetic moments.
         """
-        atoms = read(self.incarfile)
+        atoms = read(self.incarfile, format="vasp")
 
         # Set initial magnetic moments
         for symbol, magmom in magmom_dict.items():
             atoms.set_initial_magnetic_moments(symbols=symbol, magmoms=magmom)
 
         # Write INCAR file
-        write_incar(self.incarfile / "_new", atoms)
+        write(self.incarfile / "_new", atoms, format="vasp")
 
 if __name__ == "__main__":
     updater = MagneticMomentUpdater()
-    magmom_data = {'Fe': 2.0, 'Pd': -1.5}  # TODO:
+    magmom_data = {'Fe': 2.0, 'Pd': -1.5}  # TODO: need to get such a dict somehow
     updater.reset_magnetic_moment(magmom_data)
