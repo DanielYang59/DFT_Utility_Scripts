@@ -16,6 +16,13 @@ if __name__ == "__main__":
     print(incar_handler.read_tag("ALGO"))
     print(incar_handler.read_tag("ISIF"))  # non-existing tag
 
+
     # Test reading illegal INCAR
     incar_handler = VaspIncar(Path("./INCAR_illegal"))
     print(incar_handler.incar_data)
+
+
+    # Test modifying INCAR entry
+    incar_handler = VaspIncar(Path("./INCAR_legal"))
+    incar_handler.set_tag("ALGO", "Fast")
+    incar_handler.write_out(Path("./INCAR_legal_modifed"))

@@ -1,0 +1,3 @@
+ALGO = Fast
+ISMEAR = -1
+SIGMA = 0.05
