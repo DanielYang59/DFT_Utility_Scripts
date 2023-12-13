@@ -95,7 +95,7 @@ class VaspIncar:
         self.incar_data[name] = value
 
 
-    def write_out(self, new_file: Path) -> None:
+    def write_out(self, new_file: Path = Path.cwd() / "INCAR_new") -> None:
         """
         Write the INCAR data to a new file.
 
