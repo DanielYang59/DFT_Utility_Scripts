@@ -10,11 +10,26 @@ class VaspIncar:
     Class for handling VASP INCAR files.
     """
     def __init__(self, file: Path) -> None:
+        """
+        Initialize a VaspIncar instance.
+
+        Parameters:
+        - file (Path): The path to the INCAR file.
+
+        Raises:
+        - AssertionError: If the provided file is not a valid file.
+
+        The __init__ method imports and checks the INCAR file, raising an
+        AssertionError if the file is not a valid file. It then reads the INCAR
+        data using the _read_in method and checks the INCAR entries using the
+        _check_incar method.
+        """
         # Import and check INCAR file
         assert file.is_file()
         self.file = file
         self.incar_data = self._read_in()
         self._check_incar()
+
 
     def _check_incar(self) -> bool:
         """
@@ -28,6 +43,7 @@ class VaspIncar:
                 warnings.warn(f"Empty value found for tag '{tag}' in INCAR. Please check the input.")
                 return False
         return True
+
 
     def _read_in(self) -> Dict[str, str]:
         """
@@ -51,16 +67,6 @@ class VaspIncar:
 
         return incar_data
 
-    def write_out(self, new_file: Path) -> None:
-        """
-        Write the INCAR data to a new file.
-
-        Parameters:
-        - new_file (Path): The path to the new INCAR file.
-        """
-        with open(new_file, 'w') as f:
-            for tag, value in self.incar_data.items():
-                f.write(f"{tag} = {value}\n")
 
     def read_tag(self, name: str, default: str = None) -> str:
         """
@@ -75,6 +81,7 @@ class VaspIncar:
         """
         return self.incar_data.get(name, default)
 
+
     def set_tag(self, name: str, value: str) -> None:
         """
         Set the value associated with the specified tag in the INCAR data.
@@ -86,3 +93,15 @@ class VaspIncar:
         - value (str): The value to associate with the tag.
         """
         self.incar_data[name] = value
+
+
+    def write_out(self, new_file: Path) -> None:
+        """
+        Write the INCAR data to a new file.
+
+        Parameters:
+        - new_file (Path): The path to the new INCAR file.
+        """
+        with open(new_file, 'w') as f:
+            for tag, value in self.incar_data.items():
+                f.write(f"{tag} = {value}\n")
