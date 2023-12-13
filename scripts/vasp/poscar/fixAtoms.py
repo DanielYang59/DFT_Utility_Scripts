@@ -35,28 +35,6 @@ class PoscarAtomFixer:
         # Write new POSCAR upon exiting
         atexit.register(write_poscar, self.poscar, file_path=Path("POSCAR_new"), overwrite=True)
 
-    def _fix_atoms(self, atom_indexes: List[int]) -> None:
-        """
-        Fix specified atoms using selective dynamics.
-
-        Parameters:
-            atom_indexes (List[int]): List of integers representing 0-indexed indices indicating atoms to be fixed.
-
-        Note:
-            This method uses selective dynamics to fix the specified atoms in the POSCAR file.
-        """
-        # Check for integer values, non-negativity, and duplicates
-        if any(not isinstance(idx, int) or idx < 0 for idx in atom_indexes):
-            raise ValueError("All values in atom_indexes must be integers greater than or equal to zero.")
-
-        if len(atom_indexes) != len(set(atom_indexes)):
-            raise ValueError("Duplicate values in atom_indexes are not allowed.")
-
-        assert atom_indexes, "Empty index list detected."
-
-        # Apply selective dynamics using FixAtoms constraint
-        fix_atoms_constraint = FixAtoms(indices=atom_indexes)  # ref: https://wiki.fysik.dtu.dk/ase/ase/constraints.html
-        self.poscar.set_constraint(fix_atoms_constraint)
 
     def _convert_position_range_to_absolute(self) -> List[float]:
         """
@@ -109,6 +87,7 @@ class PoscarAtomFixer:
         assert len(absolute_position_range) == 2 and (absolute_position_range[1] > absolute_position_range[0])
         return absolute_position_range
 
+
     def _select_atom_by_position(self, abs_position_range: List[float]) -> List[int]:
         """
         Select atoms whose coordinates along the specified axis fall within the given absolute position range.
@@ -128,6 +107,35 @@ class PoscarAtomFixer:
             idx for idx, pos in enumerate(self.poscar.positions[:, self.axis_index])
             if abs_position_range[0] <= pos <= abs_position_range[1]
         ]
+
+
+    def fix_atoms_by_index(self, atom_indexes: List[int], verbose: bool = True) -> None:
+        """
+        Fix specified atoms using selective dynamics.
+
+        Parameters:
+            atom_indexes (List[int]): List of integers representing 0-indexed indices indicating atoms to be fixed.
+
+        Note:
+            This method uses selective dynamics to fix the specified atoms in the POSCAR file.
+        """
+        # Check for integer values, non-negativity, and duplicates
+        if any(not isinstance(idx, int) or idx < 0 for idx in atom_indexes):
+            raise ValueError("All values in atom_indexes must be integers greater than or equal to zero.")
+
+        if len(atom_indexes) != len(set(atom_indexes)):
+            raise ValueError("Duplicate values in atom_indexes are not allowed.")
+
+        assert atom_indexes, "Empty index list detected."
+
+        # Apply selective dynamics using FixAtoms constraint
+        # Reference: https://wiki.fysik.dtu.dk/ase/ase/constraints.html
+        fix_atoms_constraint = FixAtoms(indices=atom_indexes)
+        self.poscar.set_constraint(fix_atoms_constraint)
+
+        if verbose:
+            print("The following atoms would be fixed:", ", ".join(map(str, atom_indexes)))
+
 
     def fix_by_position(self, position_range: List[float], position_mode: str = "absolute", axis: str = "z") -> None:
         """
@@ -172,7 +180,8 @@ class PoscarAtomFixer:
         abs_position_range = self._convert_position_range_to_absolute()
 
         # Fix atoms by indexing
-        self._fix_atoms(self._select_atom_by_position(abs_position_range))
+        self.fix_atoms_by_index(self._select_atom_by_position(abs_position_range))
+
 
 def main():
     # Select function from banner
@@ -208,8 +217,13 @@ def main():
         """
         user_selection = input(selection_banner).split(",")
 
-        indexings = interpret_atom_selection(atom_list=atom_list, index_selections=user_selection, indexing_mode="zero")
-        fixer._fix_atoms(indexings)
+        indexings = interpret_atom_selection(
+            atom_list=atom_list,
+            index_selections=user_selection,
+            indexing_mode="zero"
+            )
+
+        fixer.fix_atoms_by_index(indexings)
 
     else:
         raise RuntimeError("Illegal function selection.")
