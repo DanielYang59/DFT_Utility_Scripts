@@ -1,73 +1,87 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from ase import Atoms
-from lib import read_poscar, write_poscar, find_or_request_poscar
 
-def cartesian_to_direct(atoms: Atoms) -> Atoms:
+from ase.io.vasp import write_vasp
+from pathlib import Path
+
+from lib.read_poscar import read_poscar
+from lib.find_or_request_poscar import find_or_request_poscar
+
+
+def detect_coordinate_system(poscar_path: Path) -> str:
     """
-    Convert Cartesian coordinates to Direct coordinates.
+    Detect the coordinate system (Direct or Cartesian) from a POSCAR file.
 
     Parameters:
-        atoms (ase.Atoms): An ASE Atoms object with Cartesian coordinates
+        poscar_path (Path): Path to the POSCAR file.
 
     Returns:
-        ase.Atoms: A new Atoms object with Direct coordinates
+        str: "direct" or "cartesian" based on the detected coordinate system.
     """
-    # Get scaled positions (direct coordinates)
-    scaled_positions = atoms.get_scaled_positions()
+    with open(poscar_path, 'r') as f:
+        # Skip the first 7 lines
+        for _ in range(7):
+            next(f)
 
-    # Create a new Atoms object with the scaled positions
-    return Atoms(symbols=atoms.get_chemical_symbols(),
-                      scaled_positions=scaled_positions,
-                      cell=atoms.get_cell(),
-                      pbc=atoms.get_pbc())
+        # Read the 8th line of the POSCAR file
+        line_8 = next(f).lower().strip()
 
-def direct_to_cartesian(atoms: Atoms) -> Atoms:
-    """
-    Convert Direct coordinates to Cartesian coordinates.
+        # Check if the line starts with "s" for selective dynamics
+        if line_8.startswith("s"):
+            # Read the 9th line of the POSCAR file
+            line_9 = next(f).lower().strip()
 
-    Parameters:
-        atoms (ase.Atoms): An ASE Atoms object with Direct coordinates
+            # Check if the 9th line contains an indicator for coordinate system
+            if line_9.startswith("d"):
+                coordinate_system = "direct"
+            elif line_9.startswith("c"):
+                coordinate_system = "cartesian"
 
-    Returns:
-        ase.Atoms: A new Atoms object with Cartesian coordinates
-    """
-    # Get Cartesian positions
-    positions = atoms.get_positions()
+        else:
+            # Check if the 8th line contains an indicator for coordinate system
+            if line_8.startswith("d"):
+                coordinate_system = "direct"
+            elif line_8.startswith("c"):
+                coordinate_system = "cartesian"
 
-    # Create a new Atoms object with the Cartesian positions
-    return Atoms(symbols=atoms.get_chemical_symbols(),
-                      positions=positions,
-                      cell=atoms.get_cell(),
-                      pbc=atoms.get_pbc())
+    assert coordinate_system in {"direct", "cartesian"}
+    return coordinate_system
 
-def main():
+
+def coordinate_system_transfer(verbose: bool = True):
     """
     Main function to prompt user for choice of coordinate conversion,
     perform the conversion, and save the result to a new POSCAR file.
     """
+    # Import POSCAR
     poscar_path = find_or_request_poscar()
     atoms = read_poscar(poscar_path)
 
-    print("Select an operation:")
-    print("1: Cartesian to Direct")
-    print("2: Direct to Cartesian")
-    choice = input("Enter the number corresponding to your choice: ")
 
-    if choice == '1':
-        new_atoms = cartesian_to_direct(atoms)
+    # Detect current coordinate system
+    current_coordinate_system = detect_coordinate_system(poscar_path)
+    if verbose:
+        print(f"Current coordinate system is: {current_coordinate_system}.")
+
+
+    # Perform coordinate system transfer
+    if current_coordinate_system == 'cartesian':  # cartesian to direct transfer
         output_filename = "POSCAR_direct"
-    elif choice == '2':
-        new_atoms = direct_to_cartesian(atoms)
-        output_filename = "POSCAR_cartesian"
-    else:
-        print("Invalid choice. Exiting.")
-        return
+        write_vasp(atoms=atoms, direct=True, file=output_filename)
 
-    output_path = poscar_path.parent / output_filename
-    write_poscar(new_atoms, output_path)
-    print(f"Operation completed. New POSCAR file saved as {output_path}")
+    elif current_coordinate_system == 'direct':  # direct to cartesian transfer
+        output_filename = "POSCAR_cartesian"
+        write_vasp(atoms=atoms, direct=False, file=output_filename)
+
+    else:
+        raise RuntimeError(f"Invalid coordinate system {current_coordinate_system}.")
+
+
+    # Verbose
+    if verbose:
+        print(f"Operation completed. New POSCAR file saved as {output_filename}")
+
 
 if __name__ == "__main__":
-    main()
+    coordinate_system_transfer()
