@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: this script is not tested
+
 from pathlib import Path
 import shutil
 
