@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: INCAR may have multiple entries in a single line separated by ";", for example: ISMEAR= -1 ; SIGMA = 0.05. Need to handle this.
+
 from pathlib import Path
 import warnings
 from typing import Dict
@@ -31,7 +33,7 @@ class VaspIncar:
         self._check_incar()
 
 
-    def _check_incar(self) -> bool:
+    def _check_incar(self) -> None:
         """
         Check if there are empty values in the INCAR data.
 
@@ -39,10 +41,8 @@ class VaspIncar:
         - bool: True if all values are non-empty, False otherwise.
         """
         for tag, value in self.incar_data.items():
-            if not value:
-                warnings.warn(f"Empty value found for tag '{tag}' in INCAR. Please check the input.")
-                return Falsev
-        return True
+            if not value or not tag:
+                warnings.warn(f'Empty entry found in INCAR "{tag} = {value}". Please check.')
 
 
     def _read_in(self) -> Dict[str, str]:
