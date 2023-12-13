@@ -1,44 +1,67 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: need a default magmom dict somehow
+default_magmom = {'Ti': 1.0, 'O': 0.0}
+
 from pathlib import Path
-from ase.io import read, write
+from ase.io import read
 from typing import Dict
+import warnings
 
-class MagneticMomentUpdater:
-    def __init__(self, poscarfile: Path = Path.cwd() / "POSCAR", incarfile: Path = Path.cwd() / "INCAR"):
-        self.poscarfile = poscarfile
-        self.incarfile = incarfile
+from src.vasp_incar import VaspIncar
 
-    def reset_magnetic_moment(self, magmom_dict: Dict[str, float]) -> None:
-        """
-        Reset magnetic moments in the INCAR file based on a predefined magmom dictionary.
+def generate_magmom_tag(atom_dict: Dict[str, int], default_magmom_dict: Dict[str, float], default_magmom: float = 1.5) -> str:
+    """
+    Generate a magmom tag based on the provided atom dictionary and default magmom values.
 
-        Parameters:
-            - magmom_dict (Dict[str, float]): A dictionary containing the magnetic moments for each element.
-              Keys are element symbols, and values are the corresponding magnetic moments.
-        """
-        # Write magnetic moment into INCAR
-        self._write_magmom_to_incar(magmom_dict)
+    Parameters:
+    - atom_dict (Dict[str, int]): A dictionary where keys are element symbols and values are the number of atoms.
+    - default_magmom_dict (Dict[str, float]): A dictionary containing default magmom values for specific elements.
+    - default_magmom (float, optional): The default magmom value to use for elements not found in default_magmom_dict.
 
-    def _write_magmom_to_incar(self, magmom_dict: Dict[str, float]) -> None:
-        """
-        Write magnetic moments to a VASP INCAR file using ASE.
+    Returns:
+    - str: The generated magmom tag formatted as "count*magmom element1 count*magmom element2 ...".
 
-        Parameters:
-            - magmom_dict (Dict[str, float]): A dictionary containing the magnetic moments for each element.
-              Keys are element symbols, and values are the corresponding magnetic moments.
-        """
-        atoms = read(self.incarfile, format="vasp")
+    If a specific element's magmom is not found in default_magmom_dict, a warning is issued, and the default_magmom value is used.
 
-        # Set initial magnetic moments
-        for symbol, magmom in magmom_dict.items():
-            atoms.set_initial_magnetic_moments(symbols=symbol, magmoms=magmom)
+    """
+    magmom_tag = ""
 
-        # Write INCAR file
-        write(self.incarfile / "_new", atoms, format="vasp")
+    for element, count in enumerate(atom_dict):
+        if element in default_magmom_dict:
+            magmom_tag += f"{count}*{default_magmom_dict[element]} "
+
+        else:
+            warnings.warn(f"Magmom for element {element} not found. Default value of {default_magmom} applied.")
+            magmom_tag += f"{count}*{default_magmom} "
+
+    return magmom_tag
+
+
+def main():
+    """
+    Main function for updating the MAGMOM tag in the INCAR file based on atom counts from POSCAR.
+
+    Reads atomic information from the POSCAR file, compiles the "MAGMOM" INCAR tag using the generate_magmom_tag function,
+    updates the INCAR file with the new MAGMOM tag, and writes the modified INCAR file to a new file.
+
+    The function assumes that the POSCAR and INCAR files are located in the current working directory.
+    """
+    # Read atom and counting from POSCAR
+    atoms = read(Path.cwd() / "POSCAR")
+    atom_dict = dict(zip(atoms.get_chemical_symbols(), atoms.get_atomic_numbers()))
+
+
+    # Compile "MAGMOM" the INCAR tag
+    magmom_tag = generate_magmom_tag(atom_dict, default_magmom)
+
+
+    # Update INCAR
+    incar_handler = VaspIncar(Path.cwd() / "INCAR")
+    incar_handler.set_tag("MAGMOM", magmom_tag)
+    incar_handler.write_out(Path.cwd() / "INCAR_new")
+
 
 if __name__ == "__main__":
-    updater = MagneticMomentUpdater()
-    magmom_data = {'Fe': 2.0, 'Pd': -1.5}  # TODO: need to get such a dict somehow
-    updater.reset_magnetic_moment(magmom_data)
+    main()
