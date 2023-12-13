@@ -35,12 +35,15 @@ def get_vasp_version(vasp_dir: Path) -> str:
     else:
         raise ValueError(f"VASP version not found in the first line of OUTCAR under {vasp_dir}.")
 
-# Test area
-if __name__ == "__main__":
-    vasp_directory = Path(".")
 
+def main():
     try:
-        vasp_version = get_vasp_version(vasp_directory)
+        vasp_version = get_vasp_version(Path.cwd())
         print(f"VASP version: {vasp_version}")
+
     except Exception as e:
         print(f"Error: {e}")
+
+
+if __name__ == "__main__":
+    main()
