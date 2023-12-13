@@ -41,7 +41,7 @@ class VaspIncar:
         for tag, value in self.incar_data.items():
             if not value:
                 warnings.warn(f"Empty value found for tag '{tag}' in INCAR. Please check the input.")
-                return False
+                return Falsev
         return True
 
 
@@ -58,10 +58,7 @@ class VaspIncar:
                 # Remove inline comments (comments at the end of the line)
                 line = line.split('#')[0].split('!')[0].strip()
 
-                if not line:
-                    continue  # Skip empty and comment lines
-
-                if self._check_incar(line):
+                if line:
                     tag, value = map(str.strip, line.split("="))
                     incar_data[tag] = value
 
