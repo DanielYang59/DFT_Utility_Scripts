@@ -1,3 +1,4 @@
 ALGO = Fast
-ISMEAR = -1
+ISMEAR = 0
 SIGMA = 0.05
+NSW = 100

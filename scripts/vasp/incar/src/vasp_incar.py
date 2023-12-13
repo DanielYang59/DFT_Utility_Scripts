@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: INCAR may have multiple entries in a single line separated by ";", for example: ISMEAR= -1 ; SIGMA = 0.05. Need to handle this.
-
 from pathlib import Path
 import warnings
 from typing import Dict
@@ -59,8 +57,11 @@ class VaspIncar:
                 line = line.split('#')[0].split('!')[0].strip()
 
                 if line:
-                    tag, value = map(str.strip, line.split("="))
-                    incar_data[tag] = value
+                    # Handle multiple entries in a single line separated by ';'
+                    entries = line.split(';')
+                    for entry in entries:
+                        tag, value = map(str.strip, entry.split("="))
+                        incar_data[tag] = value
 
         return incar_data
 

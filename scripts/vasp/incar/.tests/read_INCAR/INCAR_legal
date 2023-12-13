@@ -2,5 +2,5 @@
   ! Testing INCAR
 
   ALGO  = Normal # alorithm for electron optimization
-  ISMEAR= -1     # Fermi smearing
-  SIGMA = 0.05   ! width of the smearing in eV
+  ISMEAR= 0 ; SIGMA = 0.05   ! width of the smearing in eV
+  NSW = 100
