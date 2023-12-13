@@ -4,6 +4,7 @@
 
 from pathlib import Path
 from ase import io
+import questionary
 
 from lib.interpret_atom_selection import interpret_atom_selection
 from lib.poscarAtomFixer import PoscarAtomFixer
@@ -29,25 +30,19 @@ def main():
     # Selection function
     if selected_function == "1":  # fix by position range
 
-        position_range = input("Please input position range as [start-end]: ")
+        position_range = questionary.text("Please input position range as [start-end]:").ask()
 
         # Validate position_mode
-        valid_position_modes = ["absolute", "fractional", "relative"]
-        while True:
-            position_mode = input("Absolute, fractional, or relative position? ").lower()
-            if position_mode in valid_position_modes:
-                break
-            else:
-                print(f"Invalid position mode. Choose from {', '.join(valid_position_modes)}.")
+        position_mode = questionary.select(
+            "Choose position mode:",
+            choices=["absolute", "fractional", "relative"],
+        ).ask()
 
         # Validate axis
-        valid_axes = ["x", "y", "z"]
-        while True:
-            axis = input("Along which axis? ").lower()
-            if axis in valid_axes:
-                break
-            else:
-                print(f"Invalid axis. Choose from {', '.join(valid_axes)}.")
+        axis = questionary.select(
+            "Choose axis:",
+            choices=["x", "y", "z"],
+        ).ask()
 
         # Proceed with the input values knowing they are valid
         fixer.fix_by_position(position_range.split("-"), position_mode, axis)
