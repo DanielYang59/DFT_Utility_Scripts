@@ -3,15 +3,18 @@
 
 from pathlib import Path
 import warnings
+from typing import Dict
 
 class VaspIncar:
     """
     Class for handling VASP INCAR files.
     """
     def __init__(self, file: Path) -> None:
+        # Import and check INCAR file
         assert file.is_file()
         self.file = file
-        self.incar_data = {}
+        self.incar_data = self._read_in()
+        self._check_incar()
 
     def _check_incar(self) -> bool:
         """
@@ -26,12 +29,14 @@ class VaspIncar:
                 return False
         return True
 
-    def read(self) -> None:
+    def _read_in(self) -> Dict[str, str]:
         """
         Read the INCAR file, skipping empty lines and comments (# or !).
 
         Inline comments at the end of lines are also skipped.
         """
+        incar_data = {}
+
         with open(self.file, 'r') as f:
             for line in f:
                 # Remove inline comments (comments at the end of the line)
@@ -42,11 +47,11 @@ class VaspIncar:
 
                 if self._check_incar(line):
                     tag, value = map(str.strip, line.split("="))
-                    self.incar_data[tag] = value
+                    incar_data[tag] = value
 
-        self._check_incar()
+        return incar_data
 
-    def write(self, new_file: Path) -> None:
+    def write_out(self, new_file: Path) -> None:
         """
         Write the INCAR data to a new file.
 
@@ -56,3 +61,28 @@ class VaspIncar:
         with open(new_file, 'w') as f:
             for tag, value in self.incar_data.items():
                 f.write(f"{tag} = {value}\n")
+
+    def read_tag(self, name: str, default: str = None) -> str:
+        """
+        Read the value associated with the specified tag from the INCAR data.
+
+        Parameters:
+        - name (str): The tag name.
+        - default (str): The default value to return if the tag is not found.
+
+        Returns:
+        - str: The value associated with the tag, or the default value if not found.
+        """
+        return self.incar_data.get(name, default)
+
+    def set_tag(self, name: str, value: str) -> None:
+        """
+        Set the value associated with the specified tag in the INCAR data.
+
+        If the tag is already present, update its value. Otherwise, add a new key-value pair.
+
+        Parameters:
+        - name (str): The tag name.
+        - value (str): The value to associate with the tag.
+        """
+        self.incar_data[name] = value
