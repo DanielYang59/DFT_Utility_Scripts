@@ -12,15 +12,16 @@ from lib.poscarAtomFixer import PoscarAtomFixer
 
 def main():
     # Select function from banner
-    banner =\
-    """
+    banner = """
     -------------- POSCAR Atom Fixer -----------------
-    Please selection a function by indexing:
+    Please select a function by indexing:
     1. Fix atom by position range.
     2. Fix atom by elements/indexings.
     --------------------------------------------------
     """
-    selected_function = input(banner)
+
+    options = ["1. Fix atom by position range", "2. Fix atom by elements/indexings"]
+    selected_function = questionary.select(banner, choices=options).ask()
 
     # Initialize POSCAR fixer
     poscarfile = Path.cwd() / "POSCAR"
