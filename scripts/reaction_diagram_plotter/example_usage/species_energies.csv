@@ -1,8 +1,8 @@
-name,dft_energy,correction,free_energy,comment
-HNO3_aq,-28.6585,-1.138,-29.7965,converted from HNO3_g
-H2O_l,,,-14.22,need double check
-H2_g,,,-6.7672,
-NH3_g,,,-19.3507,
-H+,,,-2.588359904,"(H+ + e-)pH=14, external potential 0"
-OH-,,,-10.7000521,"(OH- - e-)pH=14, external potential 0"
-NO3-,,,-26.2766,"(NO3- - e-)pH=14, external potential 0"
+name,free_energy
+HNO3_aq,-29.7965
+H2O_l,-14.22
+H2_g,-6.7672
+NH3_g,-19.3507
+H+,-2.588359904
+OH-,-10.7000521
+NO3-,-26.2766
