@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: this script is not tested
-
 from pathlib import Path
 import shutil
 
@@ -31,7 +29,7 @@ def cleanup_vasp_files(directory: Path, job_script: str = "script.sh", verbose: 
 
     # Move other files to the backup directory
     for file_path in directory.iterdir():
-        if file_path.name not in files_to_keep:
+        if file_path.is_file() and file_path.name not in files_to_keep:
             shutil.move(file_path, backup_dir / file_path.name)
 
     # Verbose
