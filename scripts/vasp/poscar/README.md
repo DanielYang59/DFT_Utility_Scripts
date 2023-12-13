@@ -11,9 +11,7 @@ This Python package simplifies the manipulation and management of VASP POSCAR fi
 ├── coordinate_system_transfer.py
 ├── lib
 │   ├── atomSelector.py
-│   ├── find_or_request_poscar.py
-│   ├── read_poscar.py
-│   └── write_poscar.py
+│   └── find_or_request_poscar.py
 ├── structureRepositioner.py
 └── vacuumLayerManager.py
 

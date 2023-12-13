@@ -4,15 +4,16 @@
 # TODO: add vacuum layer detection (fix circular import with VacuumLayerManager)
 # TODO: test generate warning for non-parallel cell sizes
 
-from ase import Atoms
+
 import numpy as np
 import argparse
-from ase.io import write
+from ase import Atoms
+from ase.io import write, read
 from pathlib import Path
 import warnings
 
 from .lib.find_or_request_poscar import find_or_request_poscar
-from .lib.read_poscar import read_poscar
+
 
 class StructureRepositioner:
     """
@@ -196,7 +197,7 @@ def main():
 
     # Get and load POSCAR
     structure_path = find_or_request_poscar()
-    structure = read_poscar(structure_path)
+    structure = read(structure_path, format="vasp")
 
     # Call the reposition_along_axis method to perform the repositioning
     repositioner = StructureRepositioner(structure, axis=args.axis)

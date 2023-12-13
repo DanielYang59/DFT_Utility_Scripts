@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
+from ase.io import read
 from ase.io.vasp import write_vasp
 from pathlib import Path
 
-from lib.read_poscar import read_poscar
 from lib.find_or_request_poscar import find_or_request_poscar
 
 
@@ -56,7 +56,7 @@ def coordinate_system_transfer(verbose: bool = True):
     """
     # Import POSCAR
     poscar_path = find_or_request_poscar()
-    atoms = read_poscar(poscar_path)
+    atoms = read(poscar_path, format="vasp")
 
 
     # Detect current coordinate system
