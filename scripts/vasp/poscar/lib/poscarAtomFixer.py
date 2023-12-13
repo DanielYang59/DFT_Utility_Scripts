@@ -3,11 +3,9 @@
 
 from pathlib import Path
 from typing import List
-from ase import io
+from ase.io import read, write
 from ase.constraints import FixAtoms
 import atexit
-
-from .write_poscar import write_poscar
 
 class PoscarAtomFixer:
     def __init__(self, poscarfile: Path) -> None:
@@ -27,12 +25,12 @@ class PoscarAtomFixer:
 
         """
         if poscarfile.is_file():
-            self.poscar = io.read(poscarfile)
+            self.poscar = read(poscarfile)
         else:
             raise FileNotFoundError(f"Cannot found POSCAR file {poscarfile}.")
 
         # Write new POSCAR upon exiting
-        atexit.register(write_poscar, self.poscar, file_path=Path("POSCAR_new"), overwrite=True)
+        atexit.register(write, Path("POSCAR_new"), self.poscar)
 
 
     def _convert_position_range_to_absolute(self) -> List[float]:
