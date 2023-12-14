@@ -1,4 +1,6 @@
-# VASP Cleanup Script
+# TODO: README need revision
+
+# VASP Cleanup Script and More
 
 ## Overview
 

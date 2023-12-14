@@ -4,7 +4,7 @@
 import os
 from pathlib import Path
 
-from lib.list_vasp_dir import list_vasp_dirs
+from ..general.is_vasp_dir import list_vasp_dirs
 
 def call_generate_potcar(vasp_dir: Path, verbose: bool = True):
     """

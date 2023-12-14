@@ -1,3 +1,4 @@
+
 # PDOS Extractor
 
 PDOS extractor is a Python tool designed for extracting and processing partial density of states (pDOS) information from VASP calculations.
@@ -5,6 +6,10 @@ PDOS extractor is a Python tool designed for extracting and processing partial d
 ## Overview
 
 This tool simplifies the extraction of pDOS data from VASP's vasprun.xml files.
+
+## Example
+
+An example is included under the `example` directory. You can explore this example to understand how to use the PDOS extractor in a practical setting.
 
 ## Usage
 
@@ -19,7 +24,7 @@ To use the PDOS Extractor, follow these steps:
 2. **Configure PDOS parameters:**
 
    - After running the script, a template configuration file named `PDOSIN.template` will be generated. Open this file in a text editor of your choice.
-   - Modify the entries and rename it to `PDOSIN`. This includes specifying the atom selections, and orbital selections.
+   - Modify the entries and rename it to `PDOSIN`. This includes specifying the atom selections and orbital selections.
    - Save the changes to the `PDOSIN` file.
 3. **Rerun the extraction script:**
 

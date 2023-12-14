@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 import shutil
 
-from lib.list_vasp_dir import list_vasp_dirs
+from ..general.is_vasp_dir import list_vasp_dirs
 
 def main():
     """

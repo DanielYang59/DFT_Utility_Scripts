@@ -9,11 +9,11 @@ import numpy as np
 import warnings
 from typing import Union
 from ase import Atoms
-from ase.io import read
+from ase.io import read, write
 from argparse import ArgumentParser
 
 from .structureRepositioner import StructureRepositioner
-from .lib import find_or_request_poscar, write_poscar
+from .lib import find_or_request_poscar
 
 class VacuumLayerManager:
     """
@@ -293,7 +293,7 @@ def main(args):
     vacuum_setter.adjust_vacuum_thickness(new_vacuum)
 
     # Write adjusted POSCAR
-    write_poscar(vacuum_setter.structure, "POSCAR_vacuum_adjusted")
+    write("POSCAR_vacuum_adjusted", vacuum_setter.structure)
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="A program to adjust the vacuum layer of a structure.")
