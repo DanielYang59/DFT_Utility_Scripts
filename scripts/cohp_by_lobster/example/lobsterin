@@ -1,0 +1,20 @@
+# Basics
+basisSet pbeVaspFit2015
+gaussianSmearingWidth 0.05
+COHPStartEnergy -15
+COHPEndEnergy 5
+
+# Input and Output File Control
+saveProjectionToFile
+skipDOS
+skipCOOP
+
+# Interactions to Examine
+cohpbetween atom 71 atom 75 orbitalwise  ! N-Fe1
+cohpbetween atom 71 atom 76 orbitalwise  ! N-Fe2
+
+# BasisFunction Library
+basisfunctions C 2s 2p
+basisfunctions O 2s 2p
+basisfunctions N 2s 2p
+basisfunctions Fe 3d 4s
