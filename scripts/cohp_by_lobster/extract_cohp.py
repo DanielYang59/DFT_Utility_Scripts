@@ -17,9 +17,9 @@ from pymatgen.electronic_structure.plotter import CohpPlotter
 
 
 class cohpExtractor:
-    def __init__(self, cohp_dir: Path = Path.cwd()) -> None:
+    def __init__(self, cohp_dir: Path) -> None:
         # Load COHP data
-        self._load_cohp_data(working_dir=cohp_dir)
+        self._load_cohp_data(working_dir = cohp_dir)
 
 
     def _load_cohp_data(self, working_dir: Path) -> None:
@@ -51,9 +51,35 @@ class cohpExtractor:
         self.complete_cohp = CompleteCohp.from_file(fmt='LOBSTER', filename=working_dir / 'COHPCAR.lobster', structure_file= working_dir / 'POSCAR')
 
 
-    def get_interation_pair(self) -> None:  # NOTE: double check method name and return hint
-        # This seems to be defined as "label" in the "get_cohp_by_label" method
-        # by pymatgen: https://pymatgen.org/pymatgen.electronic_structure.html
+    def get_atom_pair(self) -> str:
+        """
+        Prompt the user to choose an atom pair by label.
+
+        Atom pairs are labeled starting from 1. User input is validated to be within the valid range.
+
+        Returns:
+            str: The chosen atom pair label (1-indexed).
+        """
+        # This is defined as "label": https://pymatgen.org/pymatgen.electronic_structure.html
+        # Let the user choose an atom pair by label
+        num_atom_pairs = len(self.complete_cohp.bonds)
+        label_prompt = f"{num_atom_pairs} atom pairs found. Please specify the pair label (1-indexed): "
+
+        while True:
+            try:
+                label = int(input(label_prompt))
+                # Check if the label is within the valid range
+                assert 1 <= label <= num_atom_pairs
+                break  # Break out of the loop if the input is valid
+            except ValueError:
+                print("Invalid input. Please enter a valid integer.")
+            except AssertionError:
+                print(f"Invalid label. Please enter a label between 1 and {num_atom_pairs}.")
+
+        return str(label)
+
+
+    def get_orbital(self) -> str:
         pass
 
 
@@ -66,7 +92,11 @@ class cohpExtractor:
 
 
 def extract_cohp(show_plot: bool = False):
-    pass
+    # Initialize COHP extractor
+    extractor = cohpExtractor(Path.cwd())
+
+    # DEBUG info:
+    print()
 
 
 if __name__ == "__main__":
