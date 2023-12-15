@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: add vacuum layer detection (fix circular import with VacuumLayerManager)
-# TODO: test generate warning for non-parallel cell sizes
 
+# DEBUG: this script cannot be called on it own
+# TODO: add vacuum layer detection (fix circular import with VacuumLayerManager)
+# TODO: generate warning for cells with basis vectors not perpendicular to each other
 
 import numpy as np
 import argparse

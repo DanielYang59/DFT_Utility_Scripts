@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: use pymatgen to parse vasprun.xml instead?
+
 from pathlib import Path
 import sys
 
