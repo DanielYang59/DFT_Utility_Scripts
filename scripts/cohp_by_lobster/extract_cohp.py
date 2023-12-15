@@ -35,11 +35,11 @@ class cohpExtractor:
         Raises:
             FileNotFoundError: If either COHPCAR.lobster or POSCAR is not found in the specified directory.
 
-        Notes:
-            Reference: https://pymatgen.org/pymatgen.electronic_structure.html
-
         Returns:
             None
+
+        Notes:
+            Reference: https://pymatgen.org/pymatgen.electronic_structure.html
         """
         # Check core files
         if not (working_dir / 'COHPCAR.lobster').is_file():
@@ -59,8 +59,10 @@ class cohpExtractor:
 
         Returns:
             str: The chosen atom pair label (1-indexed).
+
+        Notes:
+            This is defined as "label": https://pymatgen.org/pymatgen.electronic_structure.html.
         """
-        # This is defined as "label": https://pymatgen.org/pymatgen.electronic_structure.html
         # Let the user choose an atom pair by label
         num_atom_pairs = len(self.complete_cohp.bonds)
         label_prompt = f"{num_atom_pairs} atom pairs found. Please specify the pair label (1-indexed): "
