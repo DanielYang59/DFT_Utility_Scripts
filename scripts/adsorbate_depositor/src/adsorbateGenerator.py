@@ -136,7 +136,7 @@ class AdsorbateGenerator:
                 ("z", 180), # Rotate 180 degrees about z
             ]
 
-            rotated_adsorbates = []
+            rotated_adsorbates = [deepcopy(adsorbate_atoms), ]  # original image
             for axis, angle in rotations:
                 rotated_adsorbate = deepcopy(adsorbate_atoms)
                 rotated_adsorbate.rotate(axis, angle)
