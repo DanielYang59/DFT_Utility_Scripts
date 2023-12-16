@@ -1,12 +1,14 @@
 # Project Structure
-asciitree
- +-- sometimes
- |   +-- you
- +-- just
- |   +-- want
- |       +-- to
- |       +-- draw
- +-- trees
- +-- in
-     +-- your
-         +-- terminal
+Project Structure
+ +-- scripts
+     +-- Adsorbate Depositor
+     +-- Experimental
+     +-- Reaction Diagram Plotter
+     +-- VASP
+         +-- batch
+         +-- dos
+         +-- general
+         +-- incar
+         +-- kpoints
+         +-- poscar
+         +-- potcar

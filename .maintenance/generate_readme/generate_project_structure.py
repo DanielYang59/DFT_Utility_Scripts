@@ -5,7 +5,6 @@
 import json
 from pathlib import Path
 from asciitree import LeftAligned
-from collections import OrderedDict as OD
 
 class ProjectStructureGenerator:
     def __init__(self, structure_recipe: Path) -> None:
@@ -30,25 +29,16 @@ class ProjectStructureGenerator:
 
 
     def generate_structure_tree(self) -> str:
-        tree = {
-            'asciitree': OD([
-                ('sometimes',
-                    {'you': {}}),
-                ('just',
-                    {'want': OD([
-                        ('to', {}),
-                        ('draw', {}),
-                    ])}),
-                ('trees', {}),
-                ('in', {
-                    'your': {
-                        'terminal': {}
-                    }
-                })
-            ])
-        }
+        """
+        Generate a tree structure string from the project structure data.
 
-        return LeftAligned()(tree)
+        Returns:
+        - str: The formatted tree structure string.
+
+        Notes:
+            reference: https://github.com/mbr/asciitree
+        """
+        return LeftAligned()(self.structure_data)
 
 
     def create_readme_part(self, structure_tree: str, filename: Path) -> None:
