@@ -1,6 +1,6 @@
 # DFT Utility Scripts
 
-Collection of Essential Scripts for Density Functional Theory (DFT) Calculations.
+Collection of Handy Scripts for Density Functional Theory (DFT) Calculations, mainly for VASP.
 
 ## ⚠️ Project Under Development ⚠️
 

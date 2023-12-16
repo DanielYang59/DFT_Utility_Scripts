@@ -1,11 +1,14 @@
 # Project Structure
-
-```
-└── scripts
-│       └── vasp
-│       │           └── potcar
-│       │           └── poscar
-│       │           └── kpoints
-│       │           └── general
-│       └── adsorbate_depositor
-```
+Project Structure
+ +-- scripts
+     +-- Adsorbate Depositor
+     +-- Experimental
+     +-- Reaction Diagram Plotter
+     +-- VASP
+         +-- batch
+         +-- dos
+         +-- general
+         +-- incar
+         +-- kpoints
+         +-- poscar
+         +-- potcar
