@@ -1,11 +1,12 @@
 # Project Structure
-
-```
-└── scripts
-│       └── vasp
-│       │           └── potcar
-│       │           └── poscar
-│       │           └── kpoints
-│       │           └── general
-│       └── adsorbate_depositor
-```
+asciitree
+ +-- sometimes
+ |   +-- you
+ +-- just
+ |   +-- want
+ |       +-- to
+ |       +-- draw
+ +-- trees
+ +-- in
+     +-- your
+         +-- terminal
