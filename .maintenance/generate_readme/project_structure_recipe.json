@@ -1,0 +1,14 @@
+{
+    "project_name": "My Project",
+    "directories": {
+        "scripts": {
+            "vasp": {
+                "potcar": {},
+                "poscar": {},
+                "kpoints": {},
+                "general": {}
+            },
+            "adsorbate_depositor": {}
+        }
+    }
+}
