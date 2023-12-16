@@ -10,8 +10,18 @@ class ProjectStructureGenerator:
         pass
 
 
-def main():
+def generate_project_structure():
+    # Initialize the generator
     generator = ProjectStructureGenerator()
 
+    # Read the "project structure" recipe file
+
+
+    # Generate structure tree
+
+
+    # Save structure tree to file
+
+
 if __name__ == "__main__":
-    main()
+    generate_project_structure()
