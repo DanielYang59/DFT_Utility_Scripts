@@ -21,8 +21,11 @@ jobs:
     - name: Install dependencies
       run: pip install PyYAML
 
-    - name: Generate README Parts using Python3
-      run: python3 .maintenance/generate_readme/generate_readme_parts.py
+    - name: Generate README Parts-Project Structure
+      run: python3 .maintenance/generate_readme/generate_project_structure.py
+
+    - name: Generate README Parts-Overviews
+      run: python3 .maintenance/generate_readme/generate_overviews.py
 
     - name: Assemble Complete README using Python3
       run: python3 .maintenance/generate_readme/assemble_readme.py
