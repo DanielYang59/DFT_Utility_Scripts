@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 
+# TODO: need to fix final subdir extraction
 # TODO: include links to children README.md
 
 
+import os
 from pathlib import Path
 import re
 import json
-from typing import List
+from typing import List, Union
 import warnings
 
 
@@ -29,13 +31,33 @@ class OverviewsGenerator:
 
 
     def _generate_final_subdirs(self) -> List[Path]:
-        """Generate a list of paths pointing to each final subdirectory in the project structure.
+        """Generate a list of paths pointing to each final subdirectory under the 'scripts' directory.
 
         Returns:
             List[Path]: A list of paths pointing to each final subdirectory.
         """
-        # TODO:
-        pass
+        def generate_paths_from_structure(structure: dict, current_path: Union[Path, str] = "") -> List[Path]:
+            """Generate paths from a project structure.
+
+            Args:
+                structure (dict): The project structure dictionary.
+                current_path (Union[Path, str]): The current path during traversal.
+
+            Returns:
+                List[Path]: A list of paths pointing to each final subdirectory.
+            """
+            paths = []
+            for key, value in structure.items():
+                sub_path = Path(current_path) / key
+                if not value:
+                    paths.append(sub_path)
+
+                else:
+                    paths.extend(generate_paths_from_structure(value, sub_path))
+            return paths
+
+
+        return generate_paths_from_structure(self.project_structure, "scripts")
 
 
     def read_structure_file(self, filename: Path) -> None:
@@ -53,6 +75,11 @@ class OverviewsGenerator:
         self.final_dirs = self._generate_final_subdirs()
 
 
+        # Temporary fix of dirs (remove the first two elements)
+        # DEBUG # TODO:
+        self.final_dirs = [Path(*path.parts[2:]) for path in self.final_dirs]
+
+
     def _search_readmes(self) -> List[Path]:
         """Search for README.md files based on the project structure.
 
@@ -65,8 +92,8 @@ class OverviewsGenerator:
         readmes = []
 
         # Search for README.md files based on the structure json file
-        for dir_path in self.project_structure:
-            readme_path = self.root_dir / dir_path /'README.md'
+        for dir_path in self.final_dirs:
+            readme_path = dir_path /'README.md'
             if readme_path.exists():
                 readmes.append(readme_path)
 
@@ -89,7 +116,11 @@ class OverviewsGenerator:
             readme_content = readme_file.read()
             overview_match = re.search(r'## Overview\n\n(.+?)\n\n', readme_content, re.DOTALL)
             if overview_match:
-                return overview_match.group(1).strip()
+                # Insert headers
+                header = "/".join(str(file).split(os.sep)[:-1])
+                # TODO: would need a better solution than this
+                return "## " + header + "\n" + overview_match.group(1).strip() + "\n"
+
         return ''
 
 
