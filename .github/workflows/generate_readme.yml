@@ -19,7 +19,7 @@ jobs:
         python-version: '3.x'
 
     - name: Install dependencies
-      run: pip install PyYAML
+      run: pip install PyYAML asciitree
 
     - name: Generate README Parts-Project Structure
       run: python3 .maintenance/generate_readme/generate_project_structure.py
