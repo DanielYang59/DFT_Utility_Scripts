@@ -61,7 +61,7 @@ class ProjectStructureGenerator:
             file.write("# Project Structure\n")
             file.write("```\n")
             file.write(structure_tree)
-            file.write("```\n")
+            file.write("\n```\n")
 
 
 def generate_project_structure():
