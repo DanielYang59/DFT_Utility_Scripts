@@ -29,8 +29,12 @@ class OverviewsGenerator:
 
 
     def _generate_final_subdirs(self) -> List[Path]:
+        """Generate a list of paths pointing to each final subdirectory in the project structure.
+
+        Returns:
+            List[Path]: A list of paths pointing to each final subdirectory.
+        """
         # TODO:
-        final_subdirs = []
         pass
 
 
