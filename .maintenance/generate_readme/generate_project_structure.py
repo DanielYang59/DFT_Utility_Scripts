@@ -61,13 +61,13 @@ class ProjectStructureGenerator:
 
 def generate_project_structure():
     # Initialize the generator and read recipe file
-    generator = ProjectStructureGenerator(structure_recipe=Path("./project_structure_recipe.json"))
+    generator = ProjectStructureGenerator(structure_recipe=Path(".maintenance/generate_readme/project_structure_recipe.json"))
 
     # Generate structure tree string
     structure_tree = generator.generate_structure_tree()
 
     # Create README part file
-    generator.create_readme_part(structure_tree, filename=Path("./readme_parts/project_structure.md"))
+    generator.create_readme_part(structure_tree, filename=Path(".maintenance/generate_readme/readme_parts/project_structure.md"))
 
 if __name__ == "__main__":
     generate_project_structure()
