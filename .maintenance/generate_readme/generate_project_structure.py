@@ -59,7 +59,9 @@ class ProjectStructureGenerator:
         # Write project structure to .md file
         with open(filename, 'w') as file:
             file.write("# Project Structure\n")
+            file.write("```\n")
             file.write(structure_tree)
+            file.write("```\n")
 
 
 def generate_project_structure():

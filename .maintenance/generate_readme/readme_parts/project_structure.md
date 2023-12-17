@@ -1,4 +1,5 @@
 # Project Structure
+```
 Project Structure
  +-- scripts
      +-- Adsorbate Depositor
@@ -10,4 +11,4 @@ Project Structure
          +-- incar
          +-- kpoints
          +-- poscar
-         +-- potcar
+         +-- potcar```
