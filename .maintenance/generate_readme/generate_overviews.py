@@ -119,7 +119,7 @@ class OverviewsGenerator:
                 # Insert headers
                 header = "/".join(str(file).split(os.sep)[:-1])
                 # TODO: would need a better solution than this
-                return "## " + header + "\n" + overview_match.group(1).strip() + "\n"
+                return f"## {header}\n{overview_match.group(1).strip()}\n"
 
         return ''
 
