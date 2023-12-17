@@ -20,6 +20,10 @@ jobs:
         with:
           python-version: 3.x
 
+      - name: Install pipreqs
+        run: |
+          python -m pip install pipreqs
+
       - name: Generate requirements.txt
         run: |
           pipreqs --force .
