@@ -8,6 +8,8 @@
 from pathlib import Path
 import re
 import json
+from typing import List
+import warnings
 
 
 class OverviewsGenerator:
@@ -22,12 +24,12 @@ class OverviewsGenerator:
             root_dir (str): The root directory where to start generating the Overviews.
         """
         if not root_dir.is_dir():
-            raise FileNotFoundError(f"Working dir {root_dir} not found.")
+            raise FileNotFoundError(f"Root dir {root_dir} not found.")
         self.root_dir = Path(root_dir)
-        self.overviews = []
+
 
     def read_structure_file(self, filename: Path) -> None:
-        """Read the project structure file.
+        """Read the project structure json file.
 
         Args:
             filename (Path): The path to the project structure JSON file.
@@ -35,63 +37,81 @@ class OverviewsGenerator:
         with open(filename, 'r', encoding='utf-8') as json_file:
             self.project_structure = json.load(json_file)
 
-    def read_readmes(self, directory):
-        """Read README.md file and extract the overview.
 
-        Args:
-            directory (Path): The directory to read README.md from.
+    def _search_readmes(self) -> List[Path]:
+        """Search for README.md files based on the project structure.
 
         Returns:
-            str: Extracted overview or None if not found.
-        """
-        readme_path = directory / 'README.md'
-        if readme_path.exists():
-            with open(readme_path, 'r', encoding='utf-8') as readme_file:
-                readme_content = readme_file.read()
-                overview_match = re.search(r'<!--\s*overview\s*:\s*(.*?)\s*-->', readme_content, re.DOTALL | re.IGNORECASE)
-                if overview_match:
-                    return overview_match.group(1).strip()
-        return None
+            List[Path]: A list of paths to README.md files found in the specified directories.
 
-    def process_directory(self, directory):
-        """Process a directory, read README, and extract overview.
+        Raises:
+            Warning: If README.md is not found in a directory specified by the project structure.
+        """
+        readmes = []
+
+        # Search for README.md files based on the structure json file
+        for dir_path in self.project_structure:
+            readme_path = self.root_dir / dir_path /'README.md'
+            if readme_path.exists():
+                readmes.append(readme_path)
+
+            else:
+                warnings.warn(f"README.md not found in {dir_path}.")
+
+        return readmes
+
+
+    def _extract_overview(self, file: Path) -> str:
+        """Extract the 'Overview' section from the specified README.md file.
 
         Args:
-            directory (Path): The directory to process.
+            file (Path): The path to the README.md file.
+
+        Returns:
+            str: Extracted overview or an empty string if not found.
         """
-        overview = self.read_readmes(directory)
-        if overview:
-            self.overviews.append(overview)
+        with open(file, 'r', encoding='utf-8') as readme_file:
+            readme_content = readme_file.read()
+            overview_match = re.search(r'## Overview\n\n(.+?)\n\n', readme_content, re.DOTALL)
+            if overview_match:
+                return overview_match.group(1).strip()
+        return ''
 
-        subdirectories = self.project_structure.get(str(directory.relative_to(self.root_dir)), {})
-        for subdirectory in subdirectories:
-            self.process_directory(directory / subdirectory)
 
-    def extract_and_cat_overviews(self) -> str:
-        """Extract and concatenate overviews from directories.
+    def extract_and_concat_overviews(self) -> str:
+        """Extract and concatenate overviews from README.md under given directories.
 
         Returns:
             str: Concatenated overview.
         """
-        self.process_directory(self.root_dir)
-        return '\n\n'.join(self.overviews)
+        # Search directories in structure file for README.md Paths
+        readmes = self._search_readmes()
+
+
+        # Extract the "Overview" section from the README.md file
+        overviews = [self._extract_overview(f) for f in readmes]
+
+
+        # Concatenate README parts
+        return '\n'.join(overviews)
 
 
 def generate_overviews():
     # Initialize the generator
     generator = OverviewsGenerator(Path("."))  # script should be executed right under root dir
 
+
     # Read the project structure file
     generator.read_structure_file(Path(".maintenance/generate_readme/project_structure_recipe.json"))
 
-    # Extract README parts from each dir to assemble a master overview
-    master_overview = generator.extract_and_cat_overviews()
 
-    print(master_overview)  # DEBUG
+    # Extract README parts from each dir to assemble a master overview
+    master_overview = generator.extract_and_concat_overviews()
+
 
     # Write master overview to the README file
-    with open(".maintenance/generate_readme/readme_parts/overviews.md", 'w', encoding='utf-8') as readme_file:
-        readme_file.write("\n\n<!-- overview: master -->\n")
+    with open(Path(".maintenance/generate_readme/readme_parts/overviews.md"), 'w', encoding='utf-8') as readme_file:
+        readme_file.write("\n\n# Project Overviews\n")
         readme_file.write(master_overview)
 
 
