@@ -22,7 +22,8 @@ Project Structure
          +-- incar
          +-- kpoints
          +-- poscar
-         +-- potcar```
+         +-- potcar
+```
 
 
 
