@@ -10,10 +10,10 @@ If you find any issues or have suggestions, please [raise an issue](https://gith
 
 
 # Project Structure
+```
 Project Structure
  +-- scripts
      +-- Adsorbate Depositor
-     +-- Experimental
      +-- Reaction Diagram Plotter
      +-- VASP
          +-- batch
@@ -22,7 +22,8 @@ Project Structure
          +-- incar
          +-- kpoints
          +-- poscar
-         +-- potcar
+         +-- potcar```
+
 
 
 
