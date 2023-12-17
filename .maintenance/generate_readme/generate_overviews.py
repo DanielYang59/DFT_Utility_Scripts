@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: include link to child READMEs
+
+# TODO: include link to children README.md
 
 
 from pathlib import Path
@@ -78,19 +79,20 @@ class OverviewsGenerator:
 
 def generate_overviews():
     # Initialize the generator
-    generator = OverviewsGenerator(Path("../../"))
+    generator = OverviewsGenerator(Path("."))  # script should be executed right under root dir
 
     # Read the project structure file
-    generator.read_structure_file(Path("path/to/project_structure.json"))
+    generator.read_structure_file(Path(".maintenance/generate_readme/project_structure_recipe.json"))
 
     # Extract README parts from each dir to assemble a master overview
     master_overview = generator.extract_and_cat_overviews()
 
+    print(master_overview)  # DEBUG
+
     # Write master overview to the README file
-    with open("README.md", 'a', encoding='utf-8') as readme_file:
+    with open(".maintenance/generate_readme/readme_parts/overviews.md", 'w', encoding='utf-8') as readme_file:
         readme_file.write("\n\n<!-- overview: master -->\n")
         readme_file.write(master_overview)
-        readme_file.write("\n<!-- end: master -->\n")
 
 
 if __name__ == "__main__":
