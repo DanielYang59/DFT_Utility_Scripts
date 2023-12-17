@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-# TODO: include link to children README.md
+# TODO: include links to children README.md
 
 
 from pathlib import Path
@@ -28,14 +28,25 @@ class OverviewsGenerator:
         self.root_dir = Path(root_dir)
 
 
+    def _generate_final_subdirs(self) -> List[Path]:
+        # TODO:
+        final_subdirs = []
+        pass
+
+
     def read_structure_file(self, filename: Path) -> None:
-        """Read the project structure json file.
+        """Read the project structure json file and genetate paths to final subdirectories.
 
         Args:
             filename (Path): The path to the project structure JSON file.
         """
+        # Load project structure json file
         with open(filename, 'r', encoding='utf-8') as json_file:
             self.project_structure = json.load(json_file)
+
+
+        # Get final subdirectories to extract README.md
+        self.final_dirs = self._generate_final_subdirs()
 
 
     def _search_readmes(self) -> List[Path]:
