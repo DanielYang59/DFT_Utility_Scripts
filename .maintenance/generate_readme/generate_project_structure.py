@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
+# DEBUG: the structure markdown is not rendered properly on GitHub
+
+
 import json
 from pathlib import Path
 from asciitree import LeftAligned
