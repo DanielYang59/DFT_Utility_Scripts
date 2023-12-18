@@ -30,10 +30,10 @@ jobs:
 
       - name: Commit and push changes
         run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
           if ! git diff-index --quiet HEAD --; then
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git add .
             git commit -m "Update requirements.txt"
             git push
           fi
