@@ -28,16 +28,12 @@ jobs:
         run: |
           pipreqs --force .
 
-      - name: Check for changes
-        id: check_changes
-        run: |
-          git diff --exit-code || echo "Changes found"
-
       - name: Commit and push changes
-        if: steps.check_changes.outputs.result != 'Changes found'
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Update requirements.txt"
-          git push
+          if ! git diff-index --quiet HEAD --; then
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add .
+            git commit -m "Update requirements.txt"
+            git push
+          fi
