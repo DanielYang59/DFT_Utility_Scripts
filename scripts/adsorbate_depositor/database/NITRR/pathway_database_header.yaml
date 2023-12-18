@@ -46,7 +46,7 @@ pathways:
 
   pathway_2:
     reference_DOI: "10.1016/j.checat.2023.100638"
-    comment: "Another possible electrochemical NO3* reduction to NH3 pathway."
+    comment: "A possible electrochemical NO3* reduction to NH3 pathway."
     step_1:
       name: "NO3"
       POSCAR_path: "./POSCAR_NO3"
@@ -88,6 +88,50 @@ pathways:
       adsorbate_atoms: [109, 110, 111]
       reference_atoms: [109, ]
     step_9:
+      name: "NH3"
+      POSCAR_path: "./POSCAR_NH3"
+      adsorbate_atoms: [109, 110, 111, 112]
+      reference_atoms: [109, ]
+
+  pathway_3:
+    reference_DOI: "10.1002/aenm.202203201"
+    comment: "A possible electrochemical NO3* reduction to NH3 pathway."
+    step_1:
+      name: "NO3"
+      POSCAR_path: "./POSCAR_NO3"
+      adsorbate_atoms: [109, 110, 111, 112]
+      reference_atoms: [111, 112]
+    step_2:
+      name: "NO2"
+      POSCAR_path: "./POSCAR_NO2"
+      adsorbate_atoms: [109, 110, 111]
+      reference_atoms: [109, ]
+    step_3:
+      name: "NO"
+      POSCAR_path: "./POSCAR_NO"
+      adsorbate_atoms: [109, 110]
+      reference_atoms: [109, ]
+    step_4:
+      name: "NOH"
+      POSCAR_path: "./POSCAR_NOH"
+      adsorbate_atoms: [109, 110, 111]
+      reference_atoms: [109, ]
+    step_5:
+      name: "N"
+      POSCAR_path: "./POSCAR_N"
+      adsorbate_atoms: [109, ]
+      reference_atoms: [109, ]
+    step_6:
+      name: "NH"
+      POSCAR_path: "./POSCAR_NH"
+      adsorbate_atoms: [109, 110]
+      reference_atoms: [109, ]
+    step_7:
+      name: "NH2"
+      POSCAR_path: "./POSCAR_NH2"
+      adsorbate_atoms: [109, 110, 111]
+      reference_atoms: [109, ]
+    step_8:
       name: "NH3"
       POSCAR_path: "./POSCAR_NH3"
       adsorbate_atoms: [109, 110, 111, 112]
