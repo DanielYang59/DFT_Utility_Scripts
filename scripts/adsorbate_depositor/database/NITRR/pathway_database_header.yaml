@@ -58,31 +58,36 @@ pathways:
       adsorbate_atoms: [109, 110, 111]
       reference_atoms: [109, ]
     step_3:
+      name: "NO2H"
+      POSCAR_path: "./POSCAR_NO2H"
+      adsorbate_atoms: [109, 110, 111, 112]
+      reference_atoms: [109, ]
+    step_4:
       name: "NO"
       POSCAR_path: "./POSCAR_NO"
       adsorbate_atoms: [109, 110]
       reference_atoms: [109, ]
-    step_4:
+    step_5:
       name: "NOH"
       POSCAR_path: "./POSCAR_NOH"
       adsorbate_atoms: [109, 110, 111]
       reference_atoms: [109, ]
-    step_5:
+    step_6:
       name: "N"
       POSCAR_path: "./POSCAR_N"
       adsorbate_atoms: [109, ]
       reference_atoms: [109, ]
-    step_6:
+    step_7:
       name: "NH"
       POSCAR_path: "./POSCAR_NH"
       adsorbate_atoms: [109, 110]
       reference_atoms: [109, ]
-    step_7:
+    step_8:
       name: "NH2"
       POSCAR_path: "./POSCAR_NH2"
       adsorbate_atoms: [109, 110, 111]
       reference_atoms: [109, ]
-    step_8:
+    step_9:
       name: "NH3"
       POSCAR_path: "./POSCAR_NH3"
       adsorbate_atoms: [109, 110, 111, 112]
