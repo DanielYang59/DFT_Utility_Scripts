@@ -1,9 +1,9 @@
 {
    "Project Structure": {
        "scripts": {
-           "Adsorbate Depositor": {},
-           "Reaction Diagram Plotter": {},
-           "VASP": {
+           "adsorbate_depositor": {},
+           "reaction_diagram_plotter": {},
+           "vasp": {
                "batch": {},
                "dos": {},
                "general": {},
