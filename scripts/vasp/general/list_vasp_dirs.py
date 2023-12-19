@@ -30,3 +30,6 @@ def list_vasp_dirs(parent_dir: Path) ->List[Path]:
             valid_vasp_dirs.append(dir_path)
 
     return valid_vasp_dirs
+
+if __name__ == "__main__":
+    list_vasp_dirs(Path.cwd())
