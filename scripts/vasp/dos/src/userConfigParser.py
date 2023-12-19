@@ -50,7 +50,7 @@ class UserConfigParser:
         """
         # Check curve info string
         if not isinstance(curve_info, str) or len(curve_info.split()) != 17:
-            raise TypeError(f"Please check curve info line: {curve_info}.")
+            raise TypeError(f"Please double check PDOSIN line: {curve_info}.")
 
         curve_info = curve_info.split()
 
