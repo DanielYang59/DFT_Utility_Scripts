@@ -29,7 +29,7 @@ def main():
     fixer = PoscarAtomFixer(poscarfile=poscarfile)
 
     # Selection function
-    if selected_function == "1":  # fix by position range
+    if selected_function == "1. Fix atom by position range":  # fix by position range
 
         position_range = questionary.text("Please input position range as [start-end]:").ask()
 
@@ -42,13 +42,13 @@ def main():
         # Validate axis
         axis = questionary.select(
             "Choose axis:",
-            choices=["x", "y", "z"],
+            choices=["z", "y", "x"],
         ).ask()
 
         # Proceed with the input values knowing they are valid
         fixer.fix_by_position(position_range.split("-"), position_mode, axis)
 
-    elif selected_function == "2":  # fix by elements or indexes
+    elif selected_function == "2. Fix atom by elements/indexings":  # fix by elements or indexes
         selection_banner = \
         """Please input element/index selection. Rules:
             - single indexing (one-indexed): "5"
