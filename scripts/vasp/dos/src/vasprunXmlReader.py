@@ -140,6 +140,7 @@ class VasprunXmlReader:
         Raises:
             ValueError: If ion_index is less than or equal to 0 (expecting 1-indexing) or if spin_index is not 1 or 2.
             TypeError: If the specific <set> element based on ion and spin indices is not found in the XML structure.
+            RuntimeError: If the ion index or spin index finds no matching entry.
 
         Note:
         The returned array includes the energy values and pDOS data for the specified ion and spin.
@@ -160,6 +161,8 @@ class VasprunXmlReader:
 
         # Find the specific <set> element based on ion and spin indices
         specific_set_element = set_element.find(xpath_ion_spin)
+        if specific_set_element is None:
+            raise RuntimeError(f"Cannot find DOS entry for atom {ion_index} spin {spin_index}.")
 
         # Convert pDOS data block to numpy array
         r_elements = specific_set_element.findall(".//r")
