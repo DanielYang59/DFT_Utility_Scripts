@@ -28,10 +28,9 @@ def get_vasp_version(vasp_dir: Path) -> str:
         first_line = outcar_file.readline()
 
     # Search for the VASP version in the first line
-    version_match = re.search(r'\bvasp\.(\d+\.\d+\.\d+)\b', first_line, re.IGNORECASE)
-
-    if version_match:
+    if version_match  := re.search(r'\bvasp\.(\d+\.\d+\.\d+)\b', first_line, re.IGNORECASE):
         return version_match.group(1)
+
     else:
         raise ValueError(f"VASP version not found in the first line of OUTCAR under {vasp_dir}.")
 
